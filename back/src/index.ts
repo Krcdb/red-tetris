@@ -1,8 +1,9 @@
-import express from "express";
 import cors from "cors";
+import express from "express";
 import { createServer } from "http";
-import MyWebSocket from "./socket/websocket";
+
 import { middleware } from "./middlewares/middlewares";
+import MyWebSocket from "./socket/websocket";
 
 const app = express();
 app.use(cors());
