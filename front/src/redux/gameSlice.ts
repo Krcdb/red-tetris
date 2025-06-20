@@ -12,29 +12,83 @@ import {
   move as fnMove,
 } from "../utils/tetris";
 
-export type Cell = number; // 0 = empty, >0 = filled
+export type Cell = number;
 export interface GamePiece extends Piece {}
 
 interface GameState {
   board: Board;
   currentPiece: GamePiece | null;
   nextPieces: GamePiece[];
-  status: "idle" | "playing" | "gameover";
+  score: number;
+  linesCleared: number;
+  status: "idle" | "playing" | "paused" | "gameover";
 }
 
 const initialState: GameState = {
   board: initialBoard(),
   currentPiece: null,
-  nextPieces: [], // we’ll generate these in startGame
+  nextPieces: [],
+  score: 0,
+  linesCleared: 0,
   status: "idle",
 };
 
 function generatePieces(count = 5): GamePiece[] {
-  // TODO: replace with seeded RNG & all 7 tetrominos
+  const PIECES = [
+    { shape: [[1, 1, 1, 1]], x: 3, y: 0 }, // I piece
+    {
+      shape: [
+        [1, 1],
+        [1, 1],
+      ],
+      x: 3,
+      y: 0,
+    }, // O piece
+    {
+      shape: [
+        [0, 1, 0],
+        [1, 1, 1],
+      ],
+      x: 3,
+      y: 0,
+    }, // T piece
+    {
+      shape: [
+        [1, 1, 0],
+        [0, 1, 1],
+      ],
+      x: 3,
+      y: 0,
+    }, // S piece
+    {
+      shape: [
+        [0, 1, 1],
+        [1, 1, 0],
+      ],
+      x: 3,
+      y: 0,
+    }, // Z piece
+    {
+      shape: [
+        [1, 1, 1],
+        [1, 0, 0],
+      ],
+      x: 3,
+      y: 0,
+    }, // L piece
+    {
+      shape: [
+        [1, 1, 1],
+        [0, 0, 1],
+      ],
+      x: 3,
+      y: 0,
+    }, // J piece
+  ];
   const pieces: GamePiece[] = [];
   for (let i = 0; i < count; i++) {
-    // simple I-piece as example
-    pieces.push({ shape: [[1, 1, 1, 1]], x: 3, y: 0 });
+    const randomIndex = Math.floor(Math.random() * PIECES.length);
+    pieces.push(PIECES[randomIndex]);
   }
   return pieces;
 }
@@ -64,6 +118,16 @@ const slice = createSlice({
       state.nextPieces = nextPieces;
       state.status = status;
     },
+    pauseGame(state) {
+      if (state.status === "playing") {
+        state.status = "paused";
+      }
+    },
+    resumeGame(state) {
+      if (state.status === "paused") {
+        state.status = "playing";
+      }
+    },
 
     movePiece(state, action: PayloadAction<{ dx: number; dy: number }>) {
       if (!state.currentPiece) return;
@@ -89,24 +153,54 @@ const slice = createSlice({
       if (dropped !== state.currentPiece) {
         state.currentPiece = dropped;
       } else {
-        // can't drop further → lock
         state.board = mergePiece(state.board, state.currentPiece);
         const [cleared, lines] = clearLines(state.board);
         state.board = cleared;
-        // spawn next
+        if (state.nextPieces.length < 3) {
+          state.nextPieces.push(...generatePieces(10));
+        }
         state.currentPiece = state.nextPieces.shift() || null;
-        if (!state.currentPiece) state.status = "gameover";
+        if (
+          state.currentPiece !== null &&
+          !isValidPosition(state.board, state.currentPiece)
+        ) {
+          state.status = "gameover";
+        }
       }
     },
 
     hardDrop(state) {
       if (!state.currentPiece) return;
+
       const dropped = fnHardDrop(state.board, state.currentPiece);
       state.board = mergePiece(state.board, dropped);
-      const [cleared] = clearLines(state.board);
-      state.board = cleared;
+
+      const [newBoard, linesCleared] = clearLines(state.board);
+      state.board = newBoard;
+      state.score += linesCleared * 100 + (linesCleared >= 4 ? 400 : 0);
+
+      if (state.nextPieces.length < 3) {
+        state.nextPieces.push(...generatePieces(10));
+      }
+
       state.currentPiece = state.nextPieces.shift() || null;
-      if (!state.currentPiece) state.status = "gameover";
+
+      if (
+        state.currentPiece !== null &&
+        !isValidPosition(state.board, state.currentPiece)
+      ) {
+        state.status = "gameover";
+      }
+    },
+
+    clearLines(state) {
+      const [newBoard, linesCleared] = clearLines(state.board);
+      state.board = newBoard;
+      state.linesCleared += linesCleared;
+      state.score += linesCleared * 100;
+      if (linesCleared >= 4) {
+        state.score += 400;
+      }
     },
 
     endGame(state) {
@@ -117,12 +211,14 @@ const slice = createSlice({
 
 export const {
   startGame,
+  setGameState,
+  pauseGame,
+  resumeGame,
   movePiece,
   rotatePiece,
   softDrop,
   hardDrop,
   endGame,
-  setGameState,
 } = slice.actions;
 
 export default slice.reducer;

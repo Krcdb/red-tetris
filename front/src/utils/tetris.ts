@@ -6,7 +6,7 @@ export function initialBoard(): Board {
 }
 
 export interface Piece {
-  shape: Cell[][]; // 2D matrix, e.g. [[1,1,1,1]]
+  shape: Cell[][];
   x: number;
   y: number;
 }
@@ -14,7 +14,6 @@ export interface Piece {
 export function rotate(shape: Cell[][]): Cell[][] {
   const rows = shape.length;
   const cols = shape[0].length;
-  // new matrix of size cols×rows
   const rotated: Cell[][] = Array.from({ length: cols }, () =>
     Array(rows).fill(0)
   );
@@ -41,11 +40,11 @@ export function isValidPosition(board: Board, piece: Piece): boolean {
       if (shape[y][x] === 0) continue;
       const by = py + y;
       const bx = px + x;
-      // out of bounds?
+      // out of bounds
       if (by < 0 || by >= board.length || bx < 0 || bx >= board[0].length) {
         return false;
       }
-      // collision?
+      // collision
       if (board[by][bx] !== 0) {
         return false;
       }
@@ -86,12 +85,13 @@ export function mergePiece(board: Board, piece: Piece): Board {
 }
 
 export function clearLines(board: Board): [Board, number] {
-  const newRows: Cell[][] = board.filter((row) =>
-    row.some((cell) => cell === 0)
-  );
+  const newRows = board.filter((row) => row.some((cell) => cell === 0));
   const linesCleared = board.length - newRows.length;
   const emptyRows = Array.from({ length: linesCleared }, () =>
     Array(board[0].length).fill(0)
   );
-  return [emptyRows.concat(newRows), linesCleared];
+
+  const newBoard = emptyRows.concat(newRows);
+
+  return [newBoard, linesCleared];
 }
