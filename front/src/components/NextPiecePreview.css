@@ -1,0 +1,17 @@
+.next-piece-preview {
+  display: grid;
+  grid-template-columns: repeat(4, 20px);
+  grid-template-rows: repeat(4, 20px);
+  gap: 2px;
+  background: #111;
+  padding: 4px;
+  border: 2px solid #333;
+  border-radius: 4px;
+}
+
+.preview-cell {
+  width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  border: 1px solid #000;
+}
