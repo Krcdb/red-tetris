@@ -2,13 +2,14 @@ import { Server as HTTPServer } from "http";
 import { ServerOptions, Socket, Server as SocketIOServer } from "socket.io";
 
 import { registerMatchHanlder } from "./events/match.events";
+import { ClientToServerEvents, ServerToClientEvents } from "../types/socket-event";
 
 const WEBSOCKET_CORS = {
   methods: ["GET", "POST"],
   origin: "*",
 };
 
-class MyWebSocket extends SocketIOServer {
+class MyWebSocket extends SocketIOServer<ClientToServerEvents, ServerToClientEvents> {
   private static io: MyWebSocket;
 
   constructor(httpServer: HTTPServer) {
@@ -36,11 +37,6 @@ class MyWebSocket extends SocketIOServer {
       console.log(`🟢 Client connected: ${socket.id}`);
 
       registerMatchHanlder(this, socket);
-
-      socket.on("message", (data) => {
-        console.log(`📩 Message from ${socket.id}:`, data);
-        this.emit("message", data);
-      });
 
       socket.on("disconnect", () => {
         console.log(`🔴 Client disconnected: ${socket.id}`);
