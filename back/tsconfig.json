@@ -1,7 +1,7 @@
 {
   "extends": "@tsconfig/node22/tsconfig.json",
   "compilerOptions": {
-     "outDir": "./dist",
+    "outDir": "./dist",
     "rootDir": "./src",
     "moduleResolution": "node",
     "module": "ESNext",
@@ -11,6 +11,6 @@
     "strict": true,
     "skipLibCheck": true
   },
-  "include": ["src"],
+  "include": ["src", "src/types"],
   "exclude": ["dist"]
 }

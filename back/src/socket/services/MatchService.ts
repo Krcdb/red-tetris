@@ -1,45 +1,36 @@
+import { Match } from "../../types/match";
+import { Player } from "../../types/player";
 import { getLogger } from "../../utils/Logger";
 
-interface Player {
-  name: string
-}
-
-interface Match {
-  roomName: string,
-  player: Player[]
-}
-
-interface Matchs {
-  [key: string]: Match
-}
+type Matchs = Record<string, Match>;
 
 class MatchService {
   matchs: Matchs;
 
-  private logger = getLogger("MatchService")
+  private logger = getLogger("MatchService");
 
   constructor() {
-    this.matchs = {}
+    this.matchs = {};
   }
 
-  playerJoin(player: string, room: string) {
-    this.logger.info(`player ${player} try to join room ${room}`)
+  playerJoin(player: Player, room: string) {
+    this.logger.info(`player ${player} try to join room ${room}`);
     if (!this.matchs[room]) {
       this.logger.info(`the room ${room} does not exist, new one is created`);
       this.matchs[room] = {
+        player: [],
         roomName: room,
-        player: []
-      }
+      };
     }
-    if (this.matchs[room].player.find((elem) => elem.name === player )) {
+    if (this.matchs[room].player.find((elem) => elem.name === player.name)) {
       this.logger.info(`player name  ${player} is already taken`);
     } else {
-      this.matchs[room].player.push({name: player});
+      this.matchs[room].player.push({ name: player.name });
     }
     this.logger.info(`player ${player} as joined the room | There is currently ${this.matchs[room].player.length} player in the room`);
   }
 
-  playerLeave(player: string, room: string) {
+  playerLeave(player: Player, room: string) {
     const match = this.matchs[room];
 
     if (!match) {
@@ -48,14 +39,14 @@ class MatchService {
     }
 
     const beforeCount = match.player.length;
-    match.player = match.player.filter(p => p.name !== player);
+    match.player = match.player.filter((p) => p.name !== player.name);
 
     const afterCount = match.player.length;
 
     if (beforeCount === afterCount) {
-      this.logger.warn(`Player ${player} was not found in room ${room}`);
+      this.logger.warn(`Player ${player.name} was not found in room ${room}`);
     } else {
-      this.logger.info(`Player ${player} left room ${room}`);
+      this.logger.info(`Player ${player.name} left room ${room}`);
     }
 
     if (match.player.length === 0) {

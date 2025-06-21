@@ -1,5 +1,6 @@
 // sum.spec.ts
 import { describe, expect, it } from "vitest";
+
 import { sum } from "../utils/sum";
 
 describe("sum function", () => {
