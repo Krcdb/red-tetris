@@ -14,7 +14,7 @@ class MatchService {
   }
 
   playerJoin(player: Player, room: string) {
-    this.logger.info(`player ${player} try to join room ${room}`);
+    this.logger.info(`player ${player.name} try to join room ${room}`);
     if (!this.matchs[room]) {
       this.logger.info(`the room ${room} does not exist, new one is created`);
       this.matchs[room] = {
@@ -23,11 +23,11 @@ class MatchService {
       };
     }
     if (this.matchs[room].player.find((elem) => elem.name === player.name)) {
-      this.logger.info(`player name  ${player} is already taken`);
+      this.logger.info(`player name  ${player.name} is already taken`);
     } else {
       this.matchs[room].player.push({ name: player.name });
     }
-    this.logger.info(`player ${player} as joined the room | There is currently ${this.matchs[room].player.length} player in the room`);
+    this.logger.info(`player ${player.name} as joined the room | There is currently ${this.matchs[room].player.length} player in the room`);
   }
 
   playerLeave(player: Player, room: string) {
