@@ -1,6 +1,6 @@
-import { Match } from "../../types/match";
-import { Player } from "../../types/player";
-import { getLogger } from "../../utils/Logger";
+import { Match } from "../../types/match.js";
+import { Player } from "../../types/player.js";
+import { getLogger } from "../../utils/Logger.js";
 
 type Matchs = Record<string, Match>;
 

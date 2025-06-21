@@ -1,8 +1,8 @@
 import { Server as HTTPServer } from "http";
 import { ServerOptions, Socket, Server as SocketIOServer } from "socket.io";
 
-import { registerMatchHanlder } from "./events/match.events";
-import { ClientToServerEvents, ServerToClientEvents } from "../types/socket-event";
+import { registerMatchHanlder } from "./events/match.events.js";
+import { ClientToServerEvents, ServerToClientEvents } from "../types/socket-event.js";
 
 const WEBSOCKET_CORS = {
   methods: ["GET", "POST"],

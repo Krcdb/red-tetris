@@ -1,9 +1,9 @@
 import { Socket } from "socket.io";
 
-import { getLogger, logger } from "../../utils/Logger";
-import { matchService } from "../services/MatchService";
-import MyWebSocket from "../websocket";
-import { ClientToServerEvents, ServerToClientEvents } from "../../types/socket-event";
+import { getLogger, logger } from "../../utils/Logger.js";
+import { matchService } from "../services/MatchService.js";
+import MyWebSocket from "../websocket.js";
+import { ClientToServerEvents, ServerToClientEvents } from "../../types/socket-event.js";
 
 export function registerMatchHanlder(io: MyWebSocket, socket: Socket<ClientToServerEvents, ServerToClientEvents>) {
   const context = "MatchHandler";
