@@ -6,7 +6,7 @@ import { middleware } from "./middlewares/middlewares";
 
 const app = express();
 app.use(cors());
-const port = process.env.PORT ?? "9001";
+const port = process.env.PORT ?? "4000";
 
 const httpServer = createServer(app);
 const io = MyWebSocket.getInstance(httpServer);
