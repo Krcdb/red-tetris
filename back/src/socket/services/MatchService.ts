@@ -1,15 +1,7 @@
+import { Match } from "../../types/match";
 import { getLogger } from "../../utils/Logger";
 
-interface Match {
-  player: Player[];
-  roomName: string;
-}
-
 type Matchs = Record<string, Match>;
-
-interface Player {
-  name: string;
-}
 
 class MatchService {
   matchs: Matchs;
