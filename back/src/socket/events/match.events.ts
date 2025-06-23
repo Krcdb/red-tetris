@@ -22,8 +22,8 @@ export function registerMatchHanlder(io: MyWebSocket, socket: Socket<ClientToSer
     const { player, room } = data;
 
     matchService.playerLeave(player, room);
-    socket.leave(room);
     io.to(room).emit("match:playerHasLeft", player);
+    socket.leave(room);
   });
 
   logger.info("match handler registered");
