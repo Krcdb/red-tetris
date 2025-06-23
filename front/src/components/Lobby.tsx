@@ -55,6 +55,3 @@ const Lobby: React.FC = () => {
 };
 
 export default Lobby;
-
-
-// Note: The server must emit a 'playerList' event with the current names array whenever someone joins or leaves.

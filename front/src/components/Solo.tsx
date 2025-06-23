@@ -2,7 +2,7 @@ import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../redux/store";
 import { startGame, pauseGame, resumeGame } from "../redux/gameSlice";
-import { useLocalGame } from "../hooks/useLocalGame";
+import { useGame } from "../hooks/useGame";
 import Board from "./Board";
 import { NextPiecePreview } from "./NextPiecePreview";
 
@@ -10,7 +10,7 @@ const Solo: React.FC = () => {
   const dispatch = useDispatch();
   const status = useSelector((s: RootState) => s.game.status);
   const score = useSelector((s: RootState) => s.game.score);
-  useLocalGame();
+  useGame();
 
   const renderGameUI = () => (
     <div
@@ -33,7 +33,6 @@ const Solo: React.FC = () => {
         <Board />
       </div>
 
-      {/* Next-piece preview to the side */}
       <div>
         <h4>Next</h4>
         <NextPiecePreview />

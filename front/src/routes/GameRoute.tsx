@@ -1,49 +1,71 @@
-// src/routes/GameRoute.tsx
 import { useParams } from "react-router-dom";
 import { useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import socket from "../utils/socket";
-import TetrisBoard from "../components/Board";
-import { calculateSpectre } from "../utils/calculateSpectre";
+import Board from "../components/Board";
+import { NextPiecePreview } from "../components/NextPiecePreview";
+import { useGame } from "../hooks/useGame";
 import type { RootState } from "../redux/store";
+import { startGame, pauseGame, resumeGame } from "../redux/gameSlice";
 
 export default function GameRoute() {
+  const dispatch = useDispatch();
   const { room, playerName } = useParams<{
     room: string;
     playerName: string;
   }>();
 
-  // Grab the current board and how many lines were cleared
-  const board = useSelector((s: RootState) => s.game.board);
-  const linesCleared = useSelector((s: RootState) => s.game.linesCleared);
+  useGame();
 
-  // Listen for lobby events
+  const status = useSelector((s: RootState) => s.game.status);
+  const score = useSelector((s: RootState) => s.game.score);
+
   useEffect(() => {
-    socket.on("match:playerHasJoin", (p) =>
-      console.log(p.name, "joined the game")
-    );
-    socket.on("match:playerHasLeft", (p) =>
-      console.log(p.name, "left the game")
-    );
+    if (!room || !playerName) return;
+
+    socket.connect();
+    socket.emit("match:playerJoin", {
+      player: { name: playerName },
+      room,
+    });
+
+    dispatch(startGame());
 
     return () => {
-      socket.off("match:playerHasJoin");
-      socket.off("match:playerHasLeft");
-    };
-  }, []);
-
-  // **Emit** whenever linesCleared > 0 *after* your reducer has run
-  useEffect(() => {
-    if (linesCleared > 0 && room && playerName) {
-      const spectre = calculateSpectre(board);
-      socket.emit("match:update", {
+      socket.emit("match:playerLeft", {
         player: { name: playerName },
         room,
-        clearedLines: linesCleared,
-        spectre,
       });
-    }
-  }, [linesCleared, board, room, playerName]);
+      socket.disconnect();
+    };
+  }, [dispatch, room, playerName]);
 
-  return <TetrisBoard room={room!} playerName={playerName!} socket={socket} />;
+  const renderGameUI = () => (
+    <div style={{ display: "flex", justifyContent: "center", gap: "2rem" }}>
+      <div>
+        <Board room={room!} playerName={playerName!} socket={socket} />
+      </div>
+      <div>
+        <h3>Score: {score}</h3>
+        <h3>Next</h3>
+        <NextPiecePreview />
+        {status === "playing" && (
+          <button onClick={() => dispatch(pauseGame())}>Pause</button>
+        )}
+        {status === "paused" && (
+          <button onClick={() => dispatch(resumeGame())}>Resume</button>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ textAlign: "center", marginTop: "2rem" }}>
+      {status === "idle" && (
+        <button onClick={() => dispatch(startGame())}>Start Game</button>
+      )}
+      {(status === "playing" || status === "paused") && renderGameUI()}
+      {status === "gameover" && <div>Game Over</div>}
+    </div>
+  );
 }

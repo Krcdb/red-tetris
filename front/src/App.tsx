@@ -1,4 +1,9 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  HashRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import Home from "./components/Home";
 import Solo from "./components/Solo";
 import LobbyRoute from "./routes/LobbyRoute";
@@ -33,7 +38,7 @@ export default function App() {
   }, []);
 
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/solo" element={<Solo />} />
@@ -41,6 +46,6 @@ export default function App() {
         <Route path="/:room/:playerName/game" element={<GameRoute />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }

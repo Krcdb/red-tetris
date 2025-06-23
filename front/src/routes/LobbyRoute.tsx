@@ -17,11 +17,9 @@ export default function LobbyRoute() {
   useEffect(() => {
     if (!room || !playerName) return;
 
-    // 1) Connect & join
     socket.connect();
     socket.emit("match:playerJoin", { player: { name: playerName }, room });
 
-    // 2) Listen for others joining/leaving
     socket.on("match:playerHasJoin", (p: Player) =>
       setPlayers((ps) => (ps.find((x) => x.name === p.name) ? ps : [...ps, p]))
     );
@@ -29,7 +27,6 @@ export default function LobbyRoute() {
       setPlayers((ps) => ps.filter((x) => x.name !== p.name))
     );
 
-    // 3) Clean up on exit
     return () => {
       socket.emit("match:playerLeft", { player: { name: playerName }, room });
       socket.disconnect();
@@ -37,7 +34,6 @@ export default function LobbyRoute() {
   }, [room, playerName]);
 
   const startGame = () => {
-    // e.g. navigate to /:room/:playerName/game
     navigate(`/${room}/${playerName}/game`);
   };
 
