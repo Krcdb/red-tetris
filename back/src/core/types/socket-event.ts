@@ -1,10 +1,15 @@
 import { Socket } from "socket.io";
+import { Player } from "./player";
 
 export type CustomeSocket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
 
 export interface ClientToServerEvents {
   "match:playerJoin": (data: { playerName: string; room: string }) => void;
   "match:playerLeft": (data: { playerName: string; room: string }) => void;
+
+  "game:start": (data: { room: string }) => void;
+  "game:end": (data: { room: string }) => void;
+  "game:playerInputChanges": (data: { room: string, player: Player}) => void;
 }
 
 export interface ServerToClientEvents {

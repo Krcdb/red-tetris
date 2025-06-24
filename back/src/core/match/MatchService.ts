@@ -1,8 +1,7 @@
-import { Socket } from "socket.io";
 import { Match } from "../types/match.js";
-import { Player } from "../types/player.js";
 import { getLogger } from "../utils/Logger.js";
 import { CustomeSocket } from "../types/socket-event.js";
+import MyWebSocket from "../socket/websocket.js";
 
 type Matchs = Record<string, Match>;
 
@@ -17,8 +16,15 @@ class MatchService {
 
   playerJoin(playerName: string, room: string, socket: CustomeSocket) {
     this.logger.info(`player ${playerName} try to join room ${room}`);
+
     if (socket.data.currentRoom !== undefined) {
-      this.playerLeave(playerName, room, socket)
+      const oldPlayerName = socket.data.playerName!;
+      const oldRoom = socket.data.currentRoom;
+      this.logger.info(`player ${oldPlayerName} is already in ${oldRoom}`);
+      this.playerLeave(oldPlayerName, oldRoom, socket);
+      const io = MyWebSocket.getInstance();
+      io.to(oldRoom).emit("match:playerHasLeft", oldPlayerName);
+      socket.leave(oldRoom);
     }
     if (!this.matchs[room]) {
       this.logger.info(`the room ${room} does not exist, new one is created`);
@@ -31,7 +37,17 @@ class MatchService {
       this.logger.info(`player name  ${playerName} is already taken`);
       throw new Error("Name already taken")
     } else {
-      this.matchs[room].player.push({name: playerName});
+      this.matchs[room].player.push({
+        name: playerName,
+        inputs: {
+          up: false,
+          left: false,
+          right: false,
+          down: false,
+          space: false,
+          spaceHasBeenCounted: false,
+          upHasBeenCounted:false,
+        }});
     }
     socket.data.currentRoom = room;
     socket.data.playerName = playerName;
@@ -43,6 +59,7 @@ class MatchService {
     const match = this.matchs[room];
 
     if (!match) {
+      this.logger.info(`room ${room} not found for deletion`)
       return;
     }
 
@@ -55,7 +72,8 @@ class MatchService {
       this.logger.warn(`Player ${playerName} was not found in room ${room}`);
     } else {
       this.logger.info(`Player ${playerName} left room ${room}`);
-      socket.data.currentRoom = undefined
+      socket.data.currentRoom = undefined;
+      socket.data.playerName = undefined;
     }
 
     if (match.player.length === 0) {
