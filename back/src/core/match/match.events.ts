@@ -13,8 +13,6 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
     
     try {
       matchService.playerJoin(playerName, room, socket);
-      logger.info("ok");
-      
     } catch (e) {
       io.to(socket.id).emit("match:nameTaken", playerName);
       logger.info("name taken");

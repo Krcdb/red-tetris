@@ -10,5 +10,4 @@ export interface PlayerInputs {
 
 export interface Player {
   name: string;
-  inputs: PlayerInputs;
 }

@@ -37,17 +37,7 @@ class MatchService {
       this.logger.info(`player name  ${playerName} is already taken`);
       throw new Error("Name already taken")
     } else {
-      this.matchs[room].player.push({
-        name: playerName,
-        inputs: {
-          up: false,
-          left: false,
-          right: false,
-          down: false,
-          space: false,
-          spaceHasBeenCounted: false,
-          upHasBeenCounted:false,
-        }});
+      this.matchs[room].player.push({name: playerName});
     }
     socket.data.currentRoom = room;
     socket.data.playerName = playerName;

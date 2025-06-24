@@ -2,11 +2,8 @@ import { describe, it, expect, beforeEach, vi, beforeAll } from "vitest"
 import { createServer, Server } from "http"
 import { io as Client, Socket as ClientSocket } from "socket.io-client"
 import { matchService } from "../../core/match/MatchService"
-import { Player } from "../../core/types/player"
 import { matchTest } from "../data"
 import MyWebSocket from "../../core/socket/websocket"
-import { CustomeSocket } from "../../core/types/socket-event"
-import { Socket } from "socket.io"
 
 describe("MatchService", () => {
   let httpServer: Server, wsServer: MyWebSocket, clientSocket: ClientSocket;
