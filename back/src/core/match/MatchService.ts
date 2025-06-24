@@ -2,6 +2,7 @@ import { Socket } from "socket.io";
 import { Match } from "../types/match.js";
 import { Player } from "../types/player.js";
 import { getLogger } from "../utils/Logger.js";
+import { CustomeSocket } from "../types/socket-event.js";
 
 type Matchs = Record<string, Match>;
 
@@ -14,8 +15,11 @@ class MatchService {
     this.matchs = {};
   }
 
-  playerJoin(player: Player, room: string) {
-    this.logger.info(`player ${player.name} try to join room ${room}`);
+  playerJoin(playerName: string, room: string, socket: CustomeSocket) {
+    this.logger.info(`player ${playerName} try to join room ${room}`);
+    if (socket.data.currentRoom !== undefined) {
+      this.playerLeave(playerName, room, socket)
+    }
     if (!this.matchs[room]) {
       this.logger.info(`the room ${room} does not exist, new one is created`);
       this.matchs[room] = {
@@ -23,31 +27,35 @@ class MatchService {
         roomName: room,
       };
     }
-    if (this.matchs[room].player.find((elem) => elem.name === player.name)) {
-      this.logger.info(`player name  ${player.name} is already taken`);
+    if (this.matchs[room].player.find((elem) => elem.name === playerName)) {
+      this.logger.info(`player name  ${playerName} is already taken`);
+      throw new Error("Name already taken")
     } else {
-      this.matchs[room].player.push(player);
+      this.matchs[room].player.push({name: playerName});
     }
-    this.logger.info(`player ${player.name} as joined the room | There is currently ${this.matchs[room].player.length} player in the room`);
+    socket.data.currentRoom = room;
+    socket.data.playerName = playerName;
+
+    this.logger.info(`player ${playerName} as joined the room | There is currently ${this.matchs[room].player.length} player in the room`);
   }
 
-  playerLeave(player: Player, room: string) {
+  playerLeave(playerName: string, room: string, socket: CustomeSocket) {
     const match = this.matchs[room];
 
     if (!match) {
-      this.logger.warn(`Room ${room} does not exist`);
       return;
     }
 
     const beforeCount = match.player.length;
-    match.player = match.player.filter((p) => p.name !== player.name);
+    match.player = match.player.filter((p) => p.name !== playerName);
 
     const afterCount = match.player.length;
 
     if (beforeCount === afterCount) {
-      this.logger.warn(`Player ${player.name} was not found in room ${room}`);
+      this.logger.warn(`Player ${playerName} was not found in room ${room}`);
     } else {
-      this.logger.info(`Player ${player.name} left room ${room}`);
+      this.logger.info(`Player ${playerName} left room ${room}`);
+      socket.data.currentRoom = undefined
     }
 
     if (match.player.length === 0) {

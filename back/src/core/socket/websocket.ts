@@ -1,15 +1,16 @@
 import { Server as HTTPServer } from "http";
 import { Socket, Server as SocketIOServer } from "socket.io";
 
-import { ClientToServerEvents, ServerToClientEvents } from "../types/socket-event.js";
+import { ClientToServerEvents, CustomeSocket, InterServerEvents, ServerToClientEvents, SocketData } from "../types/socket-event.js";
 import { registerMatchHanlder } from "../match/match.events.js";
+import { matchService } from "../match/MatchService.js";
 
 const WEBSOCKET_CORS = {
   methods: ["GET", "POST"],
   origin: "*",
 };
 
-class MyWebSocket extends SocketIOServer<ClientToServerEvents, ServerToClientEvents> {
+class MyWebSocket extends SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData> {
   private static io: MyWebSocket;
 
   constructor(httpServer: HTTPServer) {
@@ -33,12 +34,15 @@ class MyWebSocket extends SocketIOServer<ClientToServerEvents, ServerToClientEve
   }
 
   private setupListeners() {
-    this.on("connection", (socket: Socket) => {
+    this.on("connection", (socket: CustomeSocket) => {
       console.log(`🟢 Client connected: ${socket.id}`);
 
       registerMatchHanlder(this, socket);
 
       socket.on("disconnect", () => {
+        if (socket.data.currentRoom !== undefined && socket.data.playerName !== undefined) {
+          matchService.playerLeave(socket.data.playerName, socket.data.currentRoom, socket)
+        }
         console.log(`🔴 Client disconnected: ${socket.id}`);
       });
     });

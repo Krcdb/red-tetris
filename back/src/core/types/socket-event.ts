@@ -1,4 +1,6 @@
-import { Player } from "./player";
+import { Socket } from "socket.io";
+
+export type CustomeSocket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
 
 export interface ClientToServerEvents {
   "match:playerJoin": (data: { playerName: string; room: string }) => void;
@@ -6,6 +8,16 @@ export interface ClientToServerEvents {
 }
 
 export interface ServerToClientEvents {
-  "match:playerHasJoin": (player: Player) => void;
-  "match:playerHasLeft": (player: Player) => void;
+  "match:playerHasJoin": (playerName: string) => void;
+  "match:playerHasLeft": (playerName: string) => void;
+  "match:nameTaken": (playerName: string) => void;
+}
+
+export interface InterServerEvents {
+  ping: () => void;
+}
+
+export interface SocketData {
+  playerName?: string,
+  currentRoom?: string
 }

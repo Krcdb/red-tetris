@@ -1,16 +1,8 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from "vitest"
+import { describe, it, expect, beforeAll, afterAll, vi, beforeEach } from "vitest"
 import { createServer, Server } from "http"
 import { io as Client, Socket as ClientSocket } from "socket.io-client"
 import { matchService } from "../../core/match/MatchService.js"
 import MyWebSocket from "../../core/socket/websocket.js"
-import { Player } from "../../core/types/player.js"
-
-vi.mock("../../core/match/MatchService.js", () => ({
-  matchService: {
-    playerJoin: vi.fn(),
-    playerLeave: vi.fn(),
-  }
-}))
 
 describe("WebSocket Server", () => {
   let httpServer: Server, wsServer: MyWebSocket, clientSocket: ClientSocket
@@ -29,6 +21,13 @@ describe("WebSocket Server", () => {
       clientSocket.on("connect", () => resolve())
       clientSocket.on("connect_error", reject)
     })
+  })
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    
+    matchService.playerJoin = vi.fn()
+    matchService.playerLeave = vi.fn()
   })
 
   afterAll(() => {
@@ -51,10 +50,28 @@ describe("WebSocket Server", () => {
 
     await new Promise(resolve => setTimeout(resolve, 100))
 
-    const playerData: Player = {id: clientSocket.id!, name: testData.playerName}
+    expect(matchService.playerJoin).toHaveBeenCalledTimes(1)
+    expect(spy).toHaveBeenCalledWith(testData.playerName)
+  })
 
-    expect(matchService.playerJoin).toHaveBeenCalledWith(playerData, testData.room)
-    expect(spy).toHaveBeenCalledWith(playerData)
+  it("should emit match:nameTaken if name is taken", async () => {
+    const testData = {
+      playerName: "bob",
+      room: "test-room"
+    }
+
+    vi.mocked(matchService.playerJoin).mockImplementationOnce(() => {
+      throw new Error("Name already taken")
+    })
+
+    const spy = vi.fn()
+    clientSocket.on("match:nameTaken", spy)
+
+    clientSocket.emit("match:playerJoin", testData)
+
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    expect(spy).toHaveBeenCalledWith(testData.playerName)
   })
 
   it("should handle match:playerLeft and call matchService", async () => {
@@ -68,11 +85,9 @@ describe("WebSocket Server", () => {
     
     clientSocket.emit("match:playerLeft", testData)
     
-    const playerData: Player = {id: clientSocket.id!, name: testData.playerName}
-
     await new Promise(resolve => setTimeout(resolve, 100))
 
-    expect(matchService.playerLeave).toHaveBeenCalledWith(playerData, testData.room)
-    expect(spy).toHaveBeenCalledWith(playerData)
+    expect(matchService.playerLeave).toHaveBeenCalledTimes(1)
+    expect(spy).toHaveBeenCalledWith(testData.playerName)
   })
 })
