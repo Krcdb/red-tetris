@@ -1,8 +1,8 @@
 import { Player } from "./player";
 
 export interface ClientToServerEvents {
-  "match:playerJoin": (data: { player: Player; room: string }) => void;
-  "match:playerLeft": (data: { player: Player; room: string }) => void;
+  "match:playerJoin": (data: { playerName: string; room: string }) => void;
+  "match:playerLeft": (data: { playerName: string; room: string }) => void;
 }
 
 export interface ServerToClientEvents {

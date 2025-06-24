@@ -1,6 +1,7 @@
-import { Match } from "../../types/match.js";
-import { Player } from "../../types/player.js";
-import { getLogger } from "../../utils/Logger.js";
+import { Socket } from "socket.io";
+import { Match } from "../types/match.js";
+import { Player } from "../types/player.js";
+import { getLogger } from "../utils/Logger.js";
 
 type Matchs = Record<string, Match>;
 
@@ -25,7 +26,7 @@ class MatchService {
     if (this.matchs[room].player.find((elem) => elem.name === player.name)) {
       this.logger.info(`player name  ${player.name} is already taken`);
     } else {
-      this.matchs[room].player.push({ name: player.name });
+      this.matchs[room].player.push(player);
     }
     this.logger.info(`player ${player.name} as joined the room | There is currently ${this.matchs[room].player.length} player in the room`);
   }

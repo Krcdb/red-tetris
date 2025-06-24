@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest"
-import { matchService } from "../../../socket/services/MatchService"
-import { Player } from "../../../types/player"
+import { matchService } from "../../core/match/MatchService"
+import { Player } from "../../core/types/player"
 
 describe("MatchService", () => {
-  const player1: Player = { name: "Alice" }
-  const player2: Player = { name: "Bob" }
+  const player1: Player = { id: "1", name: "Alice" }
+  const player2: Player = { id: "2", name: "Bob" }
 
   beforeEach(() => {
     matchService.matchs = {}
