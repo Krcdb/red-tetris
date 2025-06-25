@@ -1,4 +1,3 @@
-
 import { CustomeSocket } from "../types/socket-event.js";
 import { getLogger } from "../utils/Logger.js";
 import { matchService } from "./MatchService.js";
@@ -10,13 +9,13 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
 
   socket.on("match:playerJoin", (data) => {
     const { playerName, room } = data;
-    
+
     try {
       matchService.playerJoin(playerName, room, socket);
     } catch (e) {
       io.to(socket.id).emit("match:nameTaken", playerName);
       logger.info("name taken");
-      return ;
+      return;
     }
     socket.join(room);
     io.to(room).emit("match:playerHasJoin", playerName);
@@ -30,11 +29,22 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
     socket.leave(room);
   });
 
+  // socket.on("match:startGame", (data) => {
+  //   const { room } = data;
+
+  //   matchService.startGame(room);
+  // });
   socket.on("match:startGame", (data) => {
     const { room } = data;
+    logger.info(`🚀 Start game requested for room: ${room}`);
 
-    matchService.startGame(room);
-  })
+    try {
+      matchService.startGame(room);
+      logger.info(`✅ Successfully called matchService.startGame for room: ${room}`);
+    } catch (error) {
+      logger.error(`❌ Error calling matchService.startGame for room ${room}:`, error);
+    }
+  });
 
   logger.info("match handler registered");
 }

@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { io, Socket } from "socket.io-client";
 import { useDispatch } from "react-redux";
-import { setGameState } from "../redux/gameSlice";
 
 export function useSocket() {
   const dispatch = useDispatch();
@@ -15,10 +14,6 @@ export function useSocket() {
     socket.connect();
 
     socket.emit("joinRoom", { room, playerName });
-
-    socket.on("gameState", (payload) => {
-      dispatch(setGameState(payload));
-    });
 
     socket.on("roomFull", () => {
       alert("Room is full. Redirecting you home.");

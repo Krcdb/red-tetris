@@ -13,15 +13,20 @@ import {
 } from "../utils/tetris";
 
 export type Cell = number;
-export interface GamePiece extends Piece {}
+export interface GamePiece extends Piece {
+  type?: string; // Add this line
+  color?: number; // Add this line too if it's missing
+}
 
 interface GameState {
   board: Board;
   currentPiece: GamePiece | null;
-  nextPieces: GamePiece[];
+  nextPieces: GamePiece[]; // Always comes from server
   score: number;
   linesCleared: number;
   status: "idle" | "playing" | "paused" | "gameover";
+  gameMode: "solo" | "multiplayer";
+  needsNextPiece: boolean; // Flag to indicate we need a new piece from server
 }
 
 const initialState: GameState = {
@@ -31,108 +36,88 @@ const initialState: GameState = {
   score: 0,
   linesCleared: 0,
   status: "idle",
+  gameMode: "solo",
+  needsNextPiece: false,
 };
 
-function generatePieces(count = 5): GamePiece[] {
-  const PIECES = [
-    { shape: [[1, 1, 1, 1]], x: 3, y: 0 }, // I piece
-    {
-      shape: [
-        [1, 1],
-        [1, 1],
-      ],
-      x: 3,
-      y: 0,
-    }, // O piece
-    {
-      shape: [
-        [0, 1, 0],
-        [1, 1, 1],
-      ],
-      x: 3,
-      y: 0,
-    }, // T piece
-    {
-      shape: [
-        [1, 1, 0],
-        [0, 1, 1],
-      ],
-      x: 3,
-      y: 0,
-    }, // S piece
-    {
-      shape: [
-        [0, 1, 1],
-        [1, 1, 0],
-      ],
-      x: 3,
-      y: 0,
-    }, // Z piece
-    {
-      shape: [
-        [1, 1, 1],
-        [1, 0, 0],
-      ],
-      x: 3,
-      y: 0,
-    }, // L piece
-    {
-      shape: [
-        [1, 1, 1],
-        [0, 0, 1],
-      ],
-      x: 3,
-      y: 0,
-    }, // J piece
-  ];
-  const pieces: GamePiece[] = [];
-  for (let i = 0; i < count; i++) {
-    const randomIndex = Math.floor(Math.random() * PIECES.length);
-    pieces.push(PIECES[randomIndex]);
-  }
-  return pieces;
-}
+// Helper function for piece landing logic
+const handlePieceLanded = (state: GameState) => {
+  const [newBoard, linesCleared] = clearLines(state.board);
+  state.board = newBoard;
+  state.linesCleared += linesCleared;
+  state.score += linesCleared * 100 + (linesCleared >= 4 ? 400 : 0);
+
+  // Clear current piece - server will send next one
+  state.currentPiece = null;
+  state.needsNextPiece = true; // Flag that we need next piece from server
+};
 
 const slice = createSlice({
   name: "game",
   initialState,
   reducers: {
-    startGame(state) {
+    startGame(
+      state,
+      action: PayloadAction<{ gameMode: "solo" | "multiplayer" }>
+    ) {
       state.board = initialBoard();
-      state.nextPieces = generatePieces(10);
-      state.currentPiece = state.nextPieces.shift()!;
+      state.gameMode = action.payload.gameMode;
       state.status = "playing";
+      state.score = 0;
+      state.linesCleared = 0;
+      state.needsNextPiece = false;
+      // Note: currentPiece and nextPieces will be set by server via setPieces
     },
-    setGameState(
+
+    // Server sets all pieces - unified for solo and multiplayer
+    setPieces(
       state,
       action: PayloadAction<{
-        board: Board;
-        currentPiece: Piece | null;
-        nextPieces: Piece[];
-        status: "idle" | "playing" | "gameover";
+        currentPiece: GamePiece | null;
+        nextPieces: GamePiece[];
       }>
     ) {
-      const { board, currentPiece, nextPieces, status } = action.payload;
-      state.board = board;
+      const { currentPiece, nextPieces } = action.payload;
       state.currentPiece = currentPiece;
       state.nextPieces = nextPieces;
-      state.status = status;
+      state.needsNextPiece = false; // Reset flag when we receive pieces
     },
+
+    // Server sends next piece when current piece lands
+    setNextPiece(state, action: PayloadAction<GamePiece>) {
+      state.currentPiece = action.payload;
+      state.needsNextPiece = false; // Reset flag when we receive next piece
+    },
+
+    // Server sends updated next pieces for preview
+    updateNextPieces(state, action: PayloadAction<GamePiece[]>) {
+      state.nextPieces = action.payload;
+    },
+
+    updatePlayerState(
+      state,
+      action: PayloadAction<{
+        score: number;
+        linesCleared: number;
+        board?: Cell[][];
+      }>
+    ) {
+      const { score, linesCleared, board } = action.payload;
+      state.score = score;
+      state.linesCleared = linesCleared;
+      if (board) state.board = board;
+    },
+
     pauseGame(state) {
       if (state.status === "playing") {
         state.status = "paused";
       }
     },
+
     resumeGame(state) {
       if (state.status === "paused") {
         state.status = "playing";
       }
-    },
-    syncGameState(state, action: PayloadAction<any>) {
-      // Sync with backend game state
-      const backendState = action.payload;
-      // Map backend state to frontend state as needed
-      // This depends on how you want to handle the backend game state
     },
 
     movePiece(state, action: PayloadAction<{ dx: number; dy: number }>) {
@@ -159,54 +144,22 @@ const slice = createSlice({
       if (dropped !== state.currentPiece) {
         state.currentPiece = dropped;
       } else {
+        // Piece has landed - handle locally and flag for server
         state.board = mergePiece(state.board, state.currentPiece);
-        const [cleared, lines] = clearLines(state.board);
-        state.board = cleared;
-        if (state.nextPieces.length < 3) {
-          state.nextPieces.push(...generatePieces(10));
-        }
-        state.currentPiece = state.nextPieces.shift() || null;
-        if (
-          state.currentPiece !== null &&
-          !isValidPosition(state.board, state.currentPiece)
-        ) {
-          state.status = "gameover";
-        }
+        handlePieceLanded(state); // Use helper function instead of this.
       }
     },
 
     hardDrop(state) {
       if (!state.currentPiece) return;
-
       const dropped = fnHardDrop(state.board, state.currentPiece);
       state.board = mergePiece(state.board, dropped);
-
-      const [newBoard, linesCleared] = clearLines(state.board);
-      state.board = newBoard;
-      state.score += linesCleared * 100 + (linesCleared >= 4 ? 400 : 0);
-
-      if (state.nextPieces.length < 3) {
-        state.nextPieces.push(...generatePieces(10));
-      }
-
-      state.currentPiece = state.nextPieces.shift() || null;
-
-      if (
-        state.currentPiece !== null &&
-        !isValidPosition(state.board, state.currentPiece)
-      ) {
-        state.status = "gameover";
-      }
+      handlePieceLanded(state); // Use helper function instead of this.
     },
 
-    clearLines(state) {
-      const [newBoard, linesCleared] = clearLines(state.board);
-      state.board = newBoard;
-      state.linesCleared += linesCleared;
-      state.score += linesCleared * 100;
-      if (linesCleared >= 4) {
-        state.score += 400;
-      }
+    // Reset the needs next piece flag (called when server responds)
+    clearNeedsNextPiece(state) {
+      state.needsNextPiece = false;
     },
 
     endGame(state) {
@@ -217,7 +170,6 @@ const slice = createSlice({
 
 export const {
   startGame,
-  setGameState,
   pauseGame,
   resumeGame,
   movePiece,
@@ -225,7 +177,11 @@ export const {
   softDrop,
   hardDrop,
   endGame,
-  syncGameState,
+  setPieces,
+  setNextPiece,
+  updateNextPieces,
+  clearNeedsNextPiece,
+  updatePlayerState,
 } = slice.actions;
 
 export default slice.reducer;

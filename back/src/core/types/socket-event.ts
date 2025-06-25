@@ -1,5 +1,5 @@
 import { Socket } from "socket.io";
-import { GamerInputs, GameState } from "./game";
+import { GamerInputs, ClientGameState, GameState } from "./game";
 
 export type CustomeSocket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
 
@@ -11,6 +11,7 @@ export interface ClientToServerEvents {
   "game:end": (data: { room: string }) => void;
   "game:playerReady": () => void;
   "game:playerInputChanges": (data: { input: GamerInputs }) => void;
+  "game:pieceLanded": () => void;
 }
 
 export interface ServerToClientEvents {
@@ -18,7 +19,7 @@ export interface ServerToClientEvents {
   "match:playerHasLeft": (playerName: string) => void;
   "match:nameTaken": (playerName: string) => void;
 
-  "game:newState": (gameSate: GameState) => void;
+  "game:newState": (gameSate: GameState | ClientGameState) => void;
   "game:isSetup": () => void;
   "game:isLaunching": () => void;
 }
@@ -28,6 +29,6 @@ export interface InterServerEvents {
 }
 
 export interface SocketData {
-  playerName?: string,
-  currentRoom?: string
+  playerName?: string;
+  currentRoom?: string;
 }

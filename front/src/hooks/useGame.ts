@@ -5,42 +5,26 @@ import {
   startGame,
   pauseGame,
   resumeGame,
-  movePiece,
-  rotatePiece,
-  softDrop,
-  hardDrop,
+  clearNeedsNextPiece,
 } from "../redux/gameSlice";
 import socket from "../utils/socket";
 
 export function useGame() {
   const dispatch = useDispatch<AppDispatch>();
-  const { status, currentPiece, board } = useSelector(
+  const { status, currentPiece, board, needsNextPiece } = useSelector(
     (state: RootState) => state.game
   );
-  const timerRef = useRef<NodeJS.Timeout>();
 
-  // Auto-drop timer for pieces
+  // Watch for when we need next piece and emit socket event
   useEffect(() => {
-    if (status !== "playing") {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = undefined;
-      }
-      return;
+    if (needsNextPiece && socket.connected) {
+      console.log("Requesting next piece from server");
+      socket.emit("game:pieceLanded");
+      dispatch(clearNeedsNextPiece());
     }
+  }, [needsNextPiece, dispatch]);
 
-    timerRef.current = setInterval(() => {
-      dispatch(softDrop());
-    }, 1000); // Drop every second
-
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [status, dispatch]);
-
-  // Keyboard event handler
+  // Keyboard event handler - ONLY send to server, no local actions
   const onKey = useCallback(
     (e: KeyboardEvent) => {
       console.log("keydown event fired:", e.code, e.key);
@@ -48,7 +32,6 @@ export function useGame() {
       if (status !== "playing") return;
 
       const key = e.key.toLowerCase();
-      let localAction: (() => void) | null = null;
       let inputChanges: any = null;
 
       // Prevent default behavior for game keys
@@ -61,67 +44,56 @@ export function useGame() {
         e.preventDefault();
       }
 
-      // Map keys to actions and inputs
+      // Map keys to server inputs ONLY - no local actions
       if (e.code === "ArrowLeft" || key === "a") {
-        localAction = () => dispatch(movePiece({ dx: -1, dy: 0 }));
         inputChanges = { left: true };
       } else if (e.code === "ArrowRight" || key === "d") {
-        localAction = () => dispatch(movePiece({ dx: 1, dy: 0 }));
         inputChanges = { right: true };
       } else if (e.code === "ArrowUp" || key === "w") {
-        localAction = () => dispatch(rotatePiece());
         inputChanges = { up: true, upHasBeenCounted: false };
       } else if (e.code === "ArrowDown" || key === "s") {
-        localAction = () => dispatch(softDrop());
         inputChanges = { down: true };
       } else if (e.code === "Space") {
-        localAction = () => dispatch(hardDrop());
         inputChanges = { space: true, spaceHasBeenCounted: false };
       }
 
-      // Execute local action and send to backend
-      if (localAction && inputChanges) {
-        localAction();
-
-        // Send input to backend
-        if (socket.connected) {
-          console.log("Sending input to backend:", inputChanges);
-          socket.emit("game:playerInputChanges", {
-            input: {
-              up: false,
-              left: false,
-              right: false,
-              down: false,
-              space: false,
-              spaceHasBeenCounted: false,
-              upHasBeenCounted: false,
-              ...inputChanges,
-            },
-          });
-        } else {
-          console.warn("Socket not connected, input not sent");
-        }
+      // Send input to server ONLY - no local execution
+      if (inputChanges && socket.connected) {
+        console.log("Sending input to backend:", inputChanges);
+        socket.emit("game:playerInputChanges", {
+          input: {
+            up: false,
+            left: false,
+            right: false,
+            down: false,
+            space: false,
+            spaceHasBeenCounted: false,
+            upHasBeenCounted: false,
+            ...inputChanges,
+          },
+        });
       }
     },
-    [dispatch, status]
+    [status] // Remove dispatch from dependencies since we're not using it
   );
 
   // Set up keyboard event listeners
   useEffect(() => {
     console.log("Setting up keyboard listeners, game status:", status);
-
     document.addEventListener("keydown", onKey);
-
     return () => {
       document.removeEventListener("keydown", onKey);
     };
   }, [onKey]);
 
   // Game control functions
-  const start = useCallback(() => {
-    console.log("Starting game");
-    dispatch(startGame());
-  }, [dispatch]);
+  const start = useCallback(
+    (gameMode?: "solo" | "multiplayer") => {
+      console.log("Starting game with mode:", gameMode);
+      dispatch(startGame({ gameMode: gameMode || "solo" }));
+    },
+    [dispatch]
+  );
 
   const pause = useCallback(() => {
     console.log("Pausing game");

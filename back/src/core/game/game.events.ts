@@ -7,13 +7,13 @@ export function registerGameHandler(socket: CustomeSocket) {
   const logger = getLogger(context);
 
   socket.on("game:playerReady", () => {
-    logger.info(`Player ready: socket ${JSON.stringify(socket.data)}`)
+    logger.info(`Player ready: socket ${JSON.stringify(socket.data)}`);
 
-    const { playerName, currentRoom } = socket.data
+    const { playerName, currentRoom } = socket.data;
 
-    if (!playerName || !currentRoom ) {
+    if (!playerName || !currentRoom) {
       logger.warn(`missing data for player ready for ${socket.id}`);
-      return ;
+      return;
     }
 
     try {
@@ -25,17 +25,40 @@ export function registerGameHandler(socket: CustomeSocket) {
 
   socket.on("game:playerInputChanges", (data) => {
     const { input } = data;
-    const { playerName, currentRoom } = socket.data
+    const { playerName, currentRoom } = socket.data;
 
-    if (!playerName || !currentRoom ) {
+    if (!playerName || !currentRoom) {
       logger.warn(`missing data for player ready for ${socket.id}`);
-      return ;
+      return;
     }
 
     try {
       gameService.playerInputChange(playerName, currentRoom, input);
     } catch (error) {
       logger.error(`room ${currentRoom}: couldn't set player ${playerName} ready`);
+    }
+  });
+
+  socket.on("game:pieceLanded", () => {
+    logger.info(`Piece landed: socket ${JSON.stringify(socket.data)}`);
+
+    const { playerName, currentRoom } = socket.data;
+
+    if (!playerName || !currentRoom) {
+      logger.warn(`missing data for piece landed for ${socket.id}`);
+      return;
+    }
+
+    try {
+      // Server gives next piece from shared sequence
+      const nextPiece = gameService.getNextPiece(currentRoom, playerName);
+      if (nextPiece) {
+        // Send updated game state to all players in room
+        gameService.sendGameState(currentRoom);
+        logger.info(`Gave next piece to ${playerName} in ${currentRoom}: ${nextPiece.type}`);
+      }
+    } catch (error) {
+      logger.error(`room ${currentRoom}: couldn't get next piece for player ${playerName}`);
     }
   });
 
