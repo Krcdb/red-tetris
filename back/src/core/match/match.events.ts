@@ -30,5 +30,11 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
     socket.leave(room);
   });
 
+  socket.on("match:startGame", (data) => {
+    const { room } = data;
+
+    matchService.startGame(room);
+  })
+
   logger.info("match handler registered");
 }

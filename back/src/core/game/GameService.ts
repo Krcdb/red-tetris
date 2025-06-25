@@ -1,18 +1,22 @@
 import MyWebSocket from "../socket/websocket";
+import { TetrisGameLoop } from "../tetris/TetrisGameLoop";
 import { Cell, GamerInputs, GameState } from "../types/game";
 import { Player } from "../types/player";
 import { CustomeSocket } from "../types/socket-event";
 import { getLogger } from "../utils/Logger";
 
 type GameStates = {[key:string]: GameState}
+type GameLoops = {[key:string]: TetrisGameLoop}
 
 class GameService {
-  games: GameStates;
+  private games: GameStates;
+  private gameLoops: GameLoops;
 
   private logger = getLogger("GameService")
 
   constructor() {
-    this.games = {}
+    this.games = {};
+    this.gameLoops = {};
   }
 
   private initializeGrid(): Cell[][] {
@@ -57,11 +61,21 @@ class GameService {
   }
 
   launchGame(room: string) {
-    //how can i handle all game that will be launch here
+    if (!this.games[room]) {
+      this.logger.error(`can't launch game ${room}, game state not found`)
+      return ;
+    }
+
+    this.logger.info(`launching game ${room}`);
+
+    const tetrisLoop = new TetrisGameLoop(this.games[room], room);
+    this.gameLoops[room] = tetrisLoop;
+    tetrisLoop.start();
   }
 
   playerReady(playerName: string, room: string) {
     const gamerReady = this.games[room].gamers.find((elem) => elem.name === playerName);
+    
     if (!gamerReady) {
       this.logger.warn(`couldn't find player ${playerName} in game ${room}`);
       throw new Error(`couldn't find player ${playerName} in game ${room}`);

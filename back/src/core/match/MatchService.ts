@@ -1,6 +1,7 @@
 import { Match } from "../types/match.js";
 import { getLogger } from "../utils/Logger.js";
 import { CustomeSocket } from "../types/socket-event.js";
+import { gameService } from "../game/GameService.js";
 import MyWebSocket from "../socket/websocket.js";
 
 type Matchs = Record<string, Match>;
@@ -70,6 +71,15 @@ class MatchService {
       delete this.matchs[room];
       this.logger.info(`Room ${room} is empty and has been deleted`);
     }
+  }
+
+  startGame(room: string) {
+    if (!this.matchs[room]) {
+      this.logger.error(`cannot start match ${room}, room not found`);
+      return ;
+    }
+
+    gameService.createGame(this.matchs[room].player, room);
   }
 }
 

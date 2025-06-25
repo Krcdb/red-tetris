@@ -4,6 +4,7 @@ import { Socket, Server as SocketIOServer } from "socket.io";
 import { ClientToServerEvents, CustomeSocket, InterServerEvents, ServerToClientEvents, SocketData } from "../types/socket-event.js";
 import { registerMatchHanlder } from "../match/match.events.js";
 import { matchService } from "../match/MatchService.js";
+import { registerGameHandler } from "../game/game.events.js";
 
 const WEBSOCKET_CORS = {
   methods: ["GET", "POST"],
@@ -38,6 +39,7 @@ class MyWebSocket extends SocketIOServer<ClientToServerEvents, ServerToClientEve
       console.log(`🟢 Client connected: ${socket.id}`);
 
       registerMatchHanlder(this, socket);
+      registerGameHandler(socket);
 
       socket.on("disconnect", () => {
         if (socket.data.currentRoom !== undefined && socket.data.playerName !== undefined) {
