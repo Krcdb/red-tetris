@@ -81,8 +81,6 @@ class GameService {
       throw new Error(`couldn't find player ${playerName} in game ${room}`);
     }
     gamerReady.isReady = true;
-    const newGamerReady = this.games[room].gamers.find((elem) => elem.name === playerName);
-    this.logger.info(`test if gamer ready ${newGamerReady?.isReady}`);
 
     if (this.games[room].gamers.every(gamer => gamer.isReady)) {
       this.logger.info(`every player in ${room} are ready, the game will launch`);
@@ -99,8 +97,6 @@ class GameService {
       throw new Error(`couldn't find player ${playerName} in game ${room}`);
     }
     gamer.input = input;
-    const newGamer = this.games[room].gamers.find((elem) => elem.name === playerName);
-    this.logger.info(`test if gamer ready ${JSON.stringify(newGamer?.input)}`)
   }
 }
 
