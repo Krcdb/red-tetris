@@ -11,6 +11,7 @@ import {
   rotate as fnRotate,
   move as fnMove,
 } from "../utils/tetris";
+import { Socket } from "socket.io-client";
 
 export type Cell = number;
 export interface GamePiece extends Piece {
@@ -41,7 +42,18 @@ const initialState: GameState = {
 };
 
 // Helper function for piece landing logic
-const handlePieceLanded = (state: GameState) => {
+// const handlePieceLanded = (state: GameState) => {
+//   const [newBoard, linesCleared] = clearLines(state.board);
+//   state.board = newBoard;
+//   state.linesCleared += linesCleared;
+//   state.score += linesCleared * 100 + (linesCleared >= 4 ? 400 : 0);
+
+//   // Clear current piece - server will send next one
+//   state.currentPiece = null;
+//   state.needsNextPiece = true; // Flag that we need next piece from server
+// };
+
+const handlePieceLanded = (state: GameState, socket: Socket) => {
   const [newBoard, linesCleared] = clearLines(state.board);
   state.board = newBoard;
   state.linesCleared += linesCleared;
@@ -50,6 +62,10 @@ const handlePieceLanded = (state: GameState) => {
   // Clear current piece - server will send next one
   state.currentPiece = null;
   state.needsNextPiece = true; // Flag that we need next piece from server
+
+  // ADD: Emit to server that piece has landed
+  console.log("Piece landed! Requesting next piece from server");
+  socket.emit("game:pieceLanded");
 };
 
 const slice = createSlice({
@@ -138,28 +154,31 @@ const slice = createSlice({
       }
     },
 
-    softDrop(state) {
-      if (!state.currentPiece) return;
-      const dropped = fnSoftDrop(state.board, state.currentPiece);
-      if (dropped !== state.currentPiece) {
-        state.currentPiece = dropped;
-      } else {
-        // Piece has landed - handle locally and flag for server
-        state.board = mergePiece(state.board, state.currentPiece);
-        handlePieceLanded(state); // Use helper function instead of this.
-      }
-    },
+    // softDrop(state, action: PayloadAction<{ socket: Socket }>) {
+    //   if (!state.currentPiece) return;
+    //   const dropped = fnSoftDrop(state.board, state.currentPiece);
+    //   if (dropped !== state.currentPiece) {
+    //     state.currentPiece = dropped;
+    //   } else {
+    //     // Piece has landed - handle locally and flag for server
+    //     state.board = mergePiece(state.board, state.currentPiece);
+    //     handlePieceLanded(state, action.payload.socket);
+    //   }
+    // },
 
-    hardDrop(state) {
-      if (!state.currentPiece) return;
-      const dropped = fnHardDrop(state.board, state.currentPiece);
-      state.board = mergePiece(state.board, dropped);
-      handlePieceLanded(state); // Use helper function instead of this.
-    },
+    // hardDrop(state, action: PayloadAction<{ socket: Socket }>) {
+    //   if (!state.currentPiece) return;
+    //   const dropped = fnHardDrop(state.board, state.currentPiece);
+    //   state.board = mergePiece(state.board, dropped);
+    //   handlePieceLanded(state, action.payload.socket); // Use helper function instead of this.
+    // },
 
     // Reset the needs next piece flag (called when server responds)
     clearNeedsNextPiece(state) {
       state.needsNextPiece = false;
+    },
+    updateBoard(state, action: PayloadAction<Cell[][]>) {
+      state.board = action.payload;
     },
 
     endGame(state) {
@@ -174,14 +193,15 @@ export const {
   resumeGame,
   movePiece,
   rotatePiece,
-  softDrop,
-  hardDrop,
+  // softDrop,
+  // hardDrop,
   endGame,
   setPieces,
   setNextPiece,
   updateNextPieces,
   clearNeedsNextPiece,
   updatePlayerState,
+  updateBoard,
 } = slice.actions;
 
 export default slice.reducer;

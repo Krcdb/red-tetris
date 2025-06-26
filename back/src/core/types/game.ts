@@ -16,6 +16,7 @@ export interface TetrisPiece {
   y: number;
   type?: string;
   color?: number;
+  rotation?: number;
 }
 
 export interface Gamer {
@@ -24,8 +25,10 @@ export interface Gamer {
   input: GamerInputs;
   grid: Cell[][];
   currentPiece: TetrisPiece | null;
+  currentPieceIndex?: number;
   score: number;
   linesCleared: number;
+  needsNextPiece: boolean;
 }
 
 export interface GameState {
@@ -33,7 +36,8 @@ export interface GameState {
   isRunning: boolean;
   isSolo: boolean;
   gamers: Gamer[];
-  sharedPieces: TetrisPiece[];
+  // sharedPieces: TetrisPiece[];
+  sharedPieces: Array<{ type: string; x: number; y: number; shape: number[][]; rotation: number }>;
   currentPieceIndex: number;
 }
 

@@ -46,5 +46,33 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
     }
   });
 
+  socket.on("disconnect", (reason) => {
+    const playerName = socket.data.playerName;
+    const room = socket.data.currentRoom;
+
+    logger.info(`🔌 Socket ${socket.id} disconnected: ${reason}`);
+
+    if (playerName && room) {
+      logger.info(`👋 Player ${playerName} disconnected from room ${room}`);
+
+      try {
+        // Use existing playerLeave logic
+        matchService.playerLeave(playerName, room, socket);
+
+        // Notify other players in the room
+        io.to(room).emit("match:playerHasLeft", playerName);
+
+        // Leave the socket room
+        socket.leave(room);
+
+        logger.info(`✅ Successfully cleaned up disconnected player ${playerName} from room ${room}`);
+      } catch (error) {
+        logger.error(`❌ Error cleaning up disconnected player ${playerName} from room ${room}:`, error);
+      }
+    } else {
+      logger.info(`ℹ️  Disconnected socket was not in any room`);
+    }
+  });
+
   logger.info("match handler registered");
 }

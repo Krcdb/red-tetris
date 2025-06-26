@@ -196,12 +196,115 @@ class GameService {
         currentPiece: null,
         score: 0,
         linesCleared: 0,
+        needsNextPiece: false,
       }),
     );
 
     const io = MyWebSocket.getInstance();
     io.to(room).emit("game:isSetup");
   }
+
+  forceStopGame(room: string) {
+    this.logger.info(`🛑 Force stopping game in room ${room}`);
+
+    // Stop the game loop
+    const gameLoop = this.gameLoops[room];
+    if (gameLoop) {
+      gameLoop.stop();
+      delete this.gameLoops[room];
+      this.logger.info(`✅ Game loop for room ${room} stopped`);
+    } else {
+      this.logger.info(`ℹ️  No game loop found for room ${room}`);
+    }
+
+    // Remove game state
+    if (this.games[room]) {
+      delete this.games[room];
+      this.logger.info(`✅ Game state for room ${room} deleted`);
+    } else {
+      this.logger.info(`ℹ️  No game state found for room ${room}`);
+    }
+  }
+
+  // launchGame(room: string) {
+  //   if (!this.games[room]) {
+  //     this.logger.error(`can't launch game ${room}, game state not found`);
+  //     return;
+  //   }
+
+  //   this.logger.info(`launching game ${room}`);
+
+  //   const gameState = this.games[room];
+
+  //   // Log the first 10 pieces for debugging
+  //   this.logger.info(`=== PIECE SEQUENCE FOR ROOM ${room} ===`);
+  //   gameState.sharedPieces.slice(0, 10).forEach((piece, index) => {
+  //     this.logger.info(`Piece ${index}: ${piece.type} at (${piece.x}, ${piece.y})`);
+  //   });
+  //   this.logger.info(`=== END PIECE SEQUENCE ===`);
+
+  //   // Give each player their first piece from shared sequence
+  //   const firstPiece = gameState.sharedPieces[0];
+  //   if (!firstPiece) {
+  //     this.logger.error(`No first piece available for room ${room}`);
+  //     return;
+  //   }
+
+  //   gameState.gamers.forEach((gamer) => {
+  //     gamer.currentPiece = this.clonePiece(firstPiece);
+  //     this.logger.info(`=== PLAYER ${gamer.name} INITIAL PIECE ===`);
+  //     this.logger.info(`Type: ${gamer.currentPiece?.type}`);
+  //     this.logger.info(`Position: (${gamer.currentPiece?.x}, ${gamer.currentPiece?.y})`);
+  //     this.logger.info(`Shape: ${JSON.stringify(gamer.currentPiece?.shape)}`);
+  //   });
+
+  //   gameState.currentPieceIndex = 1;
+  //   gameState.isRunning = true;
+
+  //   // Send initial state
+  //   this.sendGameState(room);
+
+  //   const tetrisLoop = new TetrisGameLoop(gameState, room);
+  //   this.gameLoops[room] = tetrisLoop;
+  //   tetrisLoop.start();
+  // }
+
+  // sendGameState(room: string) {
+  //   const gameState = this.games[room];
+  //   if (!gameState) {
+  //     this.logger.warn(`Cannot send game state for non-existent room ${room}`);
+  //     return;
+  //   }
+
+  //   const io = MyWebSocket.getInstance();
+
+  //   const clientGameState: ClientGameState = {
+  //     room: room,
+  //     currentPieceIndex: gameState.currentPieceIndex,
+  //     nextPieces: gameState.sharedPieces.slice(gameState.currentPieceIndex, gameState.currentPieceIndex + 5),
+  //     gamers: gameState.gamers.map(
+  //       (gamer): ClientGamer => ({
+  //         name: gamer.name,
+  //         grid: gamer.grid,
+  //         currentPiece: gamer.currentPiece,
+  //         score: gamer.score,
+  //         linesCleared: gamer.linesCleared,
+  //         isReady: gamer.isReady,
+  //       }),
+  //     ),
+  //   };
+
+  //   // Log what we're sending to each player
+  //   this.logger.info(`=== SENDING TO ROOM ${room} ===`);
+  //   clientGameState.gamers.forEach((gamer) => {
+  //     this.logger.info(`Player ${gamer.name}:`);
+  //     this.logger.info(`  Current Piece: ${gamer.currentPiece?.type} at (${gamer.currentPiece?.x}, ${gamer.currentPiece?.y})`);
+  //     this.logger.info(`  Score: ${gamer.score}, Lines: ${gamer.linesCleared}`);
+  //   });
+  //   this.logger.info(`Next Pieces: ${clientGameState.nextPieces.map((p) => p.type).join(", ")}`);
+
+  //   io.to(room).emit("game:newState", clientGameState);
+  // }
 
   launchGame(room: string) {
     if (!this.games[room]) {
@@ -220,14 +323,15 @@ class GameService {
     });
     this.logger.info(`=== END PIECE SEQUENCE ===`);
 
-    // Give each player their first piece from shared sequence
-    const firstPiece = gameState.sharedPieces[0];
-    if (!firstPiece) {
-      this.logger.error(`No first piece available for room ${room}`);
+    // Give ALL players the SAME first piece from shared sequence
+    if (gameState.sharedPieces.length === 0) {
+      this.logger.error(`No pieces available for room ${room}`);
       return;
     }
 
+    const firstPiece = gameState.sharedPieces[0];
     gameState.gamers.forEach((gamer) => {
+      // Each player gets their own copy but from the same template
       gamer.currentPiece = this.clonePiece(firstPiece);
       this.logger.info(`=== PLAYER ${gamer.name} INITIAL PIECE ===`);
       this.logger.info(`Type: ${gamer.currentPiece?.type}`);
@@ -235,6 +339,7 @@ class GameService {
       this.logger.info(`Shape: ${JSON.stringify(gamer.currentPiece?.shape)}`);
     });
 
+    // All players use the same piece sequence
     gameState.currentPieceIndex = 1;
     gameState.isRunning = true;
 
@@ -252,6 +357,14 @@ class GameService {
       this.logger.warn(`Cannot send game state for non-existent room ${room}`);
       return;
     }
+
+    // // ENSURE ALL PLAYERS HAVE PIECES BEFORE SENDING STATE
+    // gameState.gamers.forEach((gamer) => {
+    //   if (!gamer.currentPiece) {
+    //     this.logger.info(`Giving piece to ${gamer.name} who has no current piece`);
+    //     this.giveNextPiece(room, gamer.name);
+    //   }
+    // });
 
     const io = MyWebSocket.getInstance();
 
@@ -338,12 +451,99 @@ class GameService {
     this.sendGameState(room);
   }
 
-  // NEW: Public method for getting next piece (used by TetrisGameLoop or other systems)
-  getNextPiece(room: string, playerName: string): TetrisPiece | null {
-    return this.giveNextPiece(room, playerName);
+  // Add this method to replace the current getNextPiece logic
+
+  getNextPiece(room: string, playerName: string) {
+    const gameState = this.games[room];
+    if (!gameState) {
+      this.logger.error(`Game ${room} not found`);
+      return;
+    }
+
+    const gamer = gameState.gamers.find((g) => g.name === playerName);
+    if (!gamer) {
+      this.logger.error(`Player ${playerName} not found in room ${room}`);
+      return;
+    }
+
+    // Mark this player as needing the next piece
+    gamer.needsNextPiece = true;
+    gamer.currentPiece = null;
+
+    this.logger.info(`Player ${playerName} marked as needing next piece`);
+
+    // Check if ALL players need the next piece
+    const allPlayersNeedNextPiece = gameState.gamers.every((g) => g.needsNextPiece || g.currentPiece === null);
+
+    if (allPlayersNeedNextPiece) {
+      this.logger.info(`🔄 ALL players need next piece - advancing to synchronized piece distribution`);
+      this.advanceAllPlayersToNextPiece(room);
+    } else {
+      this.logger.info(`⏳ Waiting for other players to finish their pieces before advancing`);
+
+      // Send current state so the waiting player sees their piece disappeared
+      this.sendGameState(room);
+    }
   }
 
-  // NEW: Get game state
+  private advanceAllPlayersToNextPiece(room: string) {
+    const gameState = this.games[room];
+    if (!gameState) return;
+
+    // Ensure we have enough pieces
+    this.ensurePiecesAvailable(room);
+
+    if (gameState.currentPieceIndex < gameState.sharedPieces.length) {
+      const nextPiece = gameState.sharedPieces[gameState.currentPieceIndex];
+
+      this.logger.info(`🎯 Giving synchronized piece ${gameState.currentPieceIndex}: ${nextPiece.type} to ALL players`);
+
+      // Give the SAME piece to ALL players
+      gameState.gamers.forEach((gamer) => {
+        gamer.currentPiece = this.clonePiece(nextPiece);
+        gamer.needsNextPiece = false;
+        this.logger.info(`✅ Gave synchronized ${nextPiece.type} to ${gamer.name}`);
+      });
+
+      // Advance the piece index for the entire game
+      gameState.currentPieceIndex++;
+      this.logger.info(`📈 Advanced global piece index to ${gameState.currentPieceIndex}`);
+
+      // Send updated state to all players
+      this.sendGameState(room);
+    } else {
+      this.logger.error(`No more pieces available in shared sequence`);
+    }
+  }
+
+  giveNextPieceWithoutAdvancing(room: string, playerName: string) {
+    const gameState = this.games[room];
+    if (!gameState) return;
+
+    const gamer = gameState.gamers.find((g) => g.name === playerName);
+    if (!gamer) return;
+
+    // Ensure we have pieces available
+    this.ensurePiecesAvailable(room);
+
+    // Give piece from current index WITHOUT advancing
+    if (gameState.currentPieceIndex < gameState.sharedPieces.length) {
+      const nextPiece = gameState.sharedPieces[gameState.currentPieceIndex];
+      gamer.currentPiece = this.clonePiece(nextPiece);
+      gamer.needsNextPiece = false;
+
+      this.logger.info(`Gave piece to ${playerName}: ${nextPiece.type} (index ${gameState.currentPieceIndex})`);
+    }
+  }
+
+  advancePieceIndex(room: string) {
+    const gameState = this.games[room];
+    if (gameState) {
+      gameState.currentPieceIndex++;
+      this.logger.info(`🔄 Advanced piece index to ${gameState.currentPieceIndex}`);
+    }
+  }
+
   getGameState(room: string): GameState | null {
     return this.games[room] || null;
   }

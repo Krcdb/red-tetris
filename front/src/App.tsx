@@ -1,5 +1,5 @@
 import {
-  HashRouter as Router,
+  BrowserRouter as Router, // Keep BrowserRouter
   Routes,
   Route,
   Navigate,
@@ -7,7 +7,7 @@ import {
 import { useEffect } from "react";
 import Home from "./components/Home";
 import Solo from "./components/Solo";
-import LobbyRoute from "./routes/LobbyRoute";
+import LobbyRoute from "./routes/LobbyRoute"; // Keep your existing components
 import GameRoute from "./routes/GameRoute";
 import socket from "./utils/socket";
 
@@ -37,7 +37,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/solo" element={<Solo />} />
+        {/* Main requirement: /<room>/<playerName> shows lobby */}
         <Route path="/:room/:playerName" element={<LobbyRoute />} />
+        {/* Keep your game route as internal navigation */}
         <Route path="/:room/:playerName/game" element={<GameRoute />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

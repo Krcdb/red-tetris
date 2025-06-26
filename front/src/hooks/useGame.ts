@@ -6,6 +6,10 @@ import {
   pauseGame,
   resumeGame,
   clearNeedsNextPiece,
+  movePiece,
+  rotatePiece,
+  // softDrop,
+  // hardDrop,
 } from "../redux/gameSlice";
 import socket from "../utils/socket";
 
@@ -24,7 +28,6 @@ export function useGame() {
     }
   }, [needsNextPiece, dispatch]);
 
-  // Keyboard event handler - ONLY send to server, no local actions
   const onKey = useCallback(
     (e: KeyboardEvent) => {
       console.log("keydown event fired:", e.code, e.key);
@@ -44,7 +47,7 @@ export function useGame() {
         e.preventDefault();
       }
 
-      // Map keys to server inputs ONLY - no local actions
+      // ONLY send to server - no local actions
       if (e.code === "ArrowLeft" || key === "a") {
         inputChanges = { left: true };
       } else if (e.code === "ArrowRight" || key === "d") {
@@ -57,25 +60,41 @@ export function useGame() {
         inputChanges = { space: true, spaceHasBeenCounted: false };
       }
 
-      // Send input to server ONLY - no local execution
+      // Send input to server with throttling to prevent spam
       if (inputChanges && socket.connected) {
-        console.log("Sending input to backend:", inputChanges);
-        socket.emit("game:playerInputChanges", {
-          input: {
-            up: false,
-            left: false,
-            right: false,
-            down: false,
-            space: false,
-            spaceHasBeenCounted: false,
-            upHasBeenCounted: false,
-            ...inputChanges,
-          },
-        });
+        // Add debouncing to prevent input spam
+        clearTimeout(inputTimeoutRef.current);
+        inputTimeoutRef.current = setTimeout(() => {
+          console.log("Sending input to backend:", inputChanges);
+          socket.emit("game:playerInputChanges", {
+            input: {
+              up: false,
+              left: false,
+              right: false,
+              down: false,
+              space: false,
+              spaceHasBeenCounted: false,
+              upHasBeenCounted: false,
+              ...inputChanges,
+            },
+          });
+        }, 50); // 50ms debounce
       }
     },
-    [status] // Remove dispatch from dependencies since we're not using it
+    [status, dispatch]
   );
+
+  // Add timeout ref for input debouncing
+  const inputTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (inputTimeoutRef.current) {
+        clearTimeout(inputTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Set up keyboard event listeners
   useEffect(() => {

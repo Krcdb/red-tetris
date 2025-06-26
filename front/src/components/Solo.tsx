@@ -6,6 +6,7 @@ import {
   pauseGame,
   resumeGame,
   setPieces,
+  updateBoard,
 } from "../redux/gameSlice";
 import { useGame } from "../hooks/useGame";
 import socket from "../utils/socket";
@@ -42,6 +43,13 @@ const Solo: React.FC = () => {
             nextPieces: gameState.nextPieces || [],
           })
         );
+        if (playerData.grid) {
+          console.log(
+            "📋 Solo: Updating board with locked pieces:",
+            playerData.grid
+          );
+          dispatch(updateBoard(playerData.grid));
+        }
       }
     });
 

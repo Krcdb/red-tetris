@@ -2,9 +2,10 @@ import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useGame } from "../hooks/useGame";
 import { useDispatch } from "react-redux";
-import { setPieces } from "../redux/gameSlice"; // Remove setNextPiece and updatePlayerState imports
+import { setPieces, updateBoard, updatePlayerState } from "../redux/gameSlice";
 import socket from "../utils/socket";
 import Board from "../components/Board";
+import { NextPiecePreview } from "../components/NextPiecePreview";
 
 export default function GameRoute() {
   const { room, playerName } = useParams<{
@@ -49,25 +50,35 @@ export default function GameRoute() {
         gameState.nextPieces?.map((p: any) => p.type).join(", ")
       );
 
-      gameState.gamers?.forEach((gamer: any, index: number) => {
-        console.log(`  Player ${index + 1} (${gamer.name}):`);
-        console.log(
-          `    Current Piece: ${gamer.currentPiece?.type} at (${gamer.currentPiece?.x}, ${gamer.currentPiece?.y})`
-        );
-        console.log(`    Score: ${gamer.score}, Lines: ${gamer.linesCleared}`);
-      });
-
       const currentPlayerData = gameState.gamers?.find(
         (g: any) => g.name === playerName
       );
 
       if (currentPlayerData) {
+        // Update pieces AND score/lines from server
         dispatch(
           setPieces({
             currentPiece: currentPlayerData.currentPiece,
             nextPieces: gameState.nextPieces || [],
           })
         );
+
+        // Update player stats from server
+        dispatch(
+          updatePlayerState({
+            score: currentPlayerData.score,
+            linesCleared: currentPlayerData.linesCleared,
+          })
+        );
+
+        // Update board with locked pieces from server
+        if (currentPlayerData.grid) {
+          console.log(
+            "📋 Updating board with locked pieces:",
+            currentPlayerData.grid
+          );
+          dispatch(updateBoard(currentPlayerData.grid));
+        }
       }
     });
 
@@ -88,7 +99,7 @@ export default function GameRoute() {
       socket.off("connect_error");
       socket.off("disconnect");
     };
-  }, [room, playerName, start, dispatch]);
+  }, [room, playerName, dispatch]);
 
   return (
     <div style={{ padding: "20px" }}>
@@ -114,6 +125,10 @@ export default function GameRoute() {
       <div style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
         <div>
           <Board />
+        </div>
+        <div>
+          <h3>Next Piece:</h3>
+          <NextPiecePreview />
         </div>
         <div>
           <h3>Controls:</h3>

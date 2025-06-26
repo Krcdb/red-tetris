@@ -8,7 +8,7 @@ const GRID_SIZE = 4;
 
 export const NextPiecePreview: React.FC = () => {
   const nextPiece: GamePiece | undefined = useSelector(
-    (s: RootState) => s.game.nextPieces[0]
+    (s: RootState) => s.game.nextPieces[1]
   );
 
   const previewGrid = Array.from({ length: GRID_SIZE }, () =>

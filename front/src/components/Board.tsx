@@ -16,6 +16,13 @@ const Board: React.FC<BoardProps> = ({ room, playerName, socket }) => {
     (s: RootState) => s.game.currentPiece
   ) as Piece | null;
 
+  console.log("Board render:", {
+    boardHasContent: board.some((row) => row.some((cell) => cell !== 0)),
+    currentPiece: currentPiece
+      ? `Piece at (${currentPiece.x}, ${currentPiece.y})`
+      : "none",
+  });
+
   return (
     <div className="board">
       {board.map((row, rowIdx) =>
