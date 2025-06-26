@@ -45,6 +45,7 @@ export interface ClientGamer {
   name: string;
   grid: Cell[][];
   currentPiece: TetrisPiece | null;
+  currentPieceIndex: number;
   score: number;
   linesCleared: number;
   isReady: boolean;
@@ -55,4 +56,6 @@ export interface ClientGameState {
   currentPieceIndex: number;
   nextPieces: TetrisPiece[];
   gamers: ClientGamer[];
+  isRunning: boolean;
+  pieceSequenceLength?: number;
 }

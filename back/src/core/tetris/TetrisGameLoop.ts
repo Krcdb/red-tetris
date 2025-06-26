@@ -312,7 +312,7 @@ export class TetrisGameLoop {
   }
 
   private getPieceShape(type: string) {
-    const shapes = {
+    const shapes: { [key: string]: number[][] } = {
       I: [[1, 1, 1, 1]],
       O: [
         [1, 1],
@@ -505,57 +505,34 @@ export class TetrisGameLoop {
       return;
     }
 
-    this.logger.info(`🎯 ${playersNeedingNewPieces.length} players need new pieces: ${playersNeedingNewPieces.join(", ")}`);
+    this.logger.info(`🎯 Players requesting pieces: ${playersNeedingNewPieces.join(", ")}`);
 
-    // Mark all these players as needing next piece
+    // Ensure we have enough pieces in the sequence
+    if (this.gameState.sharedPieces.length < 1000) {
+      const newPieces = this.generatePieceSequence(1000);
+      this.gameState.sharedPieces.push(...newPieces);
+      this.logger.info(`🔄 Extended piece sequence to ${this.gameState.sharedPieces.length} pieces`);
+    }
+
+    // Give each player their NEXT piece based on their individual index
     playersNeedingNewPieces.forEach((playerName) => {
       const gamer = this.gameState.gamers.find((g) => g.name === playerName);
       if (gamer) {
-        gamer.needsNextPiece = true;
-        gamer.currentPiece = null;
+        // Each player gets their next piece from the sequence
+        const nextPieceIndex = (gamer.currentPieceIndex ?? -1) + 1;
+        const nextPiece = this.gameState.sharedPieces[nextPieceIndex];
+
+        if (nextPiece) {
+          gamer.currentPiece = this.clonePiece(nextPiece);
+          gamer.currentPieceIndex = nextPieceIndex;
+          gamer.needsNextPiece = false;
+
+          this.logger.info(`✅ ${playerName}: Piece #${nextPieceIndex} (${nextPiece.type})`);
+        } else {
+          this.logger.error(`❌ No piece available at index ${nextPieceIndex} for ${playerName}`);
+        }
       }
     });
-
-    // Check if ALL players now need the next piece
-    const allPlayersNeedNextPiece = this.gameState.gamers.every((g) => g.needsNextPiece || g.currentPiece === null);
-
-    if (allPlayersNeedNextPiece) {
-      this.logger.info(`🔄 ALL players need next piece - distributing synchronized pieces`);
-
-      // Ensure we have enough pieces generated
-      if (this.gameState.currentPieceIndex >= this.gameState.sharedPieces.length - 10) {
-        this.logger.info("🔄 Generating more pieces for the sequence");
-        const newPieces = this.generatePieceSequence(100);
-        this.gameState.sharedPieces.push(...newPieces);
-      }
-
-      const currentPieceIndex = this.gameState.currentPieceIndex;
-      const nextPiece = this.gameState.sharedPieces[currentPieceIndex];
-
-      if (nextPiece) {
-        this.logger.info(`🔄 Giving piece index ${currentPieceIndex} (${nextPiece.type}) to ALL players`);
-
-        // Give SAME piece to ALL players
-        this.gameState.gamers.forEach((gamer) => {
-          gamer.currentPiece = {
-            type: nextPiece.type,
-            x: nextPiece.x,
-            y: nextPiece.y,
-            shape: [...nextPiece.shape.map((row) => [...row])],
-            rotation: nextPiece.rotation || 0,
-          };
-          gamer.currentPieceIndex = currentPieceIndex;
-          gamer.needsNextPiece = false;
-          this.logger.info(`✅ Gave synchronized ${nextPiece.type} to ${gamer.name}`);
-        });
-
-        // Advance index ONLY ONCE after all players get their pieces
-        this.gameState.currentPieceIndex++;
-        this.logger.info(`📈 Advanced global piece index to ${this.gameState.currentPieceIndex}`);
-      }
-    } else {
-      this.logger.info(`⏳ Not all players ready for next piece - waiting for synchronization`);
-    }
   }
 
   // Helper method to determine what piece index a player should get next
@@ -577,6 +554,17 @@ export class TetrisGameLoop {
     this.distributeSynchronizedPieces(playersNeedingSync);
 
     gameService.sendGameState(this.room);
+  }
+
+  // Helper method to create a deep copy of a piece
+  private clonePiece(piece: any) {
+    return {
+      type: piece.type,
+      x: piece.x,
+      y: piece.y,
+      shape: piece.shape.map((row: any[]) => [...row]),
+      rotation: piece.rotation || 0,
+    };
   }
 
   // Method to get current synchronization status

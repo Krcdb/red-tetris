@@ -60,26 +60,26 @@ export function registerGameHandler(socket: CustomeSocket) {
   //   }
   // });
 
-  socket.on("game:pieceLanded", () => {
-    logger.info(`Piece landed: socket ${JSON.stringify(socket.data)}`);
+  // socket.on("game:pieceLanded", () => {
+  //   logger.info(`Piece landed: socket ${JSON.stringify(socket.data)}`);
 
-    const { playerName, currentRoom } = socket.data;
+  //   const { playerName, currentRoom } = socket.data;
 
-    if (!playerName || !currentRoom) {
-      logger.warn(`missing data for piece landed for ${socket.id}`);
-      return;
-    }
+  //   if (!playerName || !currentRoom) {
+  //     logger.warn(`missing data for piece landed for ${socket.id}`);
+  //     return;
+  //   }
 
-    try {
-      // Server gives next piece from shared sequence
-      gameService.getNextPiece(currentRoom, playerName);
-      // Send updated game state to all players in room
-      gameService.sendGameState(currentRoom);
-      logger.info(`Gave next piece to ${playerName} in ${currentRoom}`);
-    } catch (error) {
-      logger.error(`room ${currentRoom}: couldn't get next piece for player ${playerName}`);
-    }
-  });
+  //   try {
+  //     // Server gives next piece from shared sequence
+  //     gameService.getNextPiece(currentRoom, playerName);
+  //     // Send updated game state to all players in room
+  //     gameService.sendGameState(currentRoom);
+  //     logger.info(`Gave next piece to ${playerName} in ${currentRoom}`);
+  //   } catch (error) {
+  //     logger.error(`room ${currentRoom}: couldn't get next piece for player ${playerName}`);
+  //   }
+  // });
 
   logger.info("game handler registered");
 }
