@@ -15,19 +15,19 @@ import { Socket } from "socket.io-client";
 
 export type Cell = number;
 export interface GamePiece extends Piece {
-  type?: string; // Add this line
-  color?: number; // Add this line too if it's missing
+  type?: string;
+  color?: number;
 }
 
 interface GameState {
   board: Board;
   currentPiece: GamePiece | null;
-  nextPieces: GamePiece[]; // Always comes from server
+  nextPieces: GamePiece[];
   score: number;
   linesCleared: number;
   status: "idle" | "playing" | "paused" | "gameover";
   gameMode: "solo" | "multiplayer";
-  needsNextPiece: boolean; // Flag to indicate we need a new piece from server
+  needsNextPiece: boolean;
 }
 
 const initialState: GameState = {
@@ -41,29 +41,15 @@ const initialState: GameState = {
   needsNextPiece: false,
 };
 
-// Helper function for piece landing logic
-// const handlePieceLanded = (state: GameState) => {
-//   const [newBoard, linesCleared] = clearLines(state.board);
-//   state.board = newBoard;
-//   state.linesCleared += linesCleared;
-//   state.score += linesCleared * 100 + (linesCleared >= 4 ? 400 : 0);
-
-//   // Clear current piece - server will send next one
-//   state.currentPiece = null;
-//   state.needsNextPiece = true; // Flag that we need next piece from server
-// };
-
 const handlePieceLanded = (state: GameState, socket: Socket) => {
   const [newBoard, linesCleared] = clearLines(state.board);
   state.board = newBoard;
   state.linesCleared += linesCleared;
   state.score += linesCleared * 100 + (linesCleared >= 4 ? 400 : 0);
 
-  // Clear current piece - server will send next one
   state.currentPiece = null;
-  state.needsNextPiece = true; // Flag that we need next piece from server
+  state.needsNextPiece = true;
 
-  // ADD: Emit to server that piece has landed
   console.log("Piece landed! Requesting next piece from server");
   socket.emit("game:pieceLanded");
 };
@@ -82,10 +68,8 @@ const slice = createSlice({
       state.score = 0;
       state.linesCleared = 0;
       state.needsNextPiece = false;
-      // Note: currentPiece and nextPieces will be set by server via setPieces
     },
 
-    // Server sets all pieces - unified for solo and multiplayer
     setPieces(
       state,
       action: PayloadAction<{
@@ -96,16 +80,14 @@ const slice = createSlice({
       const { currentPiece, nextPieces } = action.payload;
       state.currentPiece = currentPiece;
       state.nextPieces = nextPieces;
-      state.needsNextPiece = false; // Reset flag when we receive pieces
+      state.needsNextPiece = false;
     },
 
-    // Server sends next piece when current piece lands
     setNextPiece(state, action: PayloadAction<GamePiece>) {
       state.currentPiece = action.payload;
-      state.needsNextPiece = false; // Reset flag when we receive next piece
+      state.needsNextPiece = false;
     },
 
-    // Server sends updated next pieces for preview
     updateNextPieces(state, action: PayloadAction<GamePiece[]>) {
       state.nextPieces = action.payload;
     },
@@ -154,26 +136,6 @@ const slice = createSlice({
       }
     },
 
-    // softDrop(state, action: PayloadAction<{ socket: Socket }>) {
-    //   if (!state.currentPiece) return;
-    //   const dropped = fnSoftDrop(state.board, state.currentPiece);
-    //   if (dropped !== state.currentPiece) {
-    //     state.currentPiece = dropped;
-    //   } else {
-    //     // Piece has landed - handle locally and flag for server
-    //     state.board = mergePiece(state.board, state.currentPiece);
-    //     handlePieceLanded(state, action.payload.socket);
-    //   }
-    // },
-
-    // hardDrop(state, action: PayloadAction<{ socket: Socket }>) {
-    //   if (!state.currentPiece) return;
-    //   const dropped = fnHardDrop(state.board, state.currentPiece);
-    //   state.board = mergePiece(state.board, dropped);
-    //   handlePieceLanded(state, action.payload.socket); // Use helper function instead of this.
-    // },
-
-    // Reset the needs next piece flag (called when server responds)
     clearNeedsNextPiece(state) {
       state.needsNextPiece = false;
     },
@@ -193,8 +155,6 @@ export const {
   resumeGame,
   movePiece,
   rotatePiece,
-  // softDrop,
-  // hardDrop,
   endGame,
   setPieces,
   setNextPiece,

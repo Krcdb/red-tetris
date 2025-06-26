@@ -8,8 +8,6 @@ import {
   clearNeedsNextPiece,
   movePiece,
   rotatePiece,
-  // softDrop,
-  // hardDrop,
 } from "../redux/gameSlice";
 import socket from "../utils/socket";
 
@@ -19,7 +17,6 @@ export function useGame() {
     (state: RootState) => state.game
   );
 
-  // Watch for when we need next piece and emit socket event
   useEffect(() => {
     if (needsNextPiece && socket.connected) {
       console.log("Requesting next piece from server");
@@ -37,7 +34,6 @@ export function useGame() {
       const key = e.key.toLowerCase();
       let inputChanges: any = null;
 
-      // Prevent default behavior for game keys
       if (
         ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Space"].includes(
           e.code
@@ -47,7 +43,6 @@ export function useGame() {
         e.preventDefault();
       }
 
-      // ONLY send to server - no local actions
       if (e.code === "ArrowLeft" || key === "a") {
         inputChanges = { left: true };
       } else if (e.code === "ArrowRight" || key === "d") {
@@ -60,9 +55,7 @@ export function useGame() {
         inputChanges = { space: true, spaceHasBeenCounted: false };
       }
 
-      // Send input to server with throttling to prevent spam
       if (inputChanges && socket.connected) {
-        // Add debouncing to prevent input spam
         clearTimeout(inputTimeoutRef.current);
         inputTimeoutRef.current = setTimeout(() => {
           console.log("Sending input to backend:", inputChanges);
@@ -78,16 +71,14 @@ export function useGame() {
               ...inputChanges,
             },
           });
-        }, 50); // 50ms debounce
+        }, 50);
       }
     },
     [status, dispatch]
   );
 
-  // Add timeout ref for input debouncing
   const inputTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (inputTimeoutRef.current) {
@@ -96,7 +87,6 @@ export function useGame() {
     };
   }, []);
 
-  // Set up keyboard event listeners
   useEffect(() => {
     console.log("Setting up keyboard listeners, game status:", status);
     document.addEventListener("keydown", onKey);
@@ -105,7 +95,6 @@ export function useGame() {
     };
   }, [onKey]);
 
-  // Game control functions
   const start = useCallback(
     (gameMode?: "solo" | "multiplayer") => {
       console.log("Starting game with mode:", gameMode);

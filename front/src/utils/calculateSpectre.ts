@@ -9,13 +9,11 @@ export function calculateSpectre(board: Board): number[] {
   const width = board[0].length;
 
   return Array.from({ length: width }, (_, col) => {
-    // scan down the column
     for (let row = 0; row < height; row++) {
       if (board[row][col] !== 0) {
         return row;
       }
     }
-    // no blocks in this column
     return height;
   });
 }

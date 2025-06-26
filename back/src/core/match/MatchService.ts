@@ -67,15 +67,10 @@ class MatchService {
       socket.data.playerName = undefined;
     }
 
-    // if (match.player.length === 0) {
-    //   delete this.matchs[room];
-    //   this.logger.info(`Room ${room} is empty and has been deleted`);
-    // }
     if (match.player.length === 0) {
       delete this.matchs[room];
       this.logger.info(`Room ${room} is empty and has been deleted`);
 
-      // ADD: Debug log before calling forceStopGame
       this.logger.info(`🔍 About to call gameService.forceStopGame for room ${room}`);
       gameService.forceStopGame(room);
       this.logger.info(`🔍 Finished calling gameService.forceStopGame for room ${room}`);
@@ -102,30 +97,24 @@ class MatchService {
 
     this.logger.info(`Player ${playerName} disconnected from room ${room} (reason: ${reason})`);
 
-    // Use your existing playerLeave logic
     this.playerLeave(playerName, room, socket);
 
-    // Notify other players in the room
     const io = MyWebSocket.getInstance();
     io.to(room).emit("match:playerHasLeft", playerName);
 
-    // IMPORTANT: Also cleanup the game if room becomes empty
     this.cleanupGameIfNeeded(room);
   }
   private cleanupGameIfNeeded(room: string) {
     const match = this.matchs[room];
 
-    // If room no longer exists (was deleted in playerLeave), cleanup game
     if (!match) {
       this.logger.info(`Room ${room} was deleted, cleaning up associated game`);
       gameService.forceStopGame(room);
       return;
     }
 
-    // If room still has players, just remove the player from game
     if (match.player.length > 0) {
       this.logger.info(`Room ${room} still has ${match.player.length} players, keeping game running`);
-      // The game will continue with remaining players
       return;
     }
   }

@@ -36,7 +36,6 @@ export interface GameState {
   isRunning: boolean;
   isSolo: boolean;
   gamers: Gamer[];
-  // sharedPieces: TetrisPiece[];
   sharedPieces: Array<{ type: string; x: number; y: number; shape: number[][]; rotation: number }>;
   currentPieceIndex: number;
 }

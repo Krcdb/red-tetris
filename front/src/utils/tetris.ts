@@ -1,4 +1,4 @@
-export type Cell = number; // 0 = empty; >0 = filled
+export type Cell = number;
 export type Board = Cell[][];
 
 export function initialBoard(): Board {
@@ -40,11 +40,9 @@ export function isValidPosition(board: Board, piece: Piece): boolean {
       if (shape[y][x] === 0) continue;
       const by = py + y;
       const bx = px + x;
-      // out of bounds
       if (by < 0 || by >= board.length || bx < 0 || bx >= board[0].length) {
         return false;
       }
-      // collision
       if (board[by][bx] !== 0) {
         return false;
       }

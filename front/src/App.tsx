@@ -13,7 +13,6 @@ import socket from "./utils/socket";
 
 export default function App() {
   useEffect(() => {
-    // Connect socket once when app starts
     socket.connect();
 
     socket.on("connect", () => {
@@ -24,7 +23,6 @@ export default function App() {
       console.log("Disconnected from server");
     });
 
-    // Cleanup on app unmount
     return () => {
       socket.disconnect();
       socket.off("connect");
@@ -37,9 +35,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/solo" element={<Solo />} />
-        {/* Main requirement: /<room>/<playerName> shows lobby */}
         <Route path="/:room/:playerName" element={<LobbyRoute />} />
-        {/* Keep your game route as internal navigation */}
         <Route path="/:room/:playerName/game" element={<GameRoute />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -5,7 +5,6 @@ export function rotatePiece(piece: TetrisPiece): TetrisPiece {
   const rows = shape.length;
   const cols = shape[0].length;
 
-  // Create rotated shape (90 degrees clockwise)
   const rotatedShape: number[][] = [];
   for (let i = 0; i < cols; i++) {
     rotatedShape[i] = [];
@@ -29,12 +28,10 @@ export function isValidPosition(board: Cell[][], piece: TetrisPiece): boolean {
         const boardY = y + row;
         const boardX = x + col;
 
-        // Check bounds
         if (boardX < 0 || boardX >= 10 || boardY < 0 || boardY >= 20) {
           return false;
         }
 
-        // Check collision with existing pieces
         if (board[boardY][boardX] !== 0) {
           return false;
         }
@@ -79,7 +76,6 @@ export function clearLines(board: Cell[][]): { newBoard: Cell[][]; linesCleared:
     }
   }
 
-  // Add empty rows at the top
   while (newBoard.length < 20) {
     newBoard.unshift(new Array(10).fill(0));
   }

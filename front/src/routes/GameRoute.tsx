@@ -1,194 +1,3 @@
-// import { useEffect } from "react";
-// import { useParams } from "react-router-dom";
-// import { useGame } from "../hooks/useGame";
-// import { useDispatch } from "react-redux";
-// import { setPieces, updateBoard, updatePlayerState } from "../redux/gameSlice";
-// import socket from "../utils/socket";
-// import Board from "../components/Board";
-// import { NextPiecePreview } from "../components/NextPiecePreview";
-
-// export default function GameRoute() {
-//   const { room, playerName } = useParams<{
-//     room: string;
-//     playerName: string;
-//   }>();
-
-//   const { status, currentPiece, board, start } = useGame();
-//   const dispatch = useDispatch();
-
-//   useEffect(() => {
-//     if (!room || !playerName) return;
-
-//     console.log("🎮 GameRoute: Setting up game events", {
-//       room,
-//       playerName,
-//       socketConnected: socket.connected,
-//     });
-
-//     // Join the room for game
-//     console.log("📤 Emitting match:playerJoin", { playerName, room });
-//     socket.emit("match:playerJoin", { playerName, room });
-
-//     // Game event handlers
-//     socket.on("game:isSetup", () => {
-//       console.log("🔧 Game is being set up - sending player ready");
-//       console.log("📤 Emitting game:playerReady");
-//       socket.emit("game:playerReady");
-//     });
-
-//     socket.on("game:isLaunching", () => {
-//       console.log("🚀 Game is launching!");
-//       start("multiplayer");
-//     });
-
-//     socket.on("game:newState", (gameState) => {
-//       console.log("🎮 PIECE SYNC DEBUG:");
-//       console.log("  All Players Piece Status:");
-//       gameState.gamers?.forEach((gamer: any) => {
-//         console.log(
-//           `    ${gamer.name}: Piece #${gamer.currentPieceIndex} (${gamer.currentPiece?.type})`
-//         );
-//       });
-//       console.log(
-//         "  Next Pieces Preview:",
-//         gameState.nextPieces?.map((p: any) => p.type).join(", ")
-//       );
-//       console.log("  Sequence Length:", gameState.pieceSequenceLength);
-
-//       const currentPlayerData = gameState.gamers?.find(
-//         (g: any) => g.name === playerName
-//       );
-
-//       if (currentPlayerData) {
-//         // Update pieces AND score/lines from server
-//         dispatch(
-//           setPieces({
-//             currentPiece: currentPlayerData.currentPiece,
-//             nextPieces: gameState.nextPieces || [],
-//           })
-//         );
-
-//         // Update player stats from server
-//         dispatch(
-//           updatePlayerState({
-//             score: currentPlayerData.score,
-//             linesCleared: currentPlayerData.linesCleared,
-//           })
-//         );
-
-//         // Update board with locked pieces from server
-//         if (currentPlayerData.grid) {
-//           console.log(
-//             "📋 Updating board with locked pieces:",
-//             currentPlayerData.grid
-//           );
-//           dispatch(updateBoard(currentPlayerData.grid));
-//         }
-//       }
-//     });
-
-//     // Add logging for any socket errors
-//     socket.on("connect_error", (error) => {
-//       console.error("❌ Socket connection error:", error);
-//     });
-
-//     socket.on("disconnect", (reason) => {
-//       console.warn("⚠️ Socket disconnected:", reason);
-//     });
-
-//     return () => {
-//       console.log("🧹 Cleaning up GameRoute socket events");
-//       socket.off("game:isSetup");
-//       socket.off("game:isLaunching");
-//       socket.off("game:newState");
-//       socket.off("connect_error");
-//       socket.off("disconnect");
-//     };
-//   }, [room, playerName, dispatch]);
-
-//   // return (
-//   //   <div style={{ padding: "20px" }}>
-//   //     <h1>Game: {room}</h1>
-//   //     <p>Player: {playerName}</p>
-//   //     <p>Status: {status}</p>
-//   //     <p>Socket Connected: {socket.connected ? "Yes" : "No"}</p>
-
-//   //     {status === "idle" && (
-//   //       <div>
-//   //         <p>Waiting for game to start...</p>
-//   //         <button
-//   //           onClick={() => {
-//   //             console.log("🔘 Manual start game button clicked");
-//   //             socket.emit("match:startGame", { room });
-//   //           }}
-//   //         >
-//   //           🚀 Start Game Manually
-//   //         </button>
-//   //       </div>
-//   //     )}
-
-//   //     <div style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
-//   //       <div>
-//   //         <Board />
-//   //       </div>
-//   //       <div>
-//   //         <h3>Next Piece:</h3>
-//   //         <NextPiecePreview />
-//   //       </div>
-//   //       <div>
-//   //         <h3>Controls:</h3>
-//   //         <p>Arrow Keys or WASD to move</p>
-//   //         <p>Space to hard drop</p>
-//   //       </div>
-//   //     </div>
-//   //   </div>
-//   // );
-
-//   return (
-//     <div style={{ padding: "20px" }}>
-//       <h1>Game: {room}</h1>
-//       <p>Player: {playerName}</p>
-//       <p>Status: {status}</p>
-//       <p>Socket Connected: {socket.connected ? "Yes" : "No"}</p>
-
-//       {status === "idle" && (
-//         <div>
-//           <p>Waiting for game to start...</p>
-//           <button
-//             onClick={() => {
-//               console.log("🔘 Manual start game button clicked");
-//               socket.emit("match:startGame", { room });
-//             }}
-//           >
-//             🚀 Start Game Manually
-//           </button>
-//         </div>
-//       )}
-
-//       <div style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
-//         <div>
-//           <Board />
-//         </div>
-//         <div>
-//           <h3>Next Piece:</h3>
-//           <NextPiecePreview />
-//           <div style={{ marginTop: "10px", fontSize: "12px", color: "#666" }}>
-//             <h4>Debug Info:</h4>
-//             <p>Current Piece: {currentPiece?.type || "None"}</p>
-//             <p>
-//               Position: ({currentPiece?.x}, {currentPiece?.y})
-//             </p>
-//           </div>
-//         </div>
-//         <div>
-//           <h3>Controls:</h3>
-//           <p>Arrow Keys or WASD to move</p>
-//           <p>Space to hard drop</p>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useGame } from "../hooks/useGame";
@@ -198,7 +7,6 @@ import socket from "../utils/socket";
 import Board from "../components/Board";
 import { NextPiecePreview } from "../components/NextPiecePreview";
 
-// Add interface for piece history
 interface PieceHistoryEntry {
   index: number;
   type: string;
@@ -206,7 +14,6 @@ interface PieceHistoryEntry {
   playerName: string;
 }
 
-// Add interface for piece synchronization tracking
 interface PieceAtIndex {
   index: number;
   piecesByPlayer: { [playerName: string]: string };
@@ -222,10 +29,10 @@ export default function GameRoute() {
   const { status, currentPiece, board, start } = useGame();
   const dispatch = useDispatch();
 
-  // Add state for piece history
   const [pieceHistory, setPieceHistory] = useState<PieceHistoryEntry[]>([]);
   const [allPlayersData, setAllPlayersData] = useState<any[]>([]);
   const [pieceSyncTable, setPieceSyncTable] = useState<PieceAtIndex[]>([]);
+  const [gameState, setGameState] = useState<any>(null);
 
   useEffect(() => {
     if (!room || !playerName) return;
@@ -236,11 +43,9 @@ export default function GameRoute() {
       socketConnected: socket.connected,
     });
 
-    // Join the room for game
     console.log("📤 Emitting match:playerJoin", { playerName, room });
     socket.emit("match:playerJoin", { playerName, room });
 
-    // Game event handlers
     socket.on("game:isSetup", () => {
       console.log("🔧 Game is being set up - sending player ready");
       console.log("📤 Emitting game:playerReady");
@@ -253,13 +58,14 @@ export default function GameRoute() {
     });
 
     socket.on("game:newState", (gameState) => {
+      setGameState(gameState);
+
       console.log("🎮 PIECE SYNC DEBUG:");
       console.log("  All Players Piece Status:");
       gameState.gamers?.forEach((gamer: any) => {
         console.log(
           `    ${gamer.name}: Piece #${gamer.currentPieceIndex} (${gamer.currentPiece?.type})`
         );
-        // Add this line to see each player's individual next pieces
         console.log(
           `      Next pieces: ${
             gamer.nextPieces?.map((p: any) => p.type).join(", ") || "none"
@@ -267,7 +73,6 @@ export default function GameRoute() {
         );
       });
 
-      // Check if all players are on the same sequence
       const pieceIndices =
         gameState.gamers?.map((g: any) => g.currentPieceIndex) || [];
       const minIndex = Math.min(...pieceIndices);
@@ -288,10 +93,8 @@ export default function GameRoute() {
 
       console.log("  Sequence Length:", gameState.pieceSequenceLength);
 
-      // Update all players data for the table
       setAllPlayersData(gameState.gamers || []);
 
-      // Update piece history when pieces change
       if (gameState.gamers) {
         const newEntries: PieceHistoryEntry[] = [];
         gameState.gamers.forEach((gamer: any) => {
@@ -305,11 +108,9 @@ export default function GameRoute() {
           }
         });
 
-        // Update history (keep last 50 entries)
         setPieceHistory((prev) => {
           const updated = [...prev];
           newEntries.forEach((entry) => {
-            // Only add if this piece index for this player isn't already recorded
             const exists = updated.find(
               (h) =>
                 h.index === entry.index && h.playerName === entry.playerName
@@ -318,13 +119,11 @@ export default function GameRoute() {
               updated.push(entry);
             }
           });
-          return updated.slice(-50); // Keep last 50 entries
+          return updated.slice(-50);
         });
 
-        // Build piece synchronization table
         const syncTable: { [index: number]: PieceAtIndex } = {};
 
-        // Collect all pieces from history for comparison
         pieceHistory.forEach((entry) => {
           if (!syncTable[entry.index]) {
             syncTable[entry.index] = {
@@ -336,7 +135,6 @@ export default function GameRoute() {
           syncTable[entry.index].piecesByPlayer[entry.playerName] = entry.type;
         });
 
-        // Add current pieces
         gameState.gamers.forEach((gamer: any) => {
           if (gamer.currentPiece && gamer.currentPieceIndex >= 0) {
             if (!syncTable[gamer.currentPieceIndex]) {
@@ -351,7 +149,6 @@ export default function GameRoute() {
           }
         });
 
-        // Check if pieces are synced at each index
         Object.values(syncTable).forEach((entry) => {
           const pieceTypes = Object.values(entry.piecesByPlayer);
           entry.isSynced =
@@ -359,14 +156,12 @@ export default function GameRoute() {
             pieceTypes.every((type) => type === pieceTypes[0]);
         });
 
-        // Sort by index (oldest first) and update state - SHOW ALL PIECES
         const sortedSyncTable = Object.values(syncTable).sort(
           (a, b) => a.index - b.index
         );
         setPieceSyncTable(sortedSyncTable);
       }
 
-      // Find current player data
       const currentPlayerData = gameState.gamers?.find(
         (g: any) => g.name === playerName
       );
@@ -377,7 +172,6 @@ export default function GameRoute() {
           currentPlayerData.nextPieces?.map((p: any) => p.type) || "none"
         );
 
-        // THIS IS THE KEY FIX - Use player's individual next pieces, not global ones
         dispatch(
           setPieces({
             currentPiece: currentPlayerData.currentPiece,
@@ -385,7 +179,6 @@ export default function GameRoute() {
           })
         );
 
-        // Update player stats from server
         dispatch(
           updatePlayerState({
             score: currentPlayerData.score,
@@ -393,7 +186,6 @@ export default function GameRoute() {
           })
         );
 
-        // Update board with locked pieces from server
         if (currentPlayerData.grid) {
           console.log(
             "📋 Updating board with locked pieces:",
@@ -404,7 +196,6 @@ export default function GameRoute() {
       }
     });
 
-    // Add logging for any socket errors
     socket.on("connect_error", (error) => {
       console.error("❌ Socket connection error:", error);
     });
@@ -425,6 +216,103 @@ export default function GameRoute() {
 
   return (
     <div style={{ padding: "20px" }}>
+      {/* Game Over Overlay */}
+      {gameState && !gameState.isRunning && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: "#2a2a2a",
+              borderRadius: "12px",
+              padding: "2rem",
+              textAlign: "center",
+              border: "2px solid #ff6b6b",
+              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.5)",
+              color: "white",
+            }}
+          >
+            <h1
+              style={{
+                color: "#ff6b6b",
+                marginBottom: "1.5rem",
+                fontSize: "2.5rem",
+                textShadow: "2px 2px 4px rgba(0, 0, 0, 0.5)",
+              }}
+            >
+              🎮 GAME OVER
+            </h1>
+            <div style={{ margin: "1.5rem 0" }}>
+              {gameState.gamers
+                ?.sort((a: any, b: any) => b.score - a.score)
+                .map((gamer: any, index: number) => (
+                  <div
+                    key={gamer.name}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "0.5rem 1rem",
+                      margin: "0.5rem 0",
+                      background: "rgba(255, 255, 255, 0.1)",
+                      borderRadius: "6px",
+                      minWidth: "300px",
+                    }}
+                  >
+                    <span style={{ fontWeight: "bold", color: "#ffd93d" }}>
+                      #{index + 1}
+                    </span>
+                    <span
+                      style={{ flex: 1, textAlign: "left", marginLeft: "1rem" }}
+                    >
+                      {gamer.name}
+                    </span>
+                    <span style={{ color: "#4ecdc4", fontWeight: "bold" }}>
+                      {gamer.score} pts
+                    </span>
+                    <span style={{ color: "#95e1d3", fontSize: "0.9rem" }}>
+                      {gamer.linesCleared} lines
+                    </span>
+                  </div>
+                ))}
+            </div>
+            <button
+              style={{
+                background: "#4ecdc4",
+                color: "white",
+                border: "none",
+                padding: "0.75rem 2rem",
+                borderRadius: "6px",
+                fontSize: "1.1rem",
+                cursor: "pointer",
+                marginTop: "1rem",
+                transition: "background 0.3s",
+              }}
+              onClick={() => window.location.reload()}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.background = "#45b7aa")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.background = "#4ecdc4")
+              }
+            >
+              Play Again
+            </button>
+          </div>
+        </div>
+      )}
+
       <h1>Game: {room}</h1>
       <p>Player: {playerName}</p>
       <p>Status: {status}</p>
@@ -466,9 +354,7 @@ export default function GameRoute() {
         </div>
       </div>
 
-      {/* Add Piece Sequence Tables */}
       <div style={{ marginTop: "30px", display: "flex", gap: "20px" }}>
-        {/* Current Players Status */}
         <div style={{ flex: 1 }}>
           <h3>🎯 Current Player Status</h3>
           <table
@@ -535,7 +421,6 @@ export default function GameRoute() {
           </table>
         </div>
 
-        {/* Piece Synchronization Table */}
         <div style={{ flex: 1 }}>
           <h3>🔄 Piece Synchronization Check</h3>
           <div

@@ -17,10 +17,8 @@ export default function LobbyRoute() {
   useEffect(() => {
     if (!room || !playerName) return;
 
-    // Don't connect/disconnect - socket is managed by App.tsx
     socket.emit("match:playerJoin", { playerName, room });
 
-    // Add yourself to the players list immediately
     setPlayers([{ name: playerName }]);
 
     socket.on("match:playerHasJoin", (joinedPlayerName: string) => {
@@ -47,7 +45,6 @@ export default function LobbyRoute() {
       socket.off("match:playerHasJoin");
       socket.off("match:playerHasLeft");
       socket.off("match:nameTaken");
-      // Don't disconnect socket here
     };
   }, [room, playerName, navigate]);
 

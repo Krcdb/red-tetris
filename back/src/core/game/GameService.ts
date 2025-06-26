@@ -17,10 +17,6 @@ class GameService {
     this.gameLoops = {};
   }
 
-  // =====================================
-  // PRIVATE METHODS - Internal Logic
-  // =====================================
-
   private initializeGrid(): Cell[][] {
     const grid: Cell[][] = [];
     for (let i = 0; i < 20; i++) {
@@ -137,17 +133,12 @@ class GameService {
     const gameState = this.games[room];
     if (!gameState) return;
 
-    // Generate more pieces if running low
     const maxPlayerIndex = Math.max(...gameState.gamers.map((g) => g.currentPieceIndex ?? 0));
     if (maxPlayerIndex >= gameState.sharedPieces.length - 20) {
       this.logger.info(`Generating more pieces for room ${room}`);
       gameState.sharedPieces.push(...this.generatePieces(100));
     }
   }
-
-  // =====================================
-  // PUBLIC METHODS - External Interface
-  // =====================================
 
   createGame(players: Player[], room: string) {
     this.logger.info(`Creating game for room ${room} with ${players.length} player(s)`);
@@ -157,7 +148,7 @@ class GameService {
       isSolo: players.length === 1,
       isRunning: false,
       gamers: [],
-      sharedPieces: this.generatePieces(1000), // Generate plenty of pieces
+      sharedPieces: this.generatePieces(1000),
       currentPieceIndex: 0,
     };
 
@@ -190,7 +181,6 @@ class GameService {
   forceStopGame(room: string) {
     this.logger.info(`🛑 Force stopping game in room ${room}`);
 
-    // Stop the game loop
     const gameLoop = this.gameLoops[room];
     if (gameLoop) {
       gameLoop.stop();
@@ -200,7 +190,6 @@ class GameService {
       this.logger.info(`ℹ️  No game loop found for room ${room}`);
     }
 
-    // Remove game state
     if (this.games[room]) {
       delete this.games[room];
       this.logger.info(`✅ Game state for room ${room} deleted`);
@@ -219,24 +208,21 @@ class GameService {
 
     const gameState = this.games[room];
 
-    // Ensure we have a long piece sequence
     if (gameState.sharedPieces.length === 0) {
       gameState.sharedPieces = this.generatePieces(1000);
       this.logger.info(`Generated initial sequence of ${gameState.sharedPieces.length} pieces`);
     }
 
-    // Give ALL players the SAME first piece (index 0)
     const firstPiece = gameState.sharedPieces[0];
     gameState.gamers.forEach((gamer) => {
       gamer.currentPiece = this.clonePiece(firstPiece);
-      gamer.currentPieceIndex = 0; // Everyone starts at piece 0
+      gamer.currentPieceIndex = 0;
       gamer.needsNextPiece = false;
       this.logger.info(`🎯 ${gamer.name}: Starting with piece #0 (${firstPiece.type})`);
     });
 
     gameState.isRunning = true;
 
-    // Send initial state with piece sequence
     this.sendGameState(room);
 
     const tetrisLoop = new TetrisGameLoop(gameState, room);
@@ -250,13 +236,11 @@ class GameService {
 
     const io = MyWebSocket.getInstance();
 
-    // Create client game state
     const clientGameState: any = {
       room: gameState.room,
       currentPieceIndex: gameState.currentPieceIndex,
       pieceSequenceLength: gameState.sharedPieces.length,
       gamers: gameState.gamers.map((gamer) => {
-        // Calculate next pieces for THIS specific player
         const playerNextPieceIndex = (gamer.currentPieceIndex ?? 0) + 1;
         const playerNextPieces = gameState.sharedPieces.slice(playerNextPieceIndex, playerNextPieceIndex + 5);
 
@@ -268,10 +252,9 @@ class GameService {
           score: gamer.score,
           linesCleared: gamer.linesCleared,
           isReady: gamer.isReady,
-          nextPieces: playerNextPieces, // Add next pieces per player
+          nextPieces: playerNextPieces,
         };
       }),
-      // Remove global nextPieces, now each player has their own
       isRunning: gameState.isRunning,
     };
 
@@ -326,7 +309,6 @@ class GameService {
     gamer.input = input;
   }
 
-  // Updated method for individual piece advancement
   requestNextPiece(room: string, playerName: string) {
     const gameState = this.games[room];
     if (!gameState) {
@@ -340,10 +322,8 @@ class GameService {
       return;
     }
 
-    // Ensure we have pieces available
     this.ensurePiecesAvailable(room);
 
-    // Give player their NEXT piece from the sequence
     const nextPieceIndex = (gamer.currentPieceIndex ?? 0) + 1;
     const nextPiece = gameState.sharedPieces[nextPieceIndex];
 
@@ -354,7 +334,6 @@ class GameService {
 
       this.logger.info(`✅ ${playerName}: Piece #${nextPieceIndex} (${nextPiece.type})`);
 
-      // Send updated state
       this.sendGameState(room);
     } else {
       this.logger.error(`❌ No piece available at index ${nextPieceIndex} for ${playerName}`);

@@ -16,11 +16,8 @@ const Solo: React.FC = () => {
   const dispatch = useDispatch();
   const { status, score, nextPieces } = useSelector((s: RootState) => s.game);
 
-  // Remove the useGame hook here since we're managing start manually
-  useGame(); // Still need this for keyboard controls and auto-drop
-
+  useGame();
   useEffect(() => {
-    // Set up socket events for solo game
     socket.on("game:isSetup", () => {
       console.log("Solo game setup - sending ready");
       socket.emit("game:playerReady");
@@ -34,7 +31,6 @@ const Solo: React.FC = () => {
     socket.on("game:newState", (gameState) => {
       console.log("Solo game state received:", gameState);
 
-      // For solo, we're the only player
       const playerData = gameState.gamers?.[0];
       if (playerData) {
         dispatch(
@@ -61,16 +57,13 @@ const Solo: React.FC = () => {
   }, [dispatch]);
 
   const handleStartSolo = () => {
-    // Create unique room and player names
     const soloRoom = `solo_${Date.now()}`;
     const playerName = `player_${Date.now()}`;
 
     console.log("Starting solo game:", { soloRoom, playerName });
 
-    // Join the room
     socket.emit("match:playerJoin", { playerName, room: soloRoom });
 
-    // Start the game (this triggers the backend to launch the game)
     socket.emit("match:startGame", { room: soloRoom });
   };
 
@@ -104,7 +97,6 @@ const Solo: React.FC = () => {
               style={{ border: "1px solid #333", padding: "5px" }}
             >
               <div style={{ fontSize: "10px" }}>Next {index + 1}</div>
-              {/* You could render actual piece preview here */}
             </div>
           ))}
         </div>

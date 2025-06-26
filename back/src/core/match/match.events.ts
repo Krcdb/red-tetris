@@ -29,11 +29,6 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
     socket.leave(room);
   });
 
-  // socket.on("match:startGame", (data) => {
-  //   const { room } = data;
-
-  //   matchService.startGame(room);
-  // });
   socket.on("match:startGame", (data) => {
     const { room } = data;
     logger.info(`🚀 Start game requested for room: ${room}`);
@@ -56,13 +51,10 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
       logger.info(`👋 Player ${playerName} disconnected from room ${room}`);
 
       try {
-        // Use existing playerLeave logic
         matchService.playerLeave(playerName, room, socket);
 
-        // Notify other players in the room
         io.to(room).emit("match:playerHasLeft", playerName);
 
-        // Leave the socket room
         socket.leave(room);
 
         logger.info(`✅ Successfully cleaned up disconnected player ${playerName} from room ${room}`);
