@@ -1,13 +1,13 @@
 import MyWebSocket from "../socket/websocket";
-import { GameState } from "../types/game"
+import { GameState } from "../types/game";
 import { getLogger } from "../utils/Logger";
 
 export class TetrisGameLoop {
   private gameState: GameState;
-  private io: MyWebSocket;
-  private room: string;
   private interval: NodeJS.Timeout | null = null;
+  private io: MyWebSocket;
   private logger = getLogger("TetrisGameLoop");
+  private room: string;
 
   constructor(initialState: GameState, room: string) {
     this.gameState = initialState;
@@ -18,14 +18,14 @@ export class TetrisGameLoop {
   start() {
     if (this.interval) {
       this.logger.warn(`Game ${this.room} already started`);
-      return ;
+      return;
     }
 
     this.gameState.isRunning = true;
     this.interval = setInterval(() => {
       this.updateGame();
       this.io.to(this.room).emit("game:newState", this.gameState);
-    }, 1000);//we will have to check decide at which rate we will update the game, we could add an option that will set the game speed
+    }, 1000); //we will have to check decide at which rate we will update the game, we could add an option that will set the game speed
   }
 
   stop() {

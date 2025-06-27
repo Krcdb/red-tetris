@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { gameService } from "../../core/game/GameService";
-import { Player } from "../../core/types/player";
 import { TetrisGameLoop } from "../../core/tetris/TetrisGameLoop";
-import MyWebSocket from "../../core/socket/websocket";
+import { Player } from "../../core/types/player";
 
 const emitMock = vi.fn();
 const toMock = vi.fn(() => ({ emit: emitMock }));
@@ -17,23 +17,19 @@ vi.mock("../../core/socket/websocket", () => {
         }),
       }),
     },
-  }
-})
+  };
+});
 
 vi.mock("../../core/tetris/TetrisGameLoop", () => {
   return {
     TetrisGameLoop: vi.fn().mockImplementation(() => ({
       start: vi.fn(),
     })),
-  }
-})
-
+  };
+});
 
 describe("GameService", () => {
-  const players: Player[] = [
-    { name: "bob" },
-    { name: "alice" }
-  ];
+  const players: Player[] = [{ name: "bob" }, { name: "alice" }];
   const room = "test-room";
 
   beforeEach(() => {
@@ -56,7 +52,7 @@ describe("GameService", () => {
     gameService.playerReady("bob", room);
 
     const state = (gameService as any).games[room];
-    const bob = state.gamers.find(g => g.name === "bob");
+    const bob = state.gamers.find((g) => g.name === "bob");
     expect(bob?.isReady).toBe(true);
 
     expect(emitMock).not.toHaveBeenCalledWith("game:isLaunching");
@@ -69,34 +65,41 @@ describe("GameService", () => {
   it("should throw if playerReady called with unknown player", () => {
     gameService.createGame(players, room);
 
-    expect(() => gameService.playerReady("charlie", room)).toThrowError(
-      /couldn't find player charlie/
-    );
+    expect(() => {
+      gameService.playerReady("charlie", room);
+    }).toThrowError(/couldn't find player charlie/);
   });
 
   it("should update player input", () => {
     gameService.createGame(players, room);
     const input = {
-      up: true,
+      down: false,
       left: false,
       right: false,
-      down: false,
       space: true,
       spaceHasBeenCounted: true,
-      upHasBeenCounted: false
+      up: true,
+      upHasBeenCounted: false,
     };
 
     gameService.playerInputChange("bob", room, input);
-    const player = (gameService as any).games[room].gamers.find(p => p.name === "bob");
+    const player = (gameService as any).games[room].gamers.find((p) => p.name === "bob");
     expect(player?.input).toEqual(input);
   });
 
   it("should throw if playerInputChange called with unknown player", () => {
     gameService.createGame(players, room);
 
-    expect(() => gameService.playerInputChange("charlie", room, {
-      up: false, left: false, right: false, down: false,
-      space: false, spaceHasBeenCounted: false, upHasBeenCounted: false
-    })).toThrowError(/couldn't find player charlie/);
+    expect(() => {
+      gameService.playerInputChange("charlie", room, {
+        down: false,
+        left: false,
+        right: false,
+        space: false,
+        spaceHasBeenCounted: false,
+        up: false,
+        upHasBeenCounted: false,
+      });
+    }).toThrowError(/couldn't find player charlie/);
   });
 });

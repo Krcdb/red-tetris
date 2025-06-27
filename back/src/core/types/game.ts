@@ -1,25 +1,25 @@
-export interface GamerInputs {
-  up: boolean;
-  left: boolean;
-  right: boolean;
-  down: boolean;
-  space: boolean;
-  spaceHasBeenCounted: boolean;
-  upHasBeenCounted: boolean;
-}
-
 export type Cell = number;
 
 export interface Gamer {
-  isReady: boolean,
-  name: string,
-  input: GamerInputs,
-  grid: Cell[][],
+  grid: Cell[][];
+  input: GamerInputs;
+  isReady: boolean;
+  name: string;
+}
+
+export interface GamerInputs {
+  down: boolean;
+  left: boolean;
+  right: boolean;
+  space: boolean;
+  spaceHasBeenCounted: boolean;
+  up: boolean;
+  upHasBeenCounted: boolean;
 }
 
 export interface GameState {
-  room: string,
-  isRunning: boolean,
-  isSolo: boolean,
-  gamers: Gamer[],
+  gamers: Gamer[];
+  isRunning: boolean;
+  isSolo: boolean;
+  room: string;
 }

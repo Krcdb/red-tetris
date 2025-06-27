@@ -1,4 +1,5 @@
-import { describe, it, vi, beforeEach, expect, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { registerGameHandler } from "../../core/game/game.events";
 import { gameService } from "../../core/game/GameService"; // actual import
 import { CustomeSocket } from "../../core/types/socket-event";
@@ -10,14 +11,13 @@ describe("registerGameHandler", () => {
   beforeEach(() => {
     onHandlers = {};
     socket = {
+      data: {},
+      id: "test-socket-id",
       on: vi.fn((event, cb) => {
         onHandlers[event] = cb;
       }),
-      data: {},
-      id: "test-socket-id",
     };
 
-    // ✅ mock gameService methods directly
     vi.spyOn(gameService, "playerReady").mockImplementation(() => {});
     vi.spyOn(gameService, "playerInputChange").mockImplementation(() => {});
   });
@@ -33,7 +33,7 @@ describe("registerGameHandler", () => {
   });
 
   it("should call gameService.playerReady with correct data", () => {
-    socket.data = { playerName: "bob", currentRoom: "room1" };
+    socket.data = { currentRoom: "room1", playerName: "bob" };
     registerGameHandler(socket as CustomeSocket);
     onHandlers["game:playerReady"]();
     expect(gameService.playerReady).toHaveBeenCalledWith("bob", "room1");
@@ -47,8 +47,8 @@ describe("registerGameHandler", () => {
   });
 
   it("should call gameService.playerInputChange with correct data", () => {
-    socket.data = { playerName: "alice", currentRoom: "room2" };
-    const input = { up: true, down: false };
+    socket.data = { currentRoom: "room2", playerName: "alice" };
+    const input = { down: false, up: true };
     registerGameHandler(socket as CustomeSocket);
     onHandlers["game:playerInputChanges"]({ input });
     expect(gameService.playerInputChange).toHaveBeenCalledWith("alice", "room2", input);

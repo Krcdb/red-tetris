@@ -1,8 +1,8 @@
-import { Match } from "../types/match.js";
-import { getLogger } from "../utils/Logger.js";
-import { CustomeSocket } from "../types/socket-event.js";
 import { gameService } from "../game/GameService.js";
 import MyWebSocket from "../socket/websocket.js";
+import { Match } from "../types/match.js";
+import { CustomeSocket } from "../types/socket-event.js";
+import { getLogger } from "../utils/Logger.js";
 
 type Matchs = Record<string, Match>;
 
@@ -36,9 +36,9 @@ class MatchService {
     }
     if (this.matchs[room].player.find((elem) => elem.name === playerName)) {
       this.logger.info(`player name  ${playerName} is already taken`);
-      throw new Error("Name already taken")
+      throw new Error("Name already taken");
     } else {
-      this.matchs[room].player.push({name: playerName});
+      this.matchs[room].player.push({ name: playerName });
     }
     socket.data.currentRoom = room;
     socket.data.playerName = playerName;
@@ -50,7 +50,7 @@ class MatchService {
     const match = this.matchs[room];
 
     if (!match) {
-      this.logger.info(`room ${room} not found for deletion`)
+      this.logger.info(`room ${room} not found for deletion`);
       return;
     }
 
@@ -76,7 +76,7 @@ class MatchService {
   startGame(room: string) {
     if (!this.matchs[room]) {
       this.logger.error(`cannot start match ${room}, room not found`);
-      return ;
+      return;
     }
 
     gameService.createGame(this.matchs[room].player, room);
