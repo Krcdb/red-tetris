@@ -10,6 +10,7 @@ import {
   rotatePiece,
 } from "../redux/gameSlice";
 import socket from "../utils/socket";
+import { sendPlayerInput } from "../redux/socketThunks";
 
 export function useGame() {
   const dispatch = useDispatch<AppDispatch>();
@@ -55,22 +56,19 @@ export function useGame() {
       }
 
       if (inputChanges && socket.connected) {
-        clearTimeout(inputTimeoutRef.current);
-        inputTimeoutRef.current = setTimeout(() => {
-          console.log("Sending input to backend:", inputChanges);
-          socket.emit("game:playerInputChanges", {
-            input: {
-              up: false,
-              left: false,
-              right: false,
-              down: false,
-              space: false,
-              spaceHasBeenCounted: false,
-              upHasBeenCounted: false,
-              ...inputChanges,
-            },
-          });
-        }, 50);
+        // Use thunk instead of direct socket emit
+        dispatch(
+          sendPlayerInput({
+            up: false,
+            left: false,
+            right: false,
+            down: false,
+            space: false,
+            spaceHasBeenCounted: false,
+            upHasBeenCounted: false,
+            ...inputChanges,
+          })
+        );
       }
     },
     [status, dispatch]

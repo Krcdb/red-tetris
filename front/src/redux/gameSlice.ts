@@ -30,6 +30,16 @@ interface GameState {
   needsNextPiece: boolean;
 }
 
+export interface GamerInputs {
+  up: boolean;
+  left: boolean;
+  right: boolean;
+  down: boolean;
+  space: boolean;
+  spaceHasBeenCounted: boolean;
+  upHasBeenCounted: boolean;
+}
+
 const initialState: GameState = {
   board: initialBoard(),
   currentPiece: null,

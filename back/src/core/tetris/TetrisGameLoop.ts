@@ -131,123 +131,6 @@ export class TetrisGameLoop {
     }
   }
 
-  // updateGame() {
-  //   this.logger.info(`=== UPDATE GAME TICK FOR ROOM ${this.room} ===`);
-  //   this.logger.info(`📊 Current piece index: ${this.gameState.currentPieceIndex}`);
-
-  //   const playersNeedingNewPieces: string[] = [];
-
-  //   this.gameState.gamers.forEach((gamer, index) => {
-  //     this.logger.info(`Processing player ${index + 1}: ${gamer.name}`);
-
-  //     if (!gamer.currentPiece) {
-  //       this.logger.warn(`  No current piece for ${gamer.name} - marking for new piece`);
-  //       playersNeedingNewPieces.push(gamer.name);
-  //       return;
-  //     }
-
-  //     let hasMoved = false;
-
-  //     if (gamer.input.up && !gamer.input.upHasBeenCounted) {
-  //       this.logger.info(`  🔄 Rotating ${gamer.name}'s piece`);
-  //       const rotatedPiece = rotatePiece(gamer.currentPiece);
-  //       if (isValidPosition(gamer.grid, rotatedPiece)) {
-  //         gamer.currentPiece = rotatedPiece;
-  //         hasMoved = true;
-  //       }
-  //       gamer.input.upHasBeenCounted = true;
-  //     }
-
-  //     if (gamer.input.left) {
-  //       this.logger.info(`  🔹 Moving ${gamer.name} LEFT`);
-  //       const testPiece = { ...gamer.currentPiece, x: gamer.currentPiece.x - 1 };
-  //       if (isValidPosition(gamer.grid, testPiece)) {
-  //         gamer.currentPiece.x -= 1;
-  //         hasMoved = true;
-  //       }
-  //       gamer.input.left = false;
-  //     }
-
-  //     if (gamer.input.right) {
-  //       this.logger.info(`  🔹 Moving ${gamer.name} RIGHT`);
-  //       const testPiece = { ...gamer.currentPiece, x: gamer.currentPiece.x + 1 };
-  //       if (isValidPosition(gamer.grid, testPiece)) {
-  //         gamer.currentPiece.x += 1;
-  //         hasMoved = true;
-  //       }
-  //       gamer.input.right = false;
-  //     }
-
-  //     if (gamer.input.down) {
-  //       this.logger.info(`  🔹 Soft dropping ${gamer.name}'s piece`);
-  //       const testPiece = { ...gamer.currentPiece, y: gamer.currentPiece.y + 1 };
-  //       if (isValidPosition(gamer.grid, testPiece)) {
-  //         gamer.currentPiece.y += 1;
-  //         hasMoved = true;
-  //       }
-  //       gamer.input.down = false;
-  //     }
-
-  //     if (gamer.input.space && !gamer.input.spaceHasBeenCounted) {
-  //       this.logger.info(`  🔹 Hard dropping ${gamer.name}'s piece`);
-  //       while (canMoveDown(gamer.grid, gamer.currentPiece)) {
-  //         gamer.currentPiece.y += 1;
-  //       }
-  //       gamer.input.spaceHasBeenCounted = true;
-  //       hasMoved = true;
-  //     }
-
-  //     if (!hasMoved && canMoveDown(gamer.grid, gamer.currentPiece)) {
-  //       this.logger.info(`  🔹 Auto-dropping ${gamer.name}'s piece`);
-  //       gamer.currentPiece.y += 1;
-  //     }
-
-  //     if (!canMoveDown(gamer.grid, gamer.currentPiece)) {
-  //       this.logger.info(`  🎯 Piece landed for ${gamer.name} - merging into board`);
-
-  //       gamer.grid = mergePiece(gamer.grid, gamer.currentPiece);
-
-  //       const { newBoard, linesCleared } = clearLines(gamer.grid);
-  //       gamer.grid = newBoard;
-  //       gamer.linesCleared += linesCleared;
-  //       gamer.score += linesCleared * 100 + (linesCleared >= 4 ? 400 : 0);
-
-  //       this.logger.info(`  📋 Merged piece into board, cleared ${linesCleared} lines`);
-
-  //       gamer.currentPiece = null;
-
-  //       if (linesCleared > 0) {
-  //         this.logger.info(`  🚨 Sending ${linesCleared - 1} penalty lines to opponents`);
-
-  //         this.gameState.gamers.forEach((opponent) => {
-  //           if (opponent.name !== gamer.name) {
-  //             const penaltyLines = Array.from(
-  //               { length: linesCleared - 1 },
-  //               () => Array(10).fill(1), // Indestructible penalty lines
-  //             );
-  //             opponent.grid = penaltyLines.concat(opponent.grid.slice(0, 20 - penaltyLines.length));
-  //           }
-  //         });
-  //       }
-
-  //       if (this.isGameOver(gamer.grid)) {
-  //         this.logger.info(`💀 Game over for ${gamer.name}!`);
-  //         this.gameState.isRunning = false;
-  //         this.stop();
-  //         return;
-  //       }
-
-  //       playersNeedingNewPieces.push(gamer.name);
-  //     }
-
-  //     this.logger.info(`  After: ${gamer.currentPiece?.type} at (${gamer.currentPiece?.x}, ${gamer.currentPiece?.y})`);
-  //   });
-
-  //   this.distributeSynchronizedPieces(playersNeedingNewPieces);
-
-  //   this.logger.info(`=== END UPDATE GAME TICK ===`);
-  // }
-
   updateGame() {
     this.logger.info(`=== UPDATE GAME TICK FOR ROOM ${this.room} ===`);
     this.logger.info(`📊 Current piece index: ${this.gameState.currentPieceIndex}`);
@@ -266,7 +149,6 @@ export class TetrisGameLoop {
       let hasMoved = false;
       let wasAtBottom = !canMoveDown(gamer.grid, gamer.currentPiece);
 
-      // Handle rotation
       if (gamer.input.up && !gamer.input.upHasBeenCounted) {
         this.logger.info(`  🔄 Rotating ${gamer.name}'s piece`);
         const rotatedPiece = rotatePiece(gamer.currentPiece);
@@ -277,7 +159,6 @@ export class TetrisGameLoop {
         gamer.input.upHasBeenCounted = true;
       }
 
-      // Handle horizontal movement (allow even when at bottom unless forced fall)
       if (gamer.input.left && !gamer.forcedFall) {
         this.logger.info(`  🔹 Moving ${gamer.name} LEFT`);
         const testPiece = { ...gamer.currentPiece, x: gamer.currentPiece.x - 1 };
@@ -298,22 +179,9 @@ export class TetrisGameLoop {
         gamer.input.right = false;
       }
 
-      // Handle soft drop - keep dropping while down is held and can move
-      // if (gamer.input.down) {
-      //   this.logger.info(`  🔹 Soft dropping ${gamer.name}'s piece`);
-      //   const testPiece = { ...gamer.currentPiece, y: gamer.currentPiece.y + 1 };
-      //   if (isValidPosition(gamer.grid, testPiece)) {
-      //     gamer.currentPiece.y += 1;
-      //     hasMoved = true;
-      //   }
-      //   // Don't reset down immediately - let the client handle the release
-      // }
-
-      // Handle soft drop with faster frequency
       if (gamer.input.down) {
         this.logger.info(`  🔹 Soft dropping ${gamer.name}'s piece`);
 
-        // Drop multiple times per tick for faster soft drop
         let dropCount = 0;
         while (gamer.input.down && dropCount < 3 && canMoveDown(gamer.grid, gamer.currentPiece)) {
           gamer.currentPiece.y += 1;
@@ -324,26 +192,22 @@ export class TetrisGameLoop {
         gamer.input.down = false;
       }
 
-      // Handle hard drop
       if (gamer.input.space && !gamer.input.spaceHasBeenCounted) {
         this.logger.info(`  🔹 Hard dropping ${gamer.name}'s piece`);
         while (canMoveDown(gamer.grid, gamer.currentPiece)) {
           gamer.currentPiece.y += 1;
         }
         gamer.input.spaceHasBeenCounted = true;
-        gamer.forcedFall = true; // Mark as forced fall
+        gamer.forcedFall = true;
         hasMoved = true;
       }
 
-      // Auto-drop (gravity) - only if no manual movement and can move down
       if (!hasMoved && canMoveDown(gamer.grid, gamer.currentPiece)) {
         this.logger.info(`  🔹 Auto-dropping ${gamer.name}'s piece`);
         gamer.currentPiece.y += 1;
       }
 
-      // Check if piece has landed
       if (!canMoveDown(gamer.grid, gamer.currentPiece)) {
-        // If piece was already at bottom in previous tick and no movement, lock it
         if (wasAtBottom && !hasMoved) {
           this.logger.info(`  🎯 Piece locked for ${gamer.name} - merging into board`);
 
@@ -370,7 +234,6 @@ export class TetrisGameLoop {
             });
           }
 
-          // Check game over
           if (this.isGameOver(gamer.grid)) {
             this.logger.info(`💀 Game over for ${gamer.name}!`);
             this.gameState.isRunning = false;
@@ -379,13 +242,12 @@ export class TetrisGameLoop {
           }
 
           gamer.currentPiece = null;
-          gamer.forcedFall = false; // Reset forced fall flag
+          gamer.forcedFall = false;
           playersNeedingNewPieces.push(gamer.name);
         } else {
           this.logger.info(`  🕹 Piece landed but allowing movement for ${gamer.name}`);
         }
       } else {
-        // Reset forced fall flag if piece can move down again
         gamer.forcedFall = false;
       }
 
@@ -398,7 +260,6 @@ export class TetrisGameLoop {
   }
 
   private isGameOver(grid: Cell[][]): boolean {
-    // Check if any cell in the top 2 rows has a piece
     for (let row = 0; row < 2; row++) {
       for (let col = 0; col < grid[row].length; col++) {
         if (grid[row][col] !== 0) {

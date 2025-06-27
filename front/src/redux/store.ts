@@ -5,6 +5,10 @@ export const store = configureStore({
   reducer: {
     game: gameReducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      thunk: true, // Explicitly enable thunk
+    }),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
