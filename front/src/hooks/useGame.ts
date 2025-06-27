@@ -13,9 +13,8 @@ import socket from "../utils/socket";
 
 export function useGame() {
   const dispatch = useDispatch<AppDispatch>();
-  const { status, currentPiece, board, needsNextPiece } = useSelector(
-    (state: RootState) => state.game
-  );
+  const { status, currentPiece, board, needsNextPiece, nextPieces } =
+    useSelector((state: RootState) => state.game);
 
   useEffect(() => {
     if (needsNextPiece && socket.connected) {
@@ -120,5 +119,6 @@ export function useGame() {
     start,
     pause,
     resume,
+    nextPieces,
   };
 }
