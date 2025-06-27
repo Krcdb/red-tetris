@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { gameService } from "../../core/game/GameService";
 import { TetrisGameLoop } from "../../core/tetris/TetrisGameLoop";
 import { Player } from "../../core/types/player";
+import { Gamer } from "../../core/types/game";
 
 const emitMock = vi.fn();
 const toMock = vi.fn(() => ({ emit: emitMock }));
@@ -29,7 +30,7 @@ vi.mock("../../core/tetris/TetrisGameLoop", () => {
 });
 
 describe("GameService", () => {
-  const players: Player[] = [{ name: "bob" }, { name: "alice" }];
+  const players: Player[] = [{ name: "bob", isLeader: true }, { name: "alice", isLeader: false }];
   const room = "test-room";
 
   beforeEach(() => {
@@ -52,7 +53,7 @@ describe("GameService", () => {
     gameService.playerReady("bob", room);
 
     const state = (gameService as any).games[room];
-    const bob = state.gamers.find((g) => g.name === "bob");
+    const bob = state.gamers.find((g: Gamer) => g.name === "bob");
     expect(bob?.isReady).toBe(true);
 
     expect(emitMock).not.toHaveBeenCalledWith("game:isLaunching");
@@ -83,7 +84,7 @@ describe("GameService", () => {
     };
 
     gameService.playerInputChange("bob", room, input);
-    const player = (gameService as any).games[room].gamers.find((p) => p.name === "bob");
+    const player = (gameService as any).games[room].gamers.find((p: Player) => p.name === "bob");
     expect(player?.input).toEqual(input);
   });
 

@@ -1,5 +1,6 @@
 export interface Player {
   name: string;
+  isLeader: boolean;
 }
 
 export interface PlayerInputs {
