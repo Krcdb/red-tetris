@@ -1,6 +1,7 @@
 import { Socket } from "socket.io";
 
 import { GamerInputs, GameState } from "./game";
+import { Match } from "./match";
 
 export interface ClientToServerEvents {
   "game:end": (data: { room: string }) => void;
@@ -24,8 +25,9 @@ export interface ServerToClientEvents {
   "game:newState": (gameSate: GameState) => void;
 
   "match:nameTaken": (playerName: string) => void;
-  "match:playerHasJoin": (playerName: string) => void;
-  "match:playerHasLeft": (playerName: string) => void;
+  "match:playerHasJoin": (match: Match) => void;
+  "match:playerHasLeft": (match: Match) => void;
+  "match:newLeader": (match: Match) => void;
 }
 
 export interface SocketData {

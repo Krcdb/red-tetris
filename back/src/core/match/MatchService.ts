@@ -4,7 +4,7 @@ import { Match } from "../types/match.js";
 import { CustomeSocket } from "../types/socket-event.js";
 import { getLogger } from "../utils/Logger.js";
 
-type Matchs = Record<string, Match>;
+type Matchs = { [key:string]: Match };
 
 class MatchService {
   matchs: Matchs;
@@ -15,7 +15,7 @@ class MatchService {
     this.matchs = {};
   }
 
-  playerJoin(playerName: string, room: string, socket: CustomeSocket) {
+  playerJoin(playerName: string, room: string, socket: CustomeSocket): Match {
     this.logger.info(`player ${playerName} try to join room ${room}`);
 
     if (socket.data.currentRoom !== undefined) {
@@ -24,8 +24,10 @@ class MatchService {
       this.logger.info(`player ${oldPlayerName} is already in ${oldRoom}`);
       this.playerLeave(oldPlayerName, oldRoom, socket);
       const io = MyWebSocket.getInstance();
-      io.to(oldRoom).emit("match:playerHasLeft", oldPlayerName);
       socket.leave(oldRoom);
+      if (this.matchs[oldRoom]) {
+        io.to(oldRoom).emit("match:playerHasLeft", this.matchs[oldRoom]);
+      }
     }
     if (!this.matchs[room]) {
       this.logger.info(`the room ${room} does not exist, new one is created`);
@@ -38,20 +40,22 @@ class MatchService {
       this.logger.info(`player name  ${playerName} is already taken`);
       throw new Error("Name already taken");
     } else {
-      this.matchs[room].player.push({ name: playerName });
+      const isLeader = this.matchs[room].player.length === 0
+      this.matchs[room].player.push({ name: playerName, isLeader });
     }
     socket.data.currentRoom = room;
     socket.data.playerName = playerName;
 
     this.logger.info(`player ${playerName} as joined the room | There is currently ${this.matchs[room].player.length} player in the room`);
+    return (this.matchs[room]) ;
   }
 
-  playerLeave(playerName: string, room: string, socket: CustomeSocket) {
+  playerLeave(playerName: string, room: string, socket: CustomeSocket): Match | undefined {
     const match = this.matchs[room];
 
     if (!match) {
       this.logger.info(`room ${room} not found for deletion`);
-      return;
+      return ;
     }
 
     const beforeCount = match.player.length;
@@ -61,6 +65,7 @@ class MatchService {
 
     if (beforeCount === afterCount) {
       this.logger.warn(`Player ${playerName} was not found in room ${room}`);
+      return ;
     } else {
       this.logger.info(`Player ${playerName} left room ${room}`);
       socket.data.currentRoom = undefined;
@@ -70,16 +75,24 @@ class MatchService {
     if (match.player.length === 0) {
       delete this.matchs[room];
       this.logger.info(`Room ${room} is empty and has been deleted`);
+    } else {
+      match.player[0].isLeader = true;
+      return match;
     }
   }
 
-  startGame(room: string) {
+  startGame(room: string, socket: CustomeSocket) {
     if (!this.matchs[room]) {
       this.logger.error(`cannot start match ${room}, room not found`);
       return;
     }
 
-    gameService.createGame(this.matchs[room].player, room);
+    const isLeader = this.matchs[room].player.find(elem => elem.name === socket.data.playerName)?.isLeader;
+    if (isLeader) {
+      gameService.createGame(this.matchs[room].player, room);
+    } else {
+      this.logger.warn(`Try to start the game but player ${socket.data.playerName} is not the leader`)
+    }
   }
 }
 

@@ -2,11 +2,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { registerGameHandler } from "../../core/game/game.events";
 import { gameService } from "../../core/game/GameService"; // actual import
-import { CustomeSocket } from "../../core/types/socket-event";
+import { ClientToServerEvents, CustomeSocket } from "../../core/types/socket-event";
 
 describe("registerGameHandler", () => {
-  let socket: Partial<CustomeSocket>;
-  let onHandlers: Record<string, Function>;
+let socket: Partial<CustomeSocket> & {
+  on: <E extends keyof ClientToServerEvents>(
+    event: E,
+    listener: (...args: Parameters<ClientToServerEvents[E]>) => void
+  ) => CustomeSocket;
+};  let onHandlers: Record<string, Function>;
 
   beforeEach(() => {
     onHandlers = {};
@@ -15,8 +19,10 @@ describe("registerGameHandler", () => {
       id: "test-socket-id",
       on: vi.fn((event, cb) => {
         onHandlers[event] = cb;
+        return socket as CustomeSocket;
       }),
     };
+
 
     vi.spyOn(gameService, "playerReady").mockImplementation(() => {});
     vi.spyOn(gameService, "playerInputChange").mockImplementation(() => {});
