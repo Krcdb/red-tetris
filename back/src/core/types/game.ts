@@ -29,6 +29,7 @@ export interface Gamer {
   score: number;
   linesCleared: number;
   needsNextPiece: boolean;
+  forcedFall?: boolean;
 }
 
 export interface GameState {
