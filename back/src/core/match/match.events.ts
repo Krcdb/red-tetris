@@ -1,8 +1,7 @@
-
+import MyWebSocket from "../socket/websocket.js";
 import { CustomeSocket } from "../types/socket-event.js";
 import { getLogger } from "../utils/Logger.js";
 import { matchService } from "./MatchService.js";
-import MyWebSocket from "../socket/websocket.js";
 
 export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
   const context = "MatchHandler";
@@ -10,13 +9,13 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
 
   socket.on("match:playerJoin", (data) => {
     const { playerName, room } = data;
-    
+
     try {
       matchService.playerJoin(playerName, room, socket);
     } catch (e) {
       io.to(socket.id).emit("match:nameTaken", playerName);
       logger.info("name taken");
-      return ;
+      return;
     }
     socket.join(room);
     io.to(room).emit("match:playerHasJoin", playerName);
@@ -34,7 +33,7 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
     const { room } = data;
 
     matchService.startGame(room);
-  })
+  });
 
   logger.info("match handler registered");
 }

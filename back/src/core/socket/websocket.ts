@@ -1,10 +1,10 @@
 import { Server as HTTPServer } from "http";
 import { Socket, Server as SocketIOServer } from "socket.io";
 
-import { ClientToServerEvents, CustomeSocket, InterServerEvents, ServerToClientEvents, SocketData } from "../types/socket-event.js";
+import { registerGameHandler } from "../game/game.events.js";
 import { registerMatchHanlder } from "../match/match.events.js";
 import { matchService } from "../match/MatchService.js";
-import { registerGameHandler } from "../game/game.events.js";
+import { ClientToServerEvents, CustomeSocket, InterServerEvents, ServerToClientEvents, SocketData } from "../types/socket-event.js";
 
 const WEBSOCKET_CORS = {
   methods: ["GET", "POST"],
@@ -43,7 +43,7 @@ class MyWebSocket extends SocketIOServer<ClientToServerEvents, ServerToClientEve
 
       socket.on("disconnect", () => {
         if (socket.data.currentRoom !== undefined && socket.data.playerName !== undefined) {
-          matchService.playerLeave(socket.data.playerName, socket.data.currentRoom, socket)
+          matchService.playerLeave(socket.data.playerName, socket.data.currentRoom, socket);
         }
         console.log(`🔴 Client disconnected: ${socket.id}`);
       });
