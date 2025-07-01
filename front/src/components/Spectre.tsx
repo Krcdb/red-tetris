@@ -2,7 +2,7 @@ import React from "react";
 
 interface SpectreProps {
   playerName: string;
-  spectreData: number[]; // Output from your calculateSpectre function
+  spectreData: number[];
   boardHeight?: number;
 }
 
@@ -11,8 +11,8 @@ const Spectre: React.FC<SpectreProps> = ({
   spectreData,
   boardHeight = 20,
 }) => {
-  const cellSize = 6; // Small cells for compact display
-  const width = spectreData.length; // Should be 10 for Tetris
+  const cellSize = 6;
+  const width = spectreData.length;
 
   return (
     <div
@@ -25,7 +25,6 @@ const Spectre: React.FC<SpectreProps> = ({
         minWidth: "80px",
       }}
     >
-      {/* Player name */}
       <div
         style={{
           color: "#fff",
@@ -38,7 +37,6 @@ const Spectre: React.FC<SpectreProps> = ({
         {playerName}
       </div>
 
-      {/* Spectre visualization */}
       <div
         style={{
           display: "grid",
@@ -49,7 +47,6 @@ const Spectre: React.FC<SpectreProps> = ({
         }}
       >
         {spectreData.map((topRow, col) => {
-          // Calculate height of filled area (from top to bottom)
           const filledHeight = topRow < boardHeight ? boardHeight - topRow : 0;
 
           return (
@@ -57,12 +54,11 @@ const Spectre: React.FC<SpectreProps> = ({
               key={col}
               style={{
                 width: `${cellSize}px`,
-                height: `${boardHeight * 2}px`, // Compressed height
+                height: `${boardHeight * 2}px`,
                 backgroundColor: "#222",
                 position: "relative",
               }}
             >
-              {/* Filled portion (from bottom up) */}
               <div
                 style={{
                   position: "absolute",

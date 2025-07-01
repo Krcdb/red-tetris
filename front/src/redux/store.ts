@@ -7,7 +7,7 @@ export const store = configureStore({
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      thunk: true, // Explicitly enable thunk
+      thunk: true,
     }),
 });
 

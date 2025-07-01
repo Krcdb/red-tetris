@@ -335,7 +335,7 @@ export default function GameRoute() {
           <h3>Opponents</h3>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             {allPlayersData
-              ?.filter((player) => player.name !== playerName) // Exclude current player
+              ?.filter((player) => player.name !== playerName)
               ?.map((opponent) => (
                 <Spectre
                   key={opponent.name}
@@ -477,10 +477,10 @@ export default function GameRoute() {
                       key={`piece-${entry.index}`}
                       style={{
                         backgroundColor: allSame
-                          ? "#e8f5e8" // Green if synced
+                          ? "#e8f5e8"
                           : hasAllPlayers
-                          ? "#ffe8e8" // Red if all players have piece but different types
-                          : "#fff8e1", // Yellow if missing players
+                          ? "#ffe8e8"
+                          : "#fff8e1",
                       }}
                     >
                       <td

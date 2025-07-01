@@ -54,7 +54,6 @@ const Solo: React.FC = () => {
       }
     });
 
-    // Cleanup function - only disconnect if we have an active solo room
     return () => {
       if (soloRoom && playerName) {
         console.log("Solo cleanup - leaving room:", soloRoom);
@@ -72,17 +71,14 @@ const Solo: React.FC = () => {
 
     console.log("Starting solo game:", { newSoloRoom, newPlayerName });
 
-    // Set state first to prevent cleanup issues
     setSoloRoom(newSoloRoom);
     setPlayerName(newPlayerName);
 
-    // Then join and start
     socket.emit("match:playerJoin", {
       playerName: newPlayerName,
       room: newSoloRoom,
     });
 
-    // Small delay to ensure join is processed before starting
     setTimeout(() => {
       socket.emit("match:startGame", { room: newSoloRoom });
     }, 100);

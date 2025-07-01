@@ -1,5 +1,5 @@
 import {
-  BrowserRouter as Router, // Keep BrowserRouter
+  BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
@@ -7,7 +7,7 @@ import {
 import { useEffect } from "react";
 import Home from "./components/Home";
 import Solo from "./components/Solo";
-import LobbyRoute from "./routes/LobbyRoute"; // Keep your existing components
+import LobbyRoute from "./routes/LobbyRoute";
 import GameRoute from "./routes/GameRoute";
 import socket from "./utils/socket";
 

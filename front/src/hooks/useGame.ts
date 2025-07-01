@@ -56,7 +56,6 @@ export function useGame() {
       }
 
       if (inputChanges && socket.connected) {
-        // Use thunk instead of direct socket emit
         dispatch(
           sendPlayerInput({
             up: false,
