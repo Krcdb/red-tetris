@@ -1,6 +1,6 @@
-import MyWebSocket from "../socket/websocket";
-import { GameState } from "../types/game";
-import { getLogger } from "../utils/Logger";
+import MyWebSocket from "../socket/websocket.js";
+import { GameState } from "../types/game.js";
+import { getLogger } from "../utils/Logger.js";
 
 export class TetrisGameLoop {
   private gameState: GameState;
