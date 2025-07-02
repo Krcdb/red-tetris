@@ -2,9 +2,9 @@ import { createServer, Server } from "http";
 import { io as Client, Socket as ClientSocket } from "socket.io-client";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { matchService } from "../../core/match/MatchService";
-import MyWebSocket from "../../core/socket/websocket";
-import { matchTest } from "../data";
+import { matchService } from "../../core/match/MatchService.js";
+import MyWebSocket from "../../core/socket/websocket.js";
+import { matchTest } from "../data.js";
 
 describe("MatchService", () => {
   let clientSocket: ClientSocket, httpServer: Server, wsServer: MyWebSocket;

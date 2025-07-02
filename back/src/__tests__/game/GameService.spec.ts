@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { gameService } from "../../core/game/GameService";
-import { TetrisGameLoop } from "../../core/tetris/TetrisGameLoop";
-import { Player } from "../../core/types/player";
-import { Gamer } from "../../core/types/game";
+import { gameService } from "../../core/game/GameService.js";
+import { TetrisGameLoop } from "../../core/tetris/TetrisGameLoop.js";
+import { Player } from "../../core/types/player.js";
+import { Gamer } from "../../core/types/game.js";
 
 const emitMock = vi.fn();
 const toMock = vi.fn(() => ({ emit: emitMock }));

@@ -1,9 +1,8 @@
-import MyWebSocket from "../socket/websocket";
-import { TetrisGameLoop } from "../tetris/TetrisGameLoop";
-import { Cell, GamerInputs, GameState } from "../types/game";
-import { Player } from "../types/player";
-import { CustomeSocket } from "../types/socket-event";
-import { getLogger } from "../utils/Logger";
+import MyWebSocket from "../socket/websocket.js";
+import { TetrisGameLoop } from "../tetris/TetrisGameLoop.js";
+import { Cell, GamerInputs, GameState } from "../types/game.js";
+import { Player } from "../types/player.js";
+import { getLogger } from "../utils/Logger.js";
 
 type GameLoops = Record<string, TetrisGameLoop>;
 type GameStates = Record<string, GameState>;

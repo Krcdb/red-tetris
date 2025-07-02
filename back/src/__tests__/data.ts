@@ -1,5 +1,5 @@
-import { Match } from "../core/types/match";
-import { Player } from "../core/types/player";
+import { Match } from "../core/types/match.js";
+import { Player } from "../core/types/player.js";
 
 export const playerOne: Player = {
   name: "Alice",

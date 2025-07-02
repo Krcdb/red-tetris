@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { registerGameHandler } from "../../core/game/game.events";
-import { gameService } from "../../core/game/GameService"; // actual import
-import { ClientToServerEvents, CustomeSocket } from "../../core/types/socket-event";
+import { registerGameHandler } from "../../core/game/game.events.js";
+import { gameService } from "../../core/game/GameService.js";
+import { ClientToServerEvents, CustomeSocket } from "../../core/types/socket-event.js";
 
 describe("registerGameHandler", () => {
 let socket: Partial<CustomeSocket> & {

@@ -1,6 +1,6 @@
-import { CustomeSocket } from "../types/socket-event";
-import { getLogger } from "../utils/Logger";
-import { gameService } from "./GameService";
+import { CustomeSocket } from "../types/socket-event.js";
+import { getLogger } from "../utils/Logger.js";
+import { gameService } from "./GameService.js";
 
 export function registerGameHandler(socket: CustomeSocket) {
   const context = "GameHandler";
