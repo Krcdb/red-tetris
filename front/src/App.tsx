@@ -1,44 +1,30 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-import { useEffect } from "react";
+import React from "react";
+import { Provider } from "react-redux";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { store } from "./redux/store";
+import { socketService } from "./services/socketService";
 import Home from "./components/Home";
-import Solo from "./components/Solo";
 import LobbyRoute from "./routes/LobbyRoute";
 import GameRoute from "./routes/GameRoute";
-import socket from "./utils/socket";
+import Solo from "./components/Solo";
 
-export default function App() {
-  useEffect(() => {
-    socket.connect();
+socketService.initialize();
 
-    socket.on("connect", () => {
-      console.log("Connected to server");
-    });
-
-    socket.on("disconnect", () => {
-      console.log("Disconnected from server");
-    });
-
-    return () => {
-      socket.disconnect();
-      socket.off("connect");
-      socket.off("disconnect");
-    };
-  }, []);
-
+function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/solo" element={<Solo />} />
-        <Route path="/:room/:playerName" element={<LobbyRoute />} />
-        <Route path="/:room/:playerName/game" element={<GameRoute />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
+    <Provider store={store}>
+      <Router>
+        <div className="App">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/solo" element={<Solo />} />
+            <Route path="/:room/:playerName" element={<LobbyRoute />} />
+            <Route path="/:room/:playerName/game" element={<GameRoute />} />
+          </Routes>
+        </div>
+      </Router>
+    </Provider>
   );
 }
+
+export default App;

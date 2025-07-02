@@ -9,87 +9,113 @@ export interface Piece {
   shape: Cell[][];
   x: number;
   y: number;
+  type?: string;
+  color?: number;
 }
 
-export function rotate(shape: Cell[][]): Cell[][] {
-  const rows = shape.length;
-  const cols = shape[0].length;
-  const rotated: Cell[][] = Array.from({ length: cols }, () =>
-    Array(rows).fill(0)
-  );
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      rotated[x][rows - 1 - y] = shape[y][x];
-    }
-  }
-  return rotated;
-}
-
-export function move(piece: Piece, dx: number, dy: number): Piece {
-  return {
-    shape: piece.shape,
-    x: piece.x + dx,
-    y: piece.y + dy,
+export function getCellColor(cellValue: Cell): string {
+  const colors = {
+    0: "transparent", // Empty
+    1: "#00f5ff", // I piece (cyan)
+    2: "#ffff00", // O piece (yellow)
+    3: "#800080", // T piece (purple)
+    4: "#00ff00", // S piece (green)
+    5: "#ff0000", // Z piece (red)
+    6: "#0000ff", // J piece (blue)
+    7: "#ffa500", // L piece (orange)
   };
+  return colors[cellValue as keyof typeof colors] || "transparent";
 }
 
-export function isValidPosition(board: Board, piece: Piece): boolean {
-  const { shape, x: px, y: py } = piece;
-  for (let y = 0; y < shape.length; y++) {
-    for (let x = 0; x < shape[y].length; x++) {
-      if (shape[y][x] === 0) continue;
-      const by = py + y;
-      const bx = px + x;
-      if (by < 0 || by >= board.length || bx < 0 || bx >= board[0].length) {
-        return false;
+export function renderBoardWithPiece(board: Board, piece: Piece | null): Board {
+  if (!piece) return board;
+
+  const rendered = board.map((row) => [...row]); // Deep copy
+
+  piece.shape.forEach((row, y) => {
+    row.forEach((cell, x) => {
+      if (cell !== 0) {
+        const boardY = piece.y + y;
+        const boardX = piece.x + x;
+        if (boardY >= 0 && boardY < 20 && boardX >= 0 && boardX < 10) {
+          rendered[boardY][boardX] = piece.color || cell;
+        }
       }
-      if (board[by][bx] !== 0) {
-        return false;
+    });
+  });
+
+  return rendered;
+}
+
+export function renderGhostPiece(board: Board, piece: Piece | null): Board {
+  if (!piece) return board;
+
+  let ghostY = piece.y;
+  let canMove = true;
+
+  while (canMove) {
+    let collision = false;
+
+    for (let y = 0; y < piece.shape.length && !collision; y++) {
+      for (let x = 0; x < piece.shape[y].length && !collision; x++) {
+        if (piece.shape[y][x] !== 0) {
+          const boardY = ghostY + y + 1;
+          const boardX = piece.x + x;
+
+          if (boardY >= 20 || (boardY >= 0 && board[boardY][boardX] !== 0)) {
+            collision = true;
+          }
+        }
       }
     }
+
+    if (collision) {
+      canMove = false;
+    } else {
+      ghostY++;
+    }
   }
-  return true;
-}
 
-export function tryRotate(board: Board, piece: Piece): Piece {
-  const rotatedShape = rotate(piece.shape);
-  const rotatedPiece = { ...piece, shape: rotatedShape };
-  return isValidPosition(board, rotatedPiece) ? rotatedPiece : piece;
-}
-
-export function softDrop(board: Board, piece: Piece): Piece {
-  const candidate = move(piece, 0, 1);
-  return isValidPosition(board, candidate) ? candidate : piece;
-}
-
-export function hardDrop(board: Board, piece: Piece): Piece {
-  let dropPiece = piece;
-  while (true) {
-    const next = move(dropPiece, 0, 1);
-    if (!isValidPosition(board, next)) break;
-    dropPiece = next;
-  }
-  return dropPiece;
-}
-
-export function mergePiece(board: Board, piece: Piece): Board {
-  const newBoard = board.map((row) => [...row]);
-  piece.shape.forEach((row, y) =>
+  const rendered = board.map((row) => [...row]);
+  piece.shape.forEach((row, y) => {
     row.forEach((cell, x) => {
-      if (cell !== 0) newBoard[piece.y + y][piece.x + x] = cell;
-    })
-  );
-  return newBoard;
+      if (cell !== 0) {
+        const boardY = ghostY + y;
+        const boardX = piece.x + x;
+        if (
+          boardY >= 0 &&
+          boardY < 20 &&
+          boardX >= 0 &&
+          boardX < 10 &&
+          rendered[boardY][boardX] === 0
+        ) {
+          rendered[boardY][boardX] = -1;
+        }
+      }
+    });
+  });
+
+  return rendered;
 }
 
-export function clearLines(board: Board): [Board, number] {
-  const newRows = board.filter((row) => row.some((cell) => cell === 0));
-  const linesCleared = board.length - newRows.length;
-  const emptyRows = Array.from({ length: linesCleared }, () =>
-    Array(board[0].length).fill(0)
-  );
+export function formatScore(score: number): string {
+  return score.toLocaleString();
+}
 
-  const newBoard = emptyRows.concat(newRows);
+export function getLevel(linesCleared: number): number {
+  return Math.floor(linesCleared / 10) + 1;
+}
 
-  return [newBoard, linesCleared];
+export function getFallSpeed(level: number): number {
+  return Math.max(50, 1000 - (level - 1) * 100);
+}
+
+export function formatNextPieces(pieces: any[]): Piece[] {
+  return pieces.slice(0, 5).map((p) => ({
+    shape: p.shape,
+    x: 0,
+    y: 0,
+    type: p.type,
+    color: p.color,
+  }));
 }

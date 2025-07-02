@@ -1,34 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import {
-  Board,
-  Piece,
-  initialBoard,
-  mergePiece,
-  clearLines,
-  isValidPosition,
-  softDrop as fnSoftDrop,
-  hardDrop as fnHardDrop,
-  rotate as fnRotate,
-  move as fnMove,
-} from "../utils/tetris";
-import { Socket } from "socket.io-client";
-
-export type Cell = number;
-export interface GamePiece extends Piece {
-  type?: string;
-  color?: number;
-}
-
-interface GameState {
-  board: Board;
-  currentPiece: GamePiece | null;
-  nextPieces: GamePiece[];
-  score: number;
-  linesCleared: number;
-  status: "idle" | "playing" | "paused" | "gameover";
-  gameMode: "solo" | "multiplayer";
-  needsNextPiece: boolean;
-}
+import { initialBoard, Board, Piece } from "../utils/tetris";
 
 export interface GamerInputs {
   up: boolean;
@@ -40,138 +11,217 @@ export interface GamerInputs {
   upHasBeenCounted: boolean;
 }
 
+interface GameState {
+  board: Board;
+  currentPiece: Piece | null;
+  nextPieces: Piece[];
+  score: number;
+  linesCleared: number;
+  level: number;
+  status: "idle" | "playing" | "paused" | "gameOver";
+  gameMode: "solo" | "multiplayer";
+  room: string;
+  playerName: string;
+  opponents: Array<{
+    name: string;
+    board: Board;
+    score: number;
+    linesCleared: number;
+  }>;
+  isLoading: boolean;
+  error: string | null;
+  needsNextPiece: boolean;
+  gamers: any[];
+}
+
 const initialState: GameState = {
   board: initialBoard(),
   currentPiece: null,
   nextPieces: [],
   score: 0,
   linesCleared: 0,
+  level: 1,
   status: "idle",
   gameMode: "solo",
+  room: "",
+  playerName: "",
+  opponents: [],
+  isLoading: false,
+  error: null,
   needsNextPiece: false,
+  gamers: [],
 };
 
-const handlePieceLanded = (state: GameState, socket: Socket) => {
-  const [newBoard, linesCleared] = clearLines(state.board);
-  state.board = newBoard;
-  state.linesCleared += linesCleared;
-  state.score += linesCleared * 100 + (linesCleared >= 4 ? 400 : 0);
-
-  state.currentPiece = null;
-  state.needsNextPiece = true;
-
-  console.log("Piece landed! Requesting next piece from server");
-  socket.emit("game:pieceLanded");
-};
-
-const slice = createSlice({
+const gameSlice = createSlice({
   name: "game",
   initialState,
   reducers: {
-    startGame(
-      state,
-      action: PayloadAction<{ gameMode: "solo" | "multiplayer" }>
-    ) {
-      state.board = initialBoard();
-      state.gameMode = action.payload.gameMode;
-      state.status = "playing";
-      state.score = 0;
-      state.linesCleared = 0;
-      state.needsNextPiece = false;
-    },
+    // Server state updates
+    updateGameState: (state, action: PayloadAction<any>) => {
+      const serverState = action.payload;
 
-    setPieces(
-      state,
-      action: PayloadAction<{
-        currentPiece: GamePiece | null;
-        nextPieces: GamePiece[];
-      }>
-    ) {
-      const { currentPiece, nextPieces } = action.payload;
-      state.currentPiece = currentPiece;
-      state.nextPieces = nextPieces;
-      state.needsNextPiece = false;
-    },
+      // Find current player's data
+      const currentPlayer = serverState.gamers?.find(
+        (g: any) => g.name === state.playerName
+      );
+      if (currentPlayer) {
+        state.board = currentPlayer.grid || state.board;
+        state.currentPiece = currentPlayer.currentPiece;
+        state.score = currentPlayer.score || 0;
+        state.linesCleared = currentPlayer.linesCleared || 0;
+        state.level = Math.floor(state.linesCleared / 10) + 1;
 
-    setNextPiece(state, action: PayloadAction<GamePiece>) {
-      state.currentPiece = action.payload;
-      state.needsNextPiece = false;
-    },
+        state.gamers = serverState.gamers || [];
 
-    updateNextPieces(state, action: PayloadAction<GamePiece[]>) {
-      state.nextPieces = action.payload;
-    },
+        if (
+          typeof serverState.currentPieceIndex === "number" &&
+          Array.isArray(serverState.gamers) &&
+          Array.isArray(serverState.nextPieces)
+        ) {
+          // Use the shared next pieces for preview
+          state.nextPieces = serverState.nextPieces;
+        }
+      }
 
-    updatePlayerState(
+      // Update opponents
+      state.opponents =
+        serverState.gamers
+          ?.filter((g: any) => g.name !== state.playerName)
+          .map((g: any) => ({
+            name: g.name,
+            board: g.grid || initialBoard(),
+            score: g.score || 0,
+            linesCleared: g.linesCleared || 0,
+          })) || [];
+
+      state.status = serverState.isRunning ? "playing" : state.status;
+    },
+    updatePlayerState: (
       state,
       action: PayloadAction<{
         score: number;
         linesCleared: number;
-        board?: Cell[][];
+        board?: any;
       }>
-    ) {
+    ) => {
       const { score, linesCleared, board } = action.payload;
       state.score = score;
       state.linesCleared = linesCleared;
+      state.level = Math.floor(linesCleared / 10) + 1;
       if (board) state.board = board;
     },
 
-    pauseGame(state) {
+    setGameConfig: (
+      state,
+      action: PayloadAction<{
+        room: string;
+        playerName: string;
+        gameMode: "solo" | "multiplayer";
+      }>
+    ) => {
+      state.room = action.payload.room;
+      state.playerName = action.payload.playerName;
+      state.gameMode = action.payload.gameMode;
+    },
+
+    gameSetup: (state) => {
+      state.status = "idle";
+      state.isLoading = false;
+    },
+
+    gameStarted: (state) => {
+      state.status = "playing";
+      state.isLoading = false;
+    },
+
+    // Add missing actions for Solo component
+    startGame: (
+      state,
+      action: PayloadAction<{ gameMode: "solo" | "multiplayer" }>
+    ) => {
+      state.status = "playing";
+      state.gameMode = action.payload.gameMode;
+      state.score = 0;
+      state.linesCleared = 0;
+      state.level = 1;
+      state.board = initialBoard();
+    },
+
+    pauseGame: (state) => {
       if (state.status === "playing") {
         state.status = "paused";
       }
     },
 
-    resumeGame(state) {
+    resumeGame: (state) => {
       if (state.status === "paused") {
         state.status = "playing";
       }
     },
 
-    movePiece(state, action: PayloadAction<{ dx: number; dy: number }>) {
-      if (!state.currentPiece) return;
-      const { dx, dy } = action.payload;
-      const moved = fnMove(state.currentPiece, dx, dy);
-      if (isValidPosition(state.board, moved)) {
-        state.currentPiece = moved;
-      }
+    gamePaused: (state) => {
+      state.status = "paused";
     },
 
-    rotatePiece(state) {
-      if (!state.currentPiece) return;
-      const rotated = fnRotate(state.currentPiece.shape);
-      const candidate: GamePiece = { ...state.currentPiece, shape: rotated };
-      if (isValidPosition(state.board, candidate)) {
-        state.currentPiece = candidate;
-      }
+    gameResumed: (state) => {
+      state.status = "playing";
     },
 
-    clearNeedsNextPiece(state) {
+    gameOver: (state) => {
+      state.status = "gameOver";
+    },
+
+    setPieces: (
+      state,
+      action: PayloadAction<{ currentPiece: Piece | null; nextPieces: Piece[] }>
+    ) => {
+      state.currentPiece = action.payload.currentPiece;
+      state.nextPieces = action.payload.nextPieces;
       state.needsNextPiece = false;
     },
-    updateBoard(state, action: PayloadAction<Cell[][]>) {
-      state.board = action.payload;
+
+    updateBoard: (
+      state,
+      action: PayloadAction<{
+        board: Board;
+        score: number;
+        linesCleared: number;
+      }>
+    ) => {
+      state.board = action.payload.board;
+      state.score = action.payload.score;
+      state.linesCleared = action.payload.linesCleared;
+      state.level = Math.floor(state.linesCleared / 10) + 1;
     },
 
-    endGame(state) {
-      state.status = "gameover";
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.isLoading = action.payload;
     },
+
+    setError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload;
+    },
+
+    resetGame: () => initialState,
   },
 });
 
 export const {
+  updateGameState,
+  setGameConfig,
+  gameSetup,
+  gameStarted,
   startGame,
   pauseGame,
   resumeGame,
-  movePiece,
-  rotatePiece,
-  endGame,
+  gamePaused,
+  gameResumed,
+  gameOver,
   setPieces,
-  setNextPiece,
-  updateNextPieces,
-  clearNeedsNextPiece,
-  updatePlayerState,
   updateBoard,
-} = slice.actions;
+  setLoading,
+  setError,
+  resetGame,
+} = gameSlice.actions;
 
-export default slice.reducer;
+export default gameSlice.reducer;

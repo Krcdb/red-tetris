@@ -10,4 +10,6 @@ export interface PlayerInputs {
 
 export interface Player {
   name: string;
+  isLeader?: boolean;
+  isReady?: boolean;
 }

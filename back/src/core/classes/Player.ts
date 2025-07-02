@@ -11,6 +11,9 @@ export class Player {
   public linesCleared: number;
   public needsNextPiece: boolean;
   public forcedFall: boolean;
+  public lockDelayCounter: number = 0;
+  public isTouchingGround: boolean = false;
+  public lockMoveResets: number = 0;
 
   constructor(name: string) {
     this.name = name;
@@ -64,7 +67,7 @@ export class Player {
   }
 
   public updateGrid(newGrid: Cell[][]): void {
-    this.grid = newGrid.map(row => [...row]);
+    this.grid = newGrid.map((row) => [...row]);
   }
 
   public isGameOver(): boolean {

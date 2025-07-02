@@ -1,3 +1,5 @@
+import { Piece } from "../classes/Piece";
+
 export interface GamerInputs {
   up: boolean;
   left: boolean;
@@ -30,6 +32,7 @@ export interface Gamer {
   linesCleared: number;
   needsNextPiece: boolean;
   forcedFall?: boolean;
+  nextPieces: Piece[];
 }
 
 export interface GameState {

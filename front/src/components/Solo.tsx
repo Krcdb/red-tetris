@@ -1,145 +1,110 @@
-import React, { useEffect, useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "../redux/store";
+import React, { useEffect, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   startGame,
   pauseGame,
   resumeGame,
   setPieces,
   updateBoard,
+  gameOver,
 } from "../redux/gameSlice";
-import { useGame } from "../hooks/useGame";
-import socket from "../utils/socket";
-import Board from "./Board";
-import { useNavigate } from "react-router-dom";
+import { RootState } from "../redux/store";
+import GameBoard from "./GameBoard";
+import GameInfo from "./GameInfo";
+import GameControls from "./GameControls";
 
-const Solo: React.FC = () => {
+export default function Solo() {
   const dispatch = useDispatch();
-  const { status, score, nextPieces } = useSelector((s: RootState) => s.game);
-  const [soloRoom, setSoloRoom] = useState<string>("");
-  const [playerName, setPlayerName] = useState<string>("");
-  const navigate = useNavigate();
+  const { status, score, linesCleared, level } = useSelector(
+    (state: RootState) => state.game
+  );
 
-  useGame();
+  const startNewGame = useCallback(() => {
+    dispatch(startGame({ gameMode: "solo" }));
+  }, [dispatch]);
 
-  useEffect(() => {
-    socket.on("game:isSetup", () => {
-      console.log("Solo game setup - sending ready");
-      socket.emit("game:playerReady");
-    });
+  const togglePause = useCallback(() => {
+    if (status === "playing") {
+      dispatch(pauseGame());
+    } else if (status === "paused") {
+      dispatch(resumeGame());
+    }
+  }, [status, dispatch]);
 
-    socket.on("game:isLaunching", () => {
-      console.log("Solo game launching");
-      dispatch(startGame({ gameMode: "solo" }));
-    });
-
-    socket.on("game:newState", (gameState) => {
-      console.log("Solo game state received:", gameState);
-
-      const playerData = gameState.gamers?.[0];
-      if (playerData) {
-        dispatch(
-          setPieces({
-            currentPiece: playerData.currentPiece,
-            nextPieces: gameState.nextPieces || [],
-          })
-        );
-        if (playerData.grid) {
-          console.log(
-            "📋 Solo: Updating board with locked pieces:",
-            playerData.grid
-          );
-          dispatch(updateBoard(playerData.grid));
+  const handleKeyPress = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.code === "Space" && status !== "playing") {
+        event.preventDefault();
+        if (status === "idle" || status === "gameOver") {
+          startNewGame();
+        } else {
+          togglePause();
         }
       }
-    });
-
-    return () => {
-      if (soloRoom && playerName) {
-        console.log("Solo cleanup - leaving room:", soloRoom);
-        socket.emit("match:playerLeft", { playerName, room: soloRoom });
+      if (event.code === "Escape") {
+        togglePause();
       }
-      socket.off("game:isSetup");
-      socket.off("game:isLaunching");
-      socket.off("game:newState");
-    };
-  }, [dispatch, soloRoom, playerName]);
-
-  const handleStartSolo = () => {
-    const newSoloRoom = `solo_${Date.now()}`;
-    const newPlayerName = `player_${Date.now()}`;
-
-    console.log("Starting solo game:", { newSoloRoom, newPlayerName });
-
-    setSoloRoom(newSoloRoom);
-    setPlayerName(newPlayerName);
-
-    socket.emit("match:playerJoin", {
-      playerName: newPlayerName,
-      room: newSoloRoom,
-    });
-
-    setTimeout(() => {
-      socket.emit("match:startGame", { room: newSoloRoom });
-    }, 100);
-  };
-
-  const renderGameUI = () => (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "flex-start",
-        gap: "2rem",
-        justifyContent: "center",
-      }}
-    >
-      <div>
-        <div style={{ marginBottom: "1rem" }}>
-          {status === "playing" ? (
-            <button onClick={() => dispatch(pauseGame())}>Pause</button>
-          ) : status === "paused" ? (
-            <button onClick={() => dispatch(resumeGame())}>Resume</button>
-          ) : null}
-        </div>
-        <div style={{ marginBottom: "1rem" }}>Score: {score}</div>
-        <Board />
-      </div>
-
-      <div>
-        <h4>Next Pieces</h4>
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          {nextPieces.slice(0, 3).map((piece, index) => (
-            <div
-              key={index}
-              style={{ border: "1px solid #333", padding: "5px" }}
-            >
-              <div style={{ fontSize: "10px" }}>Next {index + 1}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+    },
+    [status, startNewGame, togglePause]
   );
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyPress);
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [handleKeyPress]);
 
   return (
-    <div style={{ textAlign: "center", marginTop: "2rem" }}>
-      <h1>Solo Game</h1>
+    <div style={{ display: "flex", padding: "20px", gap: "20px" }}>
+      <div>
+        <h1>Solo Tetris</h1>
 
-      {status === "idle" && (
-        <button onClick={handleStartSolo}>Start Solo Game</button>
-      )}
+        {status === "idle" && (
+          <div>
+            <h2>Press SPACE to start!</h2>
+            <button onClick={startNewGame}>Start Game</button>
+          </div>
+        )}
 
-      {(status === "playing" || status === "paused") && renderGameUI()}
+        {status === "gameOver" && (
+          <div>
+            <h2>Game Over!</h2>
+            <p>Final Score: {score}</p>
+            <p>Lines Cleared: {linesCleared}</p>
+            <button onClick={startNewGame}>Play Again</button>
+          </div>
+        )}
 
-      {status === "gameover" && (
-        <div>
-          <h2>Game Over!</h2>
-          <p>Final Score: {score}</p>
-          <button onClick={() => navigate("/")}>Play Again</button>
-        </div>
-      )}
+        {(status === "playing" || status === "paused") && (
+          <>
+            <GameBoard />
+            <GameControls />
+            {status === "paused" && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  background: "rgba(0,0,0,0.8)",
+                  color: "white",
+                  padding: "20px",
+                  borderRadius: "10px",
+                }}
+              >
+                <h2>PAUSED</h2>
+                <p>Press ESC or click to resume</p>
+                <button onClick={togglePause}>Resume</button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      <div>
+        <GameInfo />
+      </div>
     </div>
   );
-};
-
-export default Solo;
+}
