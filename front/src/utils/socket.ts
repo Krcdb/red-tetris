@@ -1,12 +1,3 @@
-// import { io } from "socket.io-client";
-
-// const socket = io("http://localhost:4000", {
-//   path: "/socket.io",
-//   autoConnect: false,
-// });
-
-// export default socket;
-
 import { io } from "socket.io-client";
 
 const socket = io("http://localhost:4000", {
@@ -14,10 +5,8 @@ const socket = io("http://localhost:4000", {
   transports: ["websocket", "polling"],
 });
 
-// Add global socket for debugging
 (window as any).socket = socket;
 
-// Add connection event listeners for debugging
 socket.on("connect", () => {
   console.log("🔌 Socket connected with ID:", socket.id);
 });

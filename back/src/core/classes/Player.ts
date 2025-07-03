@@ -71,7 +71,6 @@ export class Player {
   }
 
   public isGameOver(): boolean {
-    // Check if top 2 rows have any filled cells
     for (let row = 0; row < 2; row++) {
       for (let col = 0; col < this.grid[row].length; col++) {
         if (this.grid[row][col] !== 0) {

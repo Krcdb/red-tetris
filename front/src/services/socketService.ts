@@ -22,12 +22,10 @@ class SocketService {
 
     console.log("🔧 SocketService: Initializing...");
 
-    // Add raw event listener to catch ALL events
     socket.onAny((eventName, ...args) => {
       console.log("📡 Raw socket event received:", eventName, args);
     });
 
-    // Game events
     socket.on("game:isSetup", () => {
       console.log("🔧 SocketService: Game is setup");
       store.dispatch(gameSetup());
@@ -43,7 +41,6 @@ class SocketService {
       store.dispatch(updateGameState(gameState));
     });
 
-    // Match/Lobby events
     socket.on("match:playerHasJoin", (match) => {
       console.log("👥 SocketService: Player joined event received!");
       console.log("👥 SocketService: Match data:", match);
@@ -66,7 +63,6 @@ class SocketService {
       store.dispatch(setLobbyError(`Name "${playerName}" is already taken!`));
     });
 
-    // Connection events
     socket.on("connect", () => {
       console.log("🔌 SocketService: Connected to server");
     });
@@ -88,7 +84,6 @@ class SocketService {
     console.log("✅ SocketService: All event listeners registered");
   }
 
-  // Game actions - ADD THESE MISSING METHODS
   sendInput(input: any) {
     console.log("🎮 SocketService: Sending input:", input);
     socket.emit("game:playerInputChanges", { input });
@@ -97,10 +92,8 @@ class SocketService {
   playerReady() {
     console.log("✅ SocketService: Player ready");
     socket.emit("game:playerReady");
-    // socket.emit("game:playerReady", { playerName, room });
   }
 
-  // Match actions
   joinRoom(playerName: string, room: string) {
     console.log("📥 SocketService: Sending join room event:", {
       playerName,

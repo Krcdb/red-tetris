@@ -32,12 +32,10 @@ const lobbySlice = createSlice({
 
     updatePlayers: (state, action: PayloadAction<any>) => {
       const match = action.payload;
-      console.log("🔍 Redux: Received match data:", match); // Debug log
+      console.log("🔍 Redux: Received match data:", match);
 
-      // Update players array with the data from backend
       state.players = match.player || [];
 
-      // Find current player and check if they're the leader
       const currentPlayer = state.players.find(
         (p) => p.name === state.playerName
       );

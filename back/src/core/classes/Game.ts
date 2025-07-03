@@ -93,15 +93,9 @@ export class Game {
       this.sendPenaltyLines(player, linesCleared - 1);
     }
 
-    // if (player.isGameOver()) {
-    //   this.logger.info(`Game over for ${player.name}!`);
-    //   this.stop();
-    //   return;
-    // }
 
     if (player.isGameOver()) {
       this.logger.info(`Game over for ${player.name}!`);
-      // Emit game over event for this player
       const io = MyWebSocket.getInstance();
       io.to(this.room).emit("game:over", { playerName: player.name });
       this.stop();
@@ -174,8 +168,7 @@ export class Game {
         ...player.getState(),
         nextPieces: this.pieces.slice(player.currentPieceIndex, player.currentPieceIndex + 5).map((p) => this.pieceToTetrisPiece(p)),
       })),
-      // gamers: this.players.map((player) => player.getState()),
-      // nextPieces: this.pieces.slice(this.currentPieceIndex + 1, this.currentPieceIndex + 6).map((p) => this.pieceToTetrisPiece(p)),
+    
     };
   }
 
@@ -184,60 +177,6 @@ export class Game {
     return this.pieces.slice(startIndex, startIndex + count);
   }
 
-  // public processPlayerInputsOnly(): void {
-  //   this.players.forEach((player) => {
-  //     if (!player.currentPiece || !this.isRunning) return;
-
-  //     let piece = this.tetrisPieceToPiece(player.currentPiece);
-  //     let hasMoved = false;
-
-  //     // ROTATE
-  //     if (player.input.up && !player.input.upHasBeenCounted) {
-  //       const rotatedPiece = piece.rotate();
-  //       if (rotatedPiece.isValidPosition(player.grid)) {
-  //         piece = rotatedPiece;
-  //         hasMoved = true;
-  //       }
-  //       player.input.upHasBeenCounted = true;
-  //     }
-
-  //     // LEFT
-  //     if (player.input.left && !player.forcedFall) {
-  //       const leftPiece = piece.move(-1, 0);
-  //       if (leftPiece.isValidPosition(player.grid)) {
-  //         piece = leftPiece;
-  //         hasMoved = true;
-  //       }
-  //       player.input.left = false;
-  //     }
-
-  //     // RIGHT
-  //     if (player.input.right && !player.forcedFall) {
-  //       const rightPiece = piece.move(1, 0);
-  //       if (rightPiece.isValidPosition(player.grid)) {
-  //         piece = rightPiece;
-  //         hasMoved = true;
-  //       }
-  //       player.input.right = false;
-  //     }
-
-  //     // HARD DROP
-  //     if (player.input.space && !player.input.spaceHasBeenCounted) {
-  //       piece = piece.hardDrop(player.grid);
-  //       player.input.spaceHasBeenCounted = true;
-  //       player.forcedFall = true;
-  //       hasMoved = true;
-  //     }
-
-  //     player.currentPiece = this.pieceToTetrisPiece(piece);
-
-  //     if (hasMoved) {
-  //       player.lockDelayCounter = 0;
-  //       player.isTouchingGround = false;
-  //     }
-  //   });
-  // }
-
   public processPlayerInputsOnly(): void {
     this.players.forEach((player) => {
       if (!player.currentPiece || !this.isRunning) return;
@@ -245,7 +184,6 @@ export class Game {
       let piece = this.tetrisPieceToPiece(player.currentPiece);
       let hasMoved = false;
 
-      // ROTATE
       if (player.input.up && !player.input.upHasBeenCounted) {
         const rotatedPiece = piece.rotate();
         if (rotatedPiece.isValidPosition(player.grid)) {
@@ -255,7 +193,6 @@ export class Game {
         player.input.upHasBeenCounted = true;
       }
 
-      // LEFT
       if (player.input.left && !player.forcedFall) {
         const leftPiece = piece.move(-1, 0);
         if (leftPiece.isValidPosition(player.grid)) {
@@ -265,7 +202,6 @@ export class Game {
         player.input.left = false;
       }
 
-      // RIGHT
       if (player.input.right && !player.forcedFall) {
         const rightPiece = piece.move(1, 0);
         if (rightPiece.isValidPosition(player.grid)) {
@@ -275,7 +211,6 @@ export class Game {
         player.input.right = false;
       }
 
-      // HARD DROP
       if (player.input.space && !player.input.spaceHasBeenCounted) {
         piece = piece.hardDrop(player.grid);
         player.input.spaceHasBeenCounted = true;
@@ -285,7 +220,6 @@ export class Game {
 
       player.currentPiece = this.pieceToTetrisPiece(piece);
 
-      // Only reset lock delay if under max resets
       if (hasMoved && player.isTouchingGround && player.lockMoveResets < 15) {
         player.lockDelayCounter = 0;
         player.lockMoveResets++;
@@ -297,63 +231,16 @@ export class Game {
     });
   }
 
-  // public processGravity(): void {
-  //   const LOCK_DELAY_TICKS = 30;
-  //   const MAX_LOCK_RESETS = 15;
-  //   console.log("Gravity tick");
-  //   this.players.forEach((player) => {
-  //     if (!player.currentPiece || !this.isRunning) return;
-
-  //     let piece = this.tetrisPieceToPiece(player.currentPiece);
-  //     let hasMoved = false;
-
-  //     if (player.input.down && piece.canMoveDown(player.grid)) {
-  //       piece = piece.move(0, 1);
-  //       player.input.down = false;
-  //       player.lockDelayCounter = 0;
-  //       player.isTouchingGround = false;
-  //     } else if (!player.forcedFall && piece.canMoveDown(player.grid)) {
-  //       piece = piece.move(0, 1);
-  //       player.lockDelayCounter = 0;
-  //       player.isTouchingGround = false;
-  //     } else {
-  //       // Piece cannot move down: it's touching the ground or pile
-  //       if (!player.isTouchingGround) {
-  //         player.isTouchingGround = true;
-  //         player.lockDelayCounter = 0;
-  //       } else {
-  //         player.lockDelayCounter++;
-  //       }
-  //     }
-
-  //     player.currentPiece = this.pieceToTetrisPiece(piece);
-
-  //     // Lock piece if it can't move down
-  //     // if (!piece.canMoveDown(player.grid)) {
-  //     //   this.lockPiece(player);
-  //     // } else {
-  //     //   player.forcedFall = false;
-  //     // }
-
-  //     if (player.isTouchingGround && player.lockDelayCounter >= LOCK_DELAY_TICKS) {
-  //       this.lockPiece(player);
-  //       player.lockDelayCounter = 0;
-  //       player.isTouchingGround = false;
-  //     }
-  //   });
-  // }
-
   public processGravity(): void {
     const LOCK_DELAY_TICKS = 1;
     const MAX_LOCK_RESETS = 3;
-    const SOFT_DROP_STEPS = 2; // How many rows to move down per tick when soft drop is held
+    const SOFT_DROP_STEPS = 2;
 
     this.players.forEach((player) => {
       if (!player.currentPiece || !this.isRunning) return;
 
       let piece = this.tetrisPieceToPiece(player.currentPiece);
 
-      // SOFT DROP: move down multiple times if down key is held
       if (player.input.down) {
         let steps = 0;
         while (steps < SOFT_DROP_STEPS && piece.canMoveDown(player.grid)) {
@@ -370,7 +257,6 @@ export class Game {
         player.isTouchingGround = false;
         player.lockMoveResets = 0;
       } else {
-        // Piece cannot move down: it's touching the ground or pile
         if (!player.isTouchingGround) {
           player.isTouchingGround = true;
           player.lockDelayCounter = 0;
@@ -382,7 +268,6 @@ export class Game {
 
       player.currentPiece = this.pieceToTetrisPiece(piece);
 
-      // Lock piece if delay exceeded or too many resets
       if (player.isTouchingGround && (player.lockDelayCounter >= LOCK_DELAY_TICKS || player.lockMoveResets >= MAX_LOCK_RESETS)) {
         this.lockPiece(player);
         player.lockDelayCounter = 0;

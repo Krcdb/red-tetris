@@ -31,13 +31,10 @@ export default function GameRoute() {
 
     console.log("🎮 GameRoute: Setting up for", { room, playerName });
 
-    // Set up game config
     dispatch(setGameConfig({ room, playerName, gameMode: "multiplayer" }));
 
-    // Initialize socket service if not already done
     socketService.initialize();
 
-    // ✅ FIXED: Set up game event listeners with proper flow
     socketService.socket.on("game:isSetup", () => {
       console.log("🔧 GameRoute: Game is setup, sending player ready");
       dispatch(gameSetup());
@@ -81,7 +78,7 @@ export default function GameRoute() {
         <p>Player: {playerName}</p>
         <p>Waiting for game to start...</p>
 
-        {/* ✅ ADD DEBUG INFO */}
+        {/*  DEBUG INFO */}
         <div style={{ marginTop: "20px", fontSize: "12px", color: "#666" }}>
           <p>Status: {status}</p>
           <p>

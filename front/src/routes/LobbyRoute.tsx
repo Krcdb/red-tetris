@@ -26,15 +26,12 @@ export default function LobbyRoute() {
 
     console.log("🏠 LobbyRoute: Initializing with:", { room, playerName });
 
-    // Initialize socket service
     socketService.initialize();
 
-    // Configure Redux state
     dispatch(setLobbyConfig({ room, playerName }));
     dispatch(setGameConfig({ room, playerName, gameMode: "multiplayer" }));
     dispatch(setLoading(false));
 
-    // Join room via socket
     socketService.joinRoom(playerName, room);
     socketService.socket.on("game:isLaunching", () => {
       console.log("🚀 LobbyRoute: Game is launching, navigating to game route");
@@ -48,7 +45,6 @@ export default function LobbyRoute() {
 
     socketService.socket.on("game:isLaunching", () => {
       console.log("🚀 LobbyRoute: Game is launching, navigating to game route");
-      // navigate(`/${room}/${playerName}/game`); // REMOVE this line
     });
 
     return () => {
@@ -61,13 +57,6 @@ export default function LobbyRoute() {
     };
   }, [room, playerName, dispatch, navigate]);
 
-  // const startGame = () => {
-  //   console.log("🚀 LobbyRoute: Attempting to start game:", { canStart, room });
-  //   if (canStart && room) {
-  //     socketService.startGame(room);
-  //     navigate(`/${room}/${playerName}/game`);
-  //   }
-  // };
 
   const startGame = () => {
     console.log("🚀 LobbyRoute: Start game button clicked!");

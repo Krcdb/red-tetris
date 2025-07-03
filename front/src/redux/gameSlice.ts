@@ -18,7 +18,7 @@ interface GameState {
   score: number;
   linesCleared: number;
   level: number;
-  status: "idle" | "playing" | "paused" | "gameOver";
+  status: "idle" | "playing" | "gameOver";
   gameMode: "solo" | "multiplayer";
   room: string;
   playerName: string;
@@ -56,11 +56,9 @@ const gameSlice = createSlice({
   name: "game",
   initialState,
   reducers: {
-    // Server state updates
     updateGameState: (state, action: PayloadAction<any>) => {
       const serverState = action.payload;
 
-      // Find current player's data
       const currentPlayer = serverState.gamers?.find(
         (g: any) => g.name === state.playerName
       );
@@ -78,12 +76,10 @@ const gameSlice = createSlice({
           Array.isArray(serverState.gamers) &&
           Array.isArray(serverState.nextPieces)
         ) {
-          // Use the shared next pieces for preview
           state.nextPieces = serverState.nextPieces;
         }
       }
 
-      // Update opponents
       state.opponents =
         serverState.gamers
           ?.filter((g: any) => g.name !== state.playerName)
@@ -134,7 +130,6 @@ const gameSlice = createSlice({
       state.isLoading = false;
     },
 
-    // Add missing actions for Solo component
     startGame: (
       state,
       action: PayloadAction<{ gameMode: "solo" | "multiplayer" }>
@@ -147,25 +142,6 @@ const gameSlice = createSlice({
       state.board = initialBoard();
     },
 
-    pauseGame: (state) => {
-      if (state.status === "playing") {
-        state.status = "paused";
-      }
-    },
-
-    resumeGame: (state) => {
-      if (state.status === "paused") {
-        state.status = "playing";
-      }
-    },
-
-    gamePaused: (state) => {
-      state.status = "paused";
-    },
-
-    gameResumed: (state) => {
-      state.status = "playing";
-    },
 
     gameOver: (state) => {
       state.status = "gameOver";
@@ -212,10 +188,6 @@ export const {
   gameSetup,
   gameStarted,
   startGame,
-  pauseGame,
-  resumeGame,
-  gamePaused,
-  gameResumed,
   gameOver,
   setPieces,
   updateBoard,

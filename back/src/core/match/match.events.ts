@@ -15,7 +15,6 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
       const match = matchService.playerJoin(playerName, room, socket);
       socket.join(room);
 
-      // Use the new getMatch method
       if (match) {
         io.to(room).emit("match:playerHasJoin", match);
       } else {
@@ -53,7 +52,6 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
     if (match) {
       io.to(room).emit("match:playerHasLeft", match);
     } else {
-      // Room was deleted
       io.to(room).emit("match:roomDeleted", { room });
     }
 
@@ -72,7 +70,6 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
       return;
     }
 
-    // Use the new canPlayerStartGame method
     if (!matchService.canPlayerStartGame(playerName, room)) {
       logger.warn(`❌ Player ${playerName} tried to start game in room ${room} but is not the leader`);
       socket.emit("match:error", "Only the room leader can start the game");
