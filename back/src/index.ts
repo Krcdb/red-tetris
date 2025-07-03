@@ -1,7 +1,8 @@
 import cors from "cors";
 import express from "express";
 import { createServer } from "http";
-import MyWebSocket from "./core/socket/websocket";
+
+import MyWebSocket from "./core/socket/websocket.js";
 
 const app = express();
 app.use(cors());

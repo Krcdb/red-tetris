@@ -1,6 +1,7 @@
-import MyWebSocket from "../socket/websocket";
-import { getLogger } from "../utils/Logger";
-import { gameService } from "../game/GameService";
+// back/src/core/tetris/TetrisGameLoop.ts
+import MyWebSocket from "../socket/websocket.js";
+import { getLogger } from "../utils/Logger.js";
+import { gameService } from "../game/GameService.js";
 
 export class TetrisGameLoop {
   private gravityInterval: NodeJS.Timeout | null = null;
@@ -9,13 +10,14 @@ export class TetrisGameLoop {
   private logger = getLogger("TetrisGameLoop");
   private room: string;
 
-  constructor(initialGameState: any, room: string) {
+  /** `initialGameState` is accepted for API-compat but managed inside GameService. */
+  constructor(initialGameState: unknown, room: string) {
     this.room = room;
     this.io = MyWebSocket.getInstance();
-
     this.logger.info(`TetrisGameLoop created for room ${room}`);
   }
 
+  /** Start two timers: one for rapid input polling, one for gravity/refresh. */
   start() {
     if (this.gravityInterval || this.inputInterval) {
       this.logger.warn(`Game ${this.room} already started`);
@@ -24,16 +26,19 @@ export class TetrisGameLoop {
 
     this.logger.info(`Starting game loop for room ${this.room}`);
 
+    /* --- 20 ms input polling --- */
     this.inputInterval = setInterval(() => {
       this.processInputs();
-    }, 20); 
+    }, 20);
 
+    /* --- 500 ms gravity & broadcast --- */
     this.gravityInterval = setInterval(() => {
       this.processGravity();
       this.sendGameState();
     }, 500);
   }
 
+  /** Clear both timers and mark loop stopped. */
   stop() {
     if (this.inputInterval) {
       clearInterval(this.inputInterval);
@@ -46,30 +51,22 @@ export class TetrisGameLoop {
     this.logger.info(`Game loop stopped for room ${this.room}`);
   }
 
-  processInputs() {
+  /* ---------- internal helpers ---------- */
+
+  private processInputs() {
     const game = gameService.getGame(this.room);
-    if (!game) {
-      this.logger.warn(`Game not found for room ${this.room}, stopping loop`);
-      this.stop();
-      return;
-    }
-    if (!game.isRunning) {
-      this.logger.info(`Game ${this.room} is not running, stopping loop`);
+    if (!game || !game.isRunning) {
+      this.logger.info(`Game ${this.room} not running — stopping loop`);
       this.stop();
       return;
     }
     game.processPlayerInputsOnly();
   }
 
-  processGravity() {
+  private processGravity() {
     const game = gameService.getGame(this.room);
-    if (!game) {
-      this.logger.warn(`Game not found for room ${this.room}, stopping loop`);
-      this.stop();
-      return;
-    }
-    if (!game.isRunning) {
-      this.logger.info(`Game ${this.room} is not running, stopping loop`);
+    if (!game || !game.isRunning) {
+      this.logger.info(`Game ${this.room} not running — stopping loop`);
       this.stop();
       return;
     }
@@ -80,33 +77,23 @@ export class TetrisGameLoop {
     gameService.sendGameState(this.room);
   }
 
+  /* -- Optional one-shot updater retained for flexibility (unused by .start()) -- */
   updateGame() {
     const game = gameService.getGame(this.room);
-    if (!game) {
-      this.logger.warn(`Game not found for room ${this.room}, stopping loop`);
-      this.stop();
-      return;
-    }
-
-    if (!game.isRunning) {
-      this.logger.info(`Game ${this.room} is not running, stopping loop`);
+    if (!game || !game.isRunning) {
       this.stop();
       return;
     }
 
     game.processPlayerActions();
 
-    const gameState = game.getGameState();
-    const hasGameOverPlayer = gameState.gamers?.some((gamer: any) => {
-      for (let row = 0; row < 2; row++) {
-        for (let col = 0; col < 10; col++) {
-          if (gamer.grid && gamer.grid[row] && gamer.grid[row][col] !== 0) {
-            return true;
-          }
-        }
-      }
-      return false;
-    });
+    const hasGameOverPlayer = game
+      .getGameState()
+      .gamers?.some((g: any) =>
+        [...Array(2).keys()].some((row) =>
+          [...Array(10).keys()].some((col) => g.grid?.[row]?.[col] !== 0),
+        ),
+      );
 
     if (hasGameOverPlayer) {
       this.logger.info(`Game over detected in room ${this.room}`);

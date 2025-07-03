@@ -1,16 +1,16 @@
-import MyWebSocket from "../socket/websocket";
-import { TetrisGameLoop } from "../tetris/TetrisGameLoop";
-import { GamerInputs } from "../types/game";
-import { Player } from "../types/player";
-import { getLogger } from "../utils/Logger";
+// back/src/core/game/GameService.ts
+import MyWebSocket from "../socket/websocket.js";
+import { TetrisGameLoop } from "../tetris/TetrisGameLoop.js";
+import { GamerInputs } from "../types/game.js";
+import { Player } from "../types/player.js";
+import { getLogger } from "../utils/Logger.js";
 import { Game } from "../classes/Game.js";
 
 type GameLoops = Record<string, TetrisGameLoop>;
 
 class GameService {
   private gameLoops: GameLoops;
-  private games: Record<string, Game>; // Use Game class instead of GameStates
-
+  private games: Record<string, Game>;
   private logger = getLogger("GameService");
 
   constructor() {
@@ -18,61 +18,54 @@ class GameService {
     this.gameLoops = {};
   }
 
-
+  /** Create a fresh Game instance and notify the room that setup is done. */
   createGame(players: Player[], room: string) {
-    console.log(`🎮 GameService: Creating game for room ${room} with ${players.length} player(s)`);
+    this.logger.info(
+      `Creating game for room ${room} with ${players.length} player(s)`,
+    );
 
     const playerNames = players.map((p) => p.name);
     const game = new Game(room, playerNames);
     this.games[room] = game;
 
-    const io = MyWebSocket.getInstance();
-
-    io.to(room).emit("game:isSetup");
-    console.log(`📤 GameService: Emitted game:isSetup for room ${room}`);
-
-    // Optional: Also emit game state
-    // io.to(room).emit("game:newState", game.getState());
-    // console.log(`📤 GameService: Emitted initial game state for room ${room}`);
+    MyWebSocket.getInstance().to(room).emit("game:isSetup");
   }
 
-
+  /** Start the Tetris game loop once all pre-checks pass. */
   launchGame(room: string) {
     const game = this.games[room];
     if (!game) {
-      this.logger.error(`can't launch game ${room}, game not found`);
+      this.logger.error(`Can't launch game ${room}: not found`);
       return;
     }
-
     if (game.isRunning) {
-      this.logger.warn(`Game ${room} is already running, not launching again`);
+      this.logger.warn(`Game ${room} already running`);
       return;
     }
-
     if (this.gameLoops[room]) {
-      this.logger.warn(`Game loop for room ${room} already exists, not starting another`);
+      this.logger.warn(`Game loop for room ${room} already exists`);
       return;
     }
 
-    this.logger.info(`launching game ${room}`);
-
+    this.logger.info(`Launching game ${room}`);
     game.start();
 
-    const tetrisLoop = new TetrisGameLoop(game.getGameState(), room);
-    this.gameLoops[room] = tetrisLoop;
-    tetrisLoop.start();
+    const loop = new TetrisGameLoop(game.getGameState(), room);
+    this.gameLoops[room] = loop;
+    loop.start();
   }
 
+  /** Called whenever a player presses or releases a control key. */
   playerInputChange(playerName: string, room: string, input: GamerInputs) {
     const game = this.games[room];
     if (!game) {
       this.logger.warn(`Game ${room} not found`);
       return;
     }
-
     game.updatePlayerInput(playerName, input);
   }
 
+  /** Mark a player as ready; when everyone’s ready, begin the match. */
   playerReady(playerName: string, room: string) {
     const game = this.games[room];
     if (!game) {
@@ -81,55 +74,48 @@ class GameService {
     }
 
     const allReady = game.setPlayerReady(playerName);
-
     if (allReady) {
-      this.logger.info(`every player in ${room} are ready, the game will launch`);
-      const io = MyWebSocket.getInstance();
-      io.to(room).emit("game:isLaunching");
+      this.logger.info(`All players in ${room} are ready; launching`);
+      MyWebSocket.getInstance().to(room).emit("game:isLaunching");
       this.launchGame(room);
     }
   }
 
+  /** Utility helpers — useful all over the backend */
   getGame(room: string): Game | null {
-    return this.games[room] || null;
+    return this.games[room] ?? null;
   }
 
   sendGameState(room: string) {
     const game = this.games[room];
     if (!game) return;
-
-    const io = MyWebSocket.getInstance();
-    const gameState = game.getGameState();
-
-    // this.logger.info(`📤 Sending game state to room ${room}`);
-    io.to(room).emit("game:newState", gameState);
+    MyWebSocket.getInstance()
+      .to(room)
+      .emit("game:newState", game.getGameState());
   }
 
   forceStopGame(room: string) {
-    this.logger.info(`🛑 Force stopping game in room ${room}`);
+    this.logger.info(`Force-stopping game in room ${room}`);
 
-    const gameLoop = this.gameLoops[room];
-    if (gameLoop) {
-      gameLoop.stop();
+    const loop = this.gameLoops[room];
+    if (loop) {
+      loop.stop();
       delete this.gameLoops[room];
-      this.logger.info(`✅ Game loop for room ${room} stopped`);
     }
 
     const game = this.games[room];
     if (game) {
       game.stop();
       delete this.games[room];
-      this.logger.info(`✅ Game state for room ${room} deleted`);
     }
   }
 
   gameExists(room: string): boolean {
-    return !!this.games[room];
+    return room in this.games;
   }
 
   isGameRunning(room: string): boolean {
-    const game = this.games[room];
-    return game ? game.isRunning : false;
+    return this.games[room]?.isRunning ?? false;
   }
 
   getActiveGames(): string[] {

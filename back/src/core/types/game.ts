@@ -1,16 +1,18 @@
+// back/src/core/types/game.ts
+
 import { Piece } from "../classes/Piece";
 
+export type Cell = number;
+
 export interface GamerInputs {
-  up: boolean;
+  down: boolean;
   left: boolean;
   right: boolean;
-  down: boolean;
   space: boolean;
   spaceHasBeenCounted: boolean;
+  up: boolean;
   upHasBeenCounted: boolean;
 }
-
-export type Cell = number;
 
 export interface TetrisPiece {
   shape: Cell[][];
@@ -40,7 +42,13 @@ export interface GameState {
   isRunning: boolean;
   isSolo: boolean;
   gamers: Gamer[];
-  sharedPieces: Array<{ type: string; x: number; y: number; shape: number[][]; rotation: number }>;
+  sharedPieces: Array<{
+    type: string;
+    x: number;
+    y: number;
+    shape: number[][];
+    rotation: number;
+  }>;
   currentPieceIndex: number;
 }
 
