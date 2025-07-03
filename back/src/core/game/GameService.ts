@@ -1,16 +1,16 @@
+// back/src/core/game/GameService.ts
 import MyWebSocket from "../socket/websocket.js";
 import { TetrisGameLoop } from "../tetris/TetrisGameLoop.js";
-import { Cell, GamerInputs, GameState } from "../types/game.js";
+import { GamerInputs } from "../types/game.js";
 import { Player } from "../types/player.js";
 import { getLogger } from "../utils/Logger.js";
+import { Game } from "../classes/Game.js";
 
 type GameLoops = Record<string, TetrisGameLoop>;
-type GameStates = Record<string, GameState>;
 
 class GameService {
   private gameLoops: GameLoops;
-  private games: GameStates;
-
+  private games: Record<string, Game>;
   private logger = getLogger("GameService");
 
   constructor() {
@@ -18,86 +18,108 @@ class GameService {
     this.gameLoops = {};
   }
 
+  /** Create a fresh Game instance and notify the room that setup is done. */
   createGame(players: Player[], room: string) {
-    this.logger.info(`Creating game for room ${room}`);
-
-    this.games[room] = {
-      gamers: [],
-      isRunning: false,
-      isSolo: true,
-      room: "",
-    };
-
-    if (players.length > 1) {
-      this.games[room].isSolo = false;
-    }
-
-    players.forEach((player) =>
-      this.games[room].gamers.push({
-        grid: this.initializeGrid(),
-        input: {
-          down: false,
-          left: false,
-          right: false,
-          space: false,
-          spaceHasBeenCounted: false,
-          up: false,
-          upHasBeenCounted: false,
-        },
-        isReady: false,
-        name: player.name,
-      }),
+    this.logger.info(
+      `Creating game for room ${room} with ${players.length} player(s)`,
     );
 
-    const io = MyWebSocket.getInstance();
-    io.to(room).emit("game:isSetup");
+    const playerNames = players.map((p) => p.name);
+    const game = new Game(room, playerNames);
+    this.games[room] = game;
+
+    MyWebSocket.getInstance().to(room).emit("game:isSetup");
   }
 
+  /** Start the Tetris game loop once all pre-checks pass. */
   launchGame(room: string) {
-    if (!this.games[room]) {
-      this.logger.error(`can't launch game ${room}, game state not found`);
+    const game = this.games[room];
+    if (!game) {
+      this.logger.error(`Can't launch game ${room}: not found`);
+      return;
+    }
+    if (game.isRunning) {
+      this.logger.warn(`Game ${room} already running`);
+      return;
+    }
+    if (this.gameLoops[room]) {
+      this.logger.warn(`Game loop for room ${room} already exists`);
       return;
     }
 
-    this.logger.info(`launching game ${room}`);
+    this.logger.info(`Launching game ${room}`);
+    game.start();
 
-    const tetrisLoop = new TetrisGameLoop(this.games[room], room);
-    this.gameLoops[room] = tetrisLoop;
-    tetrisLoop.start();
+    const loop = new TetrisGameLoop(game.getGameState(), room);
+    this.gameLoops[room] = loop;
+    loop.start();
   }
 
+  /** Called whenever a player presses or releases a control key. */
   playerInputChange(playerName: string, room: string, input: GamerInputs) {
-    const gamer = this.games[room].gamers.find((elem) => elem.name === playerName);
-    if (!gamer) {
-      this.logger.warn(`couldn't find player ${playerName} in game ${room}`);
-      throw new Error(`couldn't find player ${playerName} in game ${room}`);
+    const game = this.games[room];
+    if (!game) {
+      this.logger.warn(`Game ${room} not found`);
+      return;
     }
-    gamer.input = input;
+    game.updatePlayerInput(playerName, input);
   }
 
+  /** Mark a player as ready; when everyone’s ready, begin the match. */
   playerReady(playerName: string, room: string) {
-    const gamerReady = this.games[room].gamers.find((elem) => elem.name === playerName);
-
-    if (!gamerReady) {
-      this.logger.warn(`couldn't find player ${playerName} in game ${room}`);
-      throw new Error(`couldn't find player ${playerName} in game ${room}`);
+    const game = this.games[room];
+    if (!game) {
+      this.logger.warn(`Game ${room} not found`);
+      throw new Error(`Game ${room} not found`);
     }
-    gamerReady.isReady = true;
 
-    if (this.games[room].gamers.every((gamer) => gamer.isReady)) {
-      this.logger.info(`every player in ${room} are ready, the game will launch`);
-      const io = MyWebSocket.getInstance();
-      io.to(room).emit("game:isLaunching");
+    const allReady = game.setPlayerReady(playerName);
+    if (allReady) {
+      this.logger.info(`All players in ${room} are ready; launching`);
+      MyWebSocket.getInstance().to(room).emit("game:isLaunching");
       this.launchGame(room);
     }
   }
 
-  private initializeGrid(): Cell[][] {
-    const grid: Cell[][] = [];
-    for (let i = 0; i < 20; i++) {
-      grid.push(new Array(10).fill(0));
+  /** Utility helpers — useful all over the backend */
+  getGame(room: string): Game | null {
+    return this.games[room] ?? null;
+  }
+
+  sendGameState(room: string) {
+    const game = this.games[room];
+    if (!game) return;
+    MyWebSocket.getInstance()
+      .to(room)
+      .emit("game:newState", game.getGameState());
+  }
+
+  forceStopGame(room: string) {
+    this.logger.info(`Force-stopping game in room ${room}`);
+
+    const loop = this.gameLoops[room];
+    if (loop) {
+      loop.stop();
+      delete this.gameLoops[room];
     }
-    return grid;
+
+    const game = this.games[room];
+    if (game) {
+      game.stop();
+      delete this.games[room];
+    }
+  }
+
+  gameExists(room: string): boolean {
+    return room in this.games;
+  }
+
+  isGameRunning(room: string): boolean {
+    return this.games[room]?.isRunning ?? false;
+  }
+
+  getActiveGames(): string[] {
+    return Object.keys(this.games);
   }
 }
 

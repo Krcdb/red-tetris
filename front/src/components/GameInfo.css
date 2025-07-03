@@ -1,0 +1,89 @@
+.game-info {
+  min-width: 200px;
+  font-family: "Courier New", monospace;
+}
+
+.player-stats {
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 2px solid #333;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+}
+
+.player-stats h3 {
+  margin: 0 0 10px 0;
+  color: #333;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 5px;
+}
+
+.player-stats p {
+  margin: 5px 0;
+  font-weight: bold;
+}
+
+.opponents-section h3 {
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.opponent-card {
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.opponent-card h4 {
+  margin: 0 0 8px 0;
+  color: #555;
+}
+
+.opponent-card p {
+  margin: 3px 0;
+  font-size: 0.9em;
+}
+
+.mini-board {
+  display: grid;
+  grid-template-columns: repeat(10, 8px);
+  grid-template-rows: repeat(20, 8px);
+  gap: 1px;
+  margin-top: 8px;
+  border: 1px solid #ccc;
+  padding: 2px;
+}
+
+.mini-board .mini-cell {
+  width: 8px;
+  height: 8px;
+}
+
+.mini-board .mini-cell.filled {
+  background-color: #333;
+}
+
+.mini-board .mini-cell.empty {
+  background-color: #eee;
+}
+
+.next-piece-preview {
+  margin-bottom: 20px;
+  padding: 10px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  background: #f4f4f4;
+  text-align: center;
+}
+
+.next-piece {
+  display: inline-block;
+  margin: 4px;
+  background: #eee;
+  padding: 2px;
+  border-radius: 4px;
+  min-width: 64px;
+}

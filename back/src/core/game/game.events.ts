@@ -1,3 +1,5 @@
+// back/src/core/game/game.events.ts
+
 import { CustomeSocket } from "../types/socket-event.js";
 import { getLogger } from "../utils/Logger.js";
 import { gameService } from "./GameService.js";
@@ -9,7 +11,7 @@ export function registerGameHandler(socket: CustomeSocket) {
   socket.on("game:playerReady", () => {
     logger.info(`Player ready: socket ${JSON.stringify(socket.data)}`);
 
-    const { currentRoom, playerName } = socket.data;
+    const { playerName, currentRoom } = socket.data;
 
     if (!playerName || !currentRoom) {
       logger.warn(`missing data for player ready for ${socket.id}`);
@@ -19,13 +21,15 @@ export function registerGameHandler(socket: CustomeSocket) {
     try {
       gameService.playerReady(playerName, currentRoom);
     } catch (error) {
-      logger.error(`room ${currentRoom}: couldn't set player ${playerName} ready`);
+      logger.error(
+        `room ${currentRoom}: couldn't set player ${playerName} ready`,
+      );
     }
   });
 
   socket.on("game:playerInputChanges", (data) => {
     const { input } = data;
-    const { currentRoom, playerName } = socket.data;
+    const { playerName, currentRoom } = socket.data;
 
     if (!playerName || !currentRoom) {
       logger.warn(`missing data for player ready for ${socket.id}`);
@@ -35,7 +39,9 @@ export function registerGameHandler(socket: CustomeSocket) {
     try {
       gameService.playerInputChange(playerName, currentRoom, input);
     } catch (error) {
-      logger.error(`room ${currentRoom}: couldn't set player ${playerName} ready`);
+      logger.error(
+        `room ${currentRoom}: couldn't set player ${playerName} ready`,
+      );
     }
   });
 
