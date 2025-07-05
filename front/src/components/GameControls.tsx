@@ -15,8 +15,6 @@ export default function GameControls() {
     right: false,
     down: false,
     space: false,
-    spaceHasBeenCounted: false,
-    upHasBeenCounted: false,
   });
 
   useEffect(() => {
@@ -48,12 +46,10 @@ export default function GameControls() {
           break;
         case "ArrowUp":
           inputRef.current.up = true;
-          inputRef.current.upHasBeenCounted = false;
           break;
         case "Space":
           e.preventDefault();
           inputRef.current.space = true;
-          inputRef.current.spaceHasBeenCounted = false;
           break;
       }
 

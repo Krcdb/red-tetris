@@ -1,7 +1,7 @@
 // back/src/core/game/GameService.ts
 import MyWebSocket from "../socket/websocket.js";
 import { TetrisGameLoop } from "../tetris/TetrisGameLoop.js";
-import { GamerInputs } from "../types/game.js";
+import { GamerInputs, InputDTO } from "../types/game.js";
 import { Player } from "../types/player.js";
 import { getLogger } from "../utils/Logger.js";
 import { Game } from "../classes/Game.js";
@@ -56,7 +56,7 @@ class GameService {
   }
 
   /** Called whenever a player presses or releases a control key. */
-  playerInputChange(playerName: string, room: string, input: GamerInputs) {
+  playerInputChange(playerName: string, room: string, input: InputDTO) {
     const game = this.games[room];
     if (!game) {
       this.logger.warn(`Game ${room} not found`);

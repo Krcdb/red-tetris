@@ -29,7 +29,8 @@ export class TetrisGameLoop {
     /* --- 20 ms input polling --- */
     this.inputInterval = setInterval(() => {
       this.processInputs();
-    }, 20);
+      this.sendGameState();
+    }, 100);
 
     /* --- 500 ms gravity & broadcast --- */
     this.gravityInterval = setInterval(() => {

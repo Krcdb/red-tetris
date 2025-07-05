@@ -1,4 +1,5 @@
-import { GamerInputs, Cell, TetrisPiece } from "../types/game.js";
+import { scrypt } from "crypto";
+import { GamerInputs, Cell, TetrisPiece, InputDTO } from "../types/game.js";
 
 export class Player {
   public name: string;
@@ -48,8 +49,21 @@ export class Player {
     this.isReady = true;
   }
 
-  public updateInput(newInput: GamerInputs): void {
-    this.input = { ...newInput };
+  public updateInput(newInput: InputDTO): void {
+    let spaceHasBeenCounted = this.input.spaceHasBeenCounted;
+    if (spaceHasBeenCounted) {
+      spaceHasBeenCounted = newInput.space === this.input.space;
+    }
+
+    let upHasBeenCounted = this.input.upHasBeenCounted;
+    if (upHasBeenCounted) {
+      upHasBeenCounted = newInput.up === this.input.up;
+    }
+    this.input = { 
+      ...newInput,
+      spaceHasBeenCounted,
+      upHasBeenCounted
+    };
   }
 
   public setPiece(piece: TetrisPiece, index: number): void {
@@ -71,7 +85,7 @@ export class Player {
   }
 
   public isGameOver(): boolean {
-    for (let row = 0; row < 2; row++) {
+    for (let row = 0; row < 1; row++) {
       for (let col = 0; col < this.grid[row].length; col++) {
         if (this.grid[row][col] !== 0) {
           return true;

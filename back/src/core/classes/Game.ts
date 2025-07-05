@@ -1,6 +1,6 @@
 import { Player } from "./Player.js";
 import { Piece } from "./Piece.js";
-import { Cell, TetrisPiece } from "../types/game.js";
+import { Cell, InputDTO, TetrisPiece } from "../types/game.js";
 import { getLogger } from "../utils/Logger.js";
 import { clearLines } from "../utils/tetris.js";
 import MyWebSocket from "../socket/websocket.js";
@@ -58,7 +58,7 @@ export class Game {
     return this.players.every((player) => player.isReady);
   }
 
-  public updatePlayerInput(playerName: string, input: any): void {
+  public updatePlayerInput(playerName: string, input: InputDTO): void {
     const player = this.getPlayer(playerName);
     if (player) {
       player.updateInput(input);

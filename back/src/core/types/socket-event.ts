@@ -1,13 +1,13 @@
 // back/src/core/types/socket-event.ts
 
 import { Socket } from "socket.io";
-import { GamerInputs, GameState, ClientGameState } from "./game.js";
+import { GameState, ClientGameState, InputDTO } from "./game.js";
 import { Match } from "./match.js";
 
 export interface ClientToServerEvents {
   "game:end": (data: { room: string }) => void;
   "game:playerReady": () => void;
-  "game:playerInputChanges": (data: { input: GamerInputs }) => void;
+  "game:playerInputChanges": (data: { input: InputDTO }) => void;
   "game:pieceLanded": () => void;
 
   "match:playerJoin": (data: { playerName: string; room: string }) => void;
