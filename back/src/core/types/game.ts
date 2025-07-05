@@ -4,6 +4,14 @@ import { Piece } from "../classes/Piece";
 
 export type Cell = number;
 
+export interface InputDTO {
+  down: boolean;
+  left: boolean;
+  right: boolean;
+  space: boolean;
+  up: boolean;
+}
+
 export interface GamerInputs {
   down: boolean;
   left: boolean;
