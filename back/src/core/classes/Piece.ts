@@ -17,9 +17,23 @@ export class Piece {
     this.color = this.getColorForType(type);
   }
 
+  private static wallKickOffset: [number, number][] = [
+    [0, 0],
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [-2, 0],
+    [2, 0],
+  ]
+
   private getShapeForType(type: string): Cell[][] {
     const shapes: { [key: string]: Cell[][] } = {
-      I: [[1, 1, 1, 1]],
+      I: [
+        [0, 0, 0, 0],
+        [1, 1, 1, 1],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+      ],
       O: [
         [1, 1],
         [1, 1],
@@ -27,22 +41,27 @@ export class Piece {
       T: [
         [0, 1, 0],
         [1, 1, 1],
+        [0, 0, 0],
       ],
       S: [
         [0, 1, 1],
         [1, 1, 0],
+        [0, 0, 0],
       ],
       Z: [
         [1, 1, 0],
         [0, 1, 1],
+        [0, 0, 0],
       ],
       J: [
         [1, 0, 0],
         [1, 1, 1],
+        [0, 0, 0],
       ],
       L: [
         [0, 0, 1],
         [1, 1, 1],
+        [0, 0, 0],
       ],
     };
     return shapes[type] || shapes["T"];
@@ -59,6 +78,31 @@ export class Piece {
       L: 7,
     };
     return colors[type] || 1;
+  }
+
+  public rotateWallKick(grid: Cell[][]): Piece {
+    const rows = this.shape.length;
+    const cols = this.shape[0].length;
+    const rotatedShape: Cell[][] = [];
+
+    for (let i = 0; i < cols; i++) {
+      rotatedShape[i] = [];
+      for (let j = 0; j < rows; j++) {
+        rotatedShape[i][j] = this.shape[rows - 1 - j][i];
+      }
+    }
+
+    for (const [dx, dy] of Piece.wallKickOffset) {
+      const testPiece = new Piece(this.type, this.x + dx, this.y + dy);
+      testPiece.shape = rotatedShape;
+      testPiece.rotation = (this.rotation + 1) % 4;
+      testPiece.color = this.color;
+
+      if (testPiece.isValidPosition(grid)) {
+        return testPiece;
+      }
+    }
+    return this;
   }
 
   public rotate(): Piece {

@@ -118,8 +118,8 @@ export class Game {
   }
 
   public giveNextPiece(player: Player): void {
-    if (this.currentPieceIndex >= this.pieces.length - 100) {
-      this.pieces.push(...Piece.generatePieceSequence(1000));
+    if (this.currentPieceIndex >= this.pieces.length - 20) {
+      this.pieces.push(...Piece.generatePieceSequence(100));
       this.logger.info("Generated more pieces for game continuation");
     }
 
@@ -185,8 +185,8 @@ export class Game {
       let hasMoved = false;
 
       if (player.input.up && !player.input.upHasBeenCounted) {
-        const rotatedPiece = piece.rotate();
-        if (rotatedPiece.isValidPosition(player.grid)) {
+        const rotatedPiece = piece.rotateWallKick(player.grid);
+        if (rotatedPiece !== piece) {
           piece = rotatedPiece;
           hasMoved = true;
         }
@@ -199,7 +199,6 @@ export class Game {
           piece = leftPiece;
           hasMoved = true;
         }
-        player.input.left = false;
       }
 
       if (player.input.right && !player.forcedFall) {
@@ -208,7 +207,17 @@ export class Game {
           piece = rightPiece;
           hasMoved = true;
         }
-        player.input.right = false;
+      }
+
+      if (player.input.down && !player.forcedFall) {
+        const downPiece = piece.move(0, 1);
+        if (downPiece.isValidPosition(player.grid)) {
+          piece = downPiece;
+          hasMoved = true;
+          player.lockDelayCounter = 0;
+          player.isTouchingGround = false;
+          player.lockMoveResets = 0;
+        }
       }
 
       if (player.input.space && !player.input.spaceHasBeenCounted) {
@@ -234,24 +243,13 @@ export class Game {
   public processGravity(): void {
     const LOCK_DELAY_TICKS = 1;
     const MAX_LOCK_RESETS = 3;
-    const SOFT_DROP_STEPS = 2;
 
     this.players.forEach((player) => {
       if (!player.currentPiece || !this.isRunning) return;
 
       let piece = this.tetrisPieceToPiece(player.currentPiece);
 
-      if (player.input.down) {
-        let steps = 0;
-        while (steps < SOFT_DROP_STEPS && piece.canMoveDown(player.grid)) {
-          piece = piece.move(0, 1);
-          steps++;
-        }
-        player.input.down = false;
-        player.lockDelayCounter = 0;
-        player.isTouchingGround = false;
-        player.lockMoveResets = 0;
-      } else if (!player.forcedFall && piece.canMoveDown(player.grid)) {
+      if (!player.input.down && !player.forcedFall && piece.canMoveDown(player.grid)) {
         piece = piece.move(0, 1);
         player.lockDelayCounter = 0;
         player.isTouchingGround = false;
