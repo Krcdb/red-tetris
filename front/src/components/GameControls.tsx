@@ -20,16 +20,6 @@ export default function GameControls() {
   useEffect(() => {
     if (status !== "playing") return;
 
-    const interval = setInterval(() => {
-      socketService.sendInput(inputRef.current);
-    }, 50); // Send input every 50ms
-
-    return () => clearInterval(interval);
-  }, [status]);
-
-  useEffect(() => {
-    if (status !== "playing") return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (keysPressed.current.has(e.code)) return;
       keysPressed.current.add(e.code);
@@ -53,7 +43,7 @@ export default function GameControls() {
           break;
       }
 
-      // socketService.sendInput(inputRef.current);
+      socketService.sendInput(inputRef.current);
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
@@ -77,7 +67,7 @@ export default function GameControls() {
           break;
       }
 
-      // socketService.sendInput(inputRef.current);
+      socketService.sendInput(inputRef.current);
     };
 
     window.addEventListener("keydown", handleKeyDown);
