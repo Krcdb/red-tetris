@@ -35,7 +35,6 @@ export default function LobbyRoute() {
     socketService.joinRoom(playerName, room);
     socketService.socket.on("game:isLaunching", () => {
       console.log("🚀 LobbyRoute: Game is launching, navigating to game route");
-      // navigate(`/${room}/${playerName}/game`);
     });
 
     socketService.socket.on("game:isSetup", () => {
@@ -48,15 +47,10 @@ export default function LobbyRoute() {
     });
 
     return () => {
-      // Leave room when component unmounts
-      // console.log("🏠 LobbyRoute: Cleanup - leaving room");
-      // socketService.leaveRoom(playerName, room);
       socketService.socket.off("game:isSetup");
       socketService.socket.off("game:isLaunching");
-      // socketService.socket.off("game:isSetup");
     };
   }, [room, playerName, dispatch, navigate]);
-
 
   const startGame = () => {
     console.log("🚀 LobbyRoute: Start game button clicked!");

@@ -71,6 +71,16 @@ export default function GameRoute() {
     );
   }
 
+  if (status === "gameOver") {
+    return (
+      <div style={{ padding: "20px", color: "red" }}>
+        <h2>Game Over</h2>
+        <p>The game has ended.</p>
+        <button onClick={() => navigate("/")}>Back to Home</button>
+      </div>
+    );
+  }
+
   if (status === "idle") {
     return (
       <div style={{ padding: "20px", textAlign: "center" }}>

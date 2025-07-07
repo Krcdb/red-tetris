@@ -1,5 +1,3 @@
-// back/src/core/game/game.events.ts
-
 import { CustomeSocket } from "../types/socket-event.js";
 import { getLogger } from "../utils/Logger.js";
 import { gameService } from "./GameService.js";
@@ -21,9 +19,7 @@ export function registerGameHandler(socket: CustomeSocket) {
     try {
       gameService.playerReady(playerName, currentRoom);
     } catch (error) {
-      logger.error(
-        `room ${currentRoom}: couldn't set player ${playerName} ready`,
-      );
+      logger.error(`room ${currentRoom}: couldn't set player ${playerName} ready`);
     }
   });
 
@@ -39,9 +35,7 @@ export function registerGameHandler(socket: CustomeSocket) {
     try {
       gameService.playerInputChange(playerName, currentRoom, input);
     } catch (error) {
-      logger.error(
-        `room ${currentRoom}: couldn't set player ${playerName} ready`,
-      );
+      logger.error(`room ${currentRoom}: couldn't set player ${playerName} ready`);
     }
   });
 

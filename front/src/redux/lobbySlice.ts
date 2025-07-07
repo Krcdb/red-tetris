@@ -46,7 +46,7 @@ const lobbySlice = createSlice({
         currentPlayer,
         isLeader,
         allPlayers: state.players,
-      }); // Debug log
+      });
 
       state.canStart = isLeader;
     },

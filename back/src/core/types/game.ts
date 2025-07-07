@@ -1,5 +1,3 @@
-// back/src/core/types/game.ts
-
 import { Piece } from "../classes/Piece";
 
 export type Cell = number;

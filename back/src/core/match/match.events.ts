@@ -1,4 +1,3 @@
-// back/src/core/match/match.events.ts
 import MyWebSocket from "../socket/websocket.js";
 import { Match } from "../types/match.js";
 import { CustomeSocket } from "../types/socket-event.js";
@@ -12,7 +11,6 @@ import { matchService } from "./MatchService.js";
 export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
   const logger = getLogger("MatchHandler");
 
-  /* -------- player joins a lobby -------- */
   socket.on("match:playerJoin", (data) => {
     const { playerName, room } = data;
     let match: Match;
@@ -29,7 +27,6 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
     io.to(room).emit("match:playerHasJoin", match);
   });
 
-  /* -------- player leaves a lobby -------- */
   socket.on("match:playerLeft", (data) => {
     const { playerName, room } = data;
     const match = matchService.playerLeave(playerName, room, socket);
@@ -42,13 +39,11 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
     socket.leave(room);
   });
 
-  /* -------- leader starts the game -------- */
   socket.on("match:startGame", (data) => {
     const { room } = data;
-    matchService.startGame(room, socket); // Validation happens inside MatchService
+    matchService.startGame(room, socket);
   });
 
-  /* -------- socket disconnect cleanup -------- */
   socket.on("disconnect", (reason) => {
     matchService.handleDisconnect(socket, reason);
   });

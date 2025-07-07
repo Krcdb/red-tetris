@@ -1,4 +1,3 @@
-// back/src/core/game/GameService.ts
 import MyWebSocket from "../socket/websocket.js";
 import { TetrisGameLoop } from "../tetris/TetrisGameLoop.js";
 import { GamerInputs, InputDTO } from "../types/game.js";
@@ -20,9 +19,7 @@ class GameService {
 
   /** Create a fresh Game instance and notify the room that setup is done. */
   createGame(players: Player[], room: string) {
-    this.logger.info(
-      `Creating game for room ${room} with ${players.length} player(s)`,
-    );
+    this.logger.info(`Creating game for room ${room} with ${players.length} player(s)`);
 
     const playerNames = players.map((p) => p.name);
     const game = new Game(room, playerNames);
@@ -89,9 +86,7 @@ class GameService {
   sendGameState(room: string) {
     const game = this.games[room];
     if (!game) return;
-    MyWebSocket.getInstance()
-      .to(room)
-      .emit("game:newState", game.getGameState());
+    MyWebSocket.getInstance().to(room).emit("game:newState", game.getGameState());
   }
 
   forceStopGame(room: string) {

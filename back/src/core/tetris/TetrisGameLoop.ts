@@ -1,4 +1,3 @@
-// back/src/core/tetris/TetrisGameLoop.ts
 import MyWebSocket from "../socket/websocket.js";
 import { getLogger } from "../utils/Logger.js";
 import { gameService } from "../game/GameService.js";
@@ -90,11 +89,7 @@ export class TetrisGameLoop {
 
     const hasGameOverPlayer = game
       .getGameState()
-      .gamers?.some((g: any) =>
-        [...Array(2).keys()].some((row) =>
-          [...Array(10).keys()].some((col) => g.grid?.[row]?.[col] !== 0),
-        ),
-      );
+      .gamers?.some((g: any) => [...Array(2).keys()].some((row) => [...Array(10).keys()].some((col) => g.grid?.[row]?.[col] !== 0)));
 
     if (hasGameOverPlayer) {
       this.logger.info(`Game over detected in room ${this.room}`);

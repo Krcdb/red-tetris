@@ -1,4 +1,3 @@
-// back/src/core/match/MatchService.ts
 import { gameService } from "../game/GameService.js";
 import MyWebSocket from "../socket/websocket.js";
 import { Match } from "../types/match.js";
@@ -15,7 +14,6 @@ class MatchService {
     this.matchs = {};
   }
 
-  /** Join (or switch) rooms, enforcing unique names and leader rules. */
   playerJoin(playerName: string, room: string, socket: CustomeSocket): Match {
     this.logger.info(`player ${playerName} tries to join room ${room}`);
 

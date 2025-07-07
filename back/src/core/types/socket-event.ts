@@ -1,5 +1,3 @@
-// back/src/core/types/socket-event.ts
-
 import { Socket } from "socket.io";
 import { GameState, ClientGameState, InputDTO } from "./game.js";
 import { Match } from "./match.js";
@@ -38,9 +36,4 @@ export interface SocketData {
   currentRoom?: string;
 }
 
-export type CustomeSocket = Socket<
-  ClientToServerEvents,
-  ServerToClientEvents,
-  InterServerEvents,
-  SocketData
->;
+export type CustomeSocket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
