@@ -2,6 +2,8 @@ import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../redux/store";
+import "./GameRoute.css";
+
 import {
   setGameConfig,
   gameSetup,
@@ -12,6 +14,7 @@ import { socketService } from "../services/socketService";
 import GameBoard from "../components/GameBoard";
 import GameInfo from "../components/GameInfo";
 import GameControls from "../components/GameControls";
+import GameOverModal from "../components/GameOverModal";
 
 export default function GameRoute() {
   const { room, playerName } = useParams<{
@@ -21,7 +24,9 @@ export default function GameRoute() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { status, error } = useSelector((state: RootState) => state.game);
+  const { status, error, score, linesCleared } = useSelector(
+    (state: RootState) => state.game
+  );
 
   useEffect(() => {
     if (!room || !playerName) {
@@ -71,16 +76,6 @@ export default function GameRoute() {
     );
   }
 
-  if (status === "gameOver") {
-    return (
-      <div style={{ padding: "20px", color: "red" }}>
-        <h2>Game Over</h2>
-        <p>The game has ended.</p>
-        <button onClick={() => navigate("/")}>Back to Home</button>
-      </div>
-    );
-  }
-
   if (status === "idle") {
     return (
       <div style={{ padding: "20px", textAlign: "center" }}>
@@ -111,16 +106,27 @@ export default function GameRoute() {
   }
 
   return (
-    <div style={{ display: "flex", padding: "20px", gap: "20px" }}>
-      <div>
-        <h2>Red Tetris - {room}</h2>
-        <p>Player: {playerName}</p>
-        <GameBoard />
-        <GameControls />
+    <div className="game-wrapper">
+      <div className="game-container">
+        <div className="left-panel">
+          <GameControls />
+        </div>
+        <div className="center-panel">
+          <h2 className="retro-title">Red Tetris - {room}</h2>
+          <p>Player: {playerName}</p>
+          <GameBoard />
+        </div>
+        <div className="right-panel">
+          <GameInfo />
+        </div>
       </div>
-      <div>
-        <GameInfo />
-      </div>
+      {status === "gameOver" && (
+        <GameOverModal
+          score={score}
+          lines={linesCleared}
+          onExit={() => navigate("/")}
+        />
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./Home.css";
 
 const Home: React.FC = () => {
   const [room, setRoom] = useState("");
@@ -13,20 +14,24 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "2rem" }}>
-      <h1>🔴 Red Tetris</h1>
-      <form onSubmit={onSubmit}>
+    <div className="retro-container">
+      <h1 className="retro-title">Red Tetris</h1>
+      <form className="retro-form" onSubmit={onSubmit}>
         <input
+          className="retro-input"
           placeholder="Room name"
           value={room}
           onChange={(e) => setRoom(e.target.value)}
         />
         <input
+          className="retro-input"
           placeholder="Your name"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
-        <button type="submit">Join / Create Game</button>
+        <button className="retro-button" type="submit">
+          Join / Create Game
+        </button>
       </form>
     </div>
   );

@@ -2,7 +2,6 @@ import React, { useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   startGame,
-
   setPieces,
   updateBoard,
   gameOver,
@@ -11,9 +10,12 @@ import { RootState } from "../redux/store";
 import GameBoard from "./GameBoard";
 import GameInfo from "./GameInfo";
 import GameControls from "./GameControls";
+import GameOverModal from "./GameOverModal";
+import { useNavigate } from "react-router-dom";
 
 export default function Solo() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { status, score, linesCleared, level } = useSelector(
     (state: RootState) => state.game
   );
@@ -35,15 +37,12 @@ export default function Solo() {
         )}
 
         {status === "gameOver" && (
-          <div>
-            <h2>Game Over!</h2>
-            <p>Final Score: {score}</p>
-            <p>Lines Cleared: {linesCleared}</p>
-            <button onClick={startNewGame}>Play Again</button>
-          </div>
+          <GameOverModal
+            score={score}
+            lines={linesCleared}
+            onExit={() => navigate("/")}
+          />
         )}
-
-        
       </div>
 
       <div>

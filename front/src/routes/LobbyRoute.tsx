@@ -5,6 +5,7 @@ import { RootState } from "../redux/store";
 import { setLobbyConfig, setLoading } from "../redux/lobbySlice";
 import { setGameConfig } from "../redux/gameSlice";
 import { socketService } from "../services/socketService";
+import "./LobbyRoute.css";
 
 export default function LobbyRoute() {
   const { room, playerName } = useParams<{
@@ -90,63 +91,37 @@ export default function LobbyRoute() {
   }
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Lobby: {room}</h2>
-      <p>You are: {playerName}</p>
+    <div className="lobby-container">
+      <div className="lobby-box">
+        <h2>Lobby: {room}</h2>
+        <p>You are: {playerName}</p>
 
-      {isLoading && <p>Joining room...</p>}
+        {isLoading && <p>Joining room...</p>}
 
-      <h3>Players in room ({players.length}):</h3>
-      <ul>
-        {players.map((p) => (
-          <li key={p.name}>
-            {p.name}
-            {p.name === playerName && " (you)"}
-            {p.isLeader && " (leader)"}
-          </li>
-        ))}
-      </ul>
+        <h3>Players in room ({players.length}):</h3>
+        <ul>
+          {players.map((p) => (
+            <li key={p.name}>
+              {p.name}
+              {p.name === playerName && " (you)"}
+              {p.isLeader && " (leader)"}
+            </li>
+          ))}
+        </ul>
 
-      {/* Debug info */}
-      <div
-        style={{
-          marginTop: "20px",
-          padding: "10px",
-          background: "#f0f0f0",
-          fontSize: "12px",
-        }}
-      >
-        <strong>Debug Info:</strong>
-        <br />
-        Can Start: {canStart ? "Yes" : "No"}
-        <br />
-        Your Name: {playerName}
-        <br />
-        Players: {JSON.stringify(players, null, 2)}
+        <button
+          onClick={startGame}
+          disabled={!canStart || players.length < 1 || isLoading}
+          className="retro-button"
+          style={{
+            opacity: !canStart ? 0.5 : 1,
+          }}
+        >
+          {canStart
+            ? `Start Game (${players.length} players ready)`
+            : "Waiting for leader..."}
+        </button>
       </div>
-
-      <p style={{ fontSize: "12px", color: "blue" }}>
-        Button disabled: {String(!canStart || players.length < 1 || isLoading)}
-        (canStart: {String(canStart)}, players: {players.length}, isLoading:{" "}
-        {String(isLoading)})
-      </p>
-
-      <button
-        onClick={startGame}
-        disabled={!canStart || players.length < 1 || isLoading}
-        style={{
-          marginTop: "10px",
-          padding: "10px 20px",
-          backgroundColor: canStart ? "green" : "gray",
-          color: "white",
-          border: "none",
-          cursor: canStart ? "pointer" : "not-allowed",
-        }}
-      >
-        {canStart
-          ? `Start Game (${players.length} players ready)`
-          : "Waiting for leader..."}
-      </button>
     </div>
   );
 }

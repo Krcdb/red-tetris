@@ -1,89 +1,88 @@
 .game-info {
-  min-width: 200px;
-  font-family: "Courier New", monospace;
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.55rem;
+  color: #fff;
+  padding: 1rem;
+  background-color: #111;
+  border: 3px solid #00fff7;
+  border-radius: 10px;
+  box-shadow: 0 0 8px #00fff7;
 }
 
 .player-stats {
-  margin-bottom: 20px;
-  padding: 15px;
-  border: 2px solid #333;
-  border-radius: 8px;
-  background-color: #f8f9fa;
+  margin-bottom: 1rem;
+  background-color: #000;
+  padding: 0.75rem;
+  border: 2px solid #ff003c;
 }
 
 .player-stats h3 {
-  margin: 0 0 10px 0;
-  color: #333;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 5px;
+  color: #ff003c;
+  margin-bottom: 0.75rem;
+  font-size: 0.7rem;
 }
 
 .player-stats p {
-  margin: 5px 0;
-  font-weight: bold;
+  margin: 4px 0;
 }
 
 .opponents-section h3 {
-  color: #333;
-  margin-bottom: 15px;
+  color: #00fff7;
+  margin-top: 1rem;
+  font-size: 0.65rem;
 }
 
 .opponent-card {
-  margin-bottom: 15px;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: #000;
+  padding: 0.5rem;
+  margin-bottom: 0.75rem;
+  border: 2px dashed #00fff7;
 }
 
 .opponent-card h4 {
-  margin: 0 0 8px 0;
-  color: #555;
+  margin: 0 0 4px 0;
+  color: #00fff7;
 }
 
 .opponent-card p {
-  margin: 3px 0;
-  font-size: 0.9em;
+  font-size: 0.5rem;
+  margin: 2px 0;
 }
 
 .mini-board {
   display: grid;
-  grid-template-columns: repeat(10, 8px);
-  grid-template-rows: repeat(20, 8px);
+  grid-template-columns: repeat(10, 6px);
+  grid-template-rows: repeat(20, 6px);
   gap: 1px;
-  margin-top: 8px;
-  border: 1px solid #ccc;
-  padding: 2px;
+  margin-top: 5px;
+  background-color: #111;
 }
 
-.mini-board .mini-cell {
-  width: 8px;
-  height: 8px;
+.mini-cell.filled {
+  background-color: #00ffcc;
 }
 
-.mini-board .mini-cell.filled {
-  background-color: #333;
-}
-
-.mini-board .mini-cell.empty {
-  background-color: #eee;
+.mini-cell.empty {
+  background-color: #222;
 }
 
 .next-piece-preview {
   margin-bottom: 20px;
-  padding: 10px;
-  border: 1px solid #bbb;
-  border-radius: 6px;
-  background: #f4f4f4;
-  text-align: center;
+  padding: 0.75rem;
+  background-color: #000;
+  border: 2px solid #ff003c;
 }
 
 .next-piece {
+  margin-top: 5px;
   display: inline-block;
-  margin: 4px;
-  background: #eee;
-  padding: 2px;
-  border-radius: 4px;
-  min-width: 64px;
+  padding: 5px;
+  background-color: #111;
+  border: 2px dashed #ff003c;
+}
+
+.game-controls,
+.game-info {
+  width: 100%;
+  box-sizing: border-box;
 }
