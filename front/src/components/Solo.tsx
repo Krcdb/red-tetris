@@ -20,7 +20,7 @@ export default function Solo() {
     (state: RootState) => state.game
   );
 
-  const startNewGame = useCallback(() => {
+  const startNewGameSolo = useCallback(() => {
     dispatch(startGame({ gameMode: "solo" }));
   }, [dispatch]);
 
@@ -32,7 +32,7 @@ export default function Solo() {
         {status === "idle" && (
           <div>
             <h2>Press SPACE to start!</h2>
-            <button onClick={startNewGame}>Start Game</button>
+            <button onClick={startNewGameSolo}>Start Game</button>
           </div>
         )}
 

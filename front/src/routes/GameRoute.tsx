@@ -4,12 +4,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../redux/store";
 import "./GameRoute.css";
 
-import {
-  setGameConfig,
-  gameSetup,
-  gameStarted,
-  updateGameState,
-} from "../redux/gameSlice";
+import { setGameConfig, resetGame } from "../redux/gameSlice";
+import { resetLobby } from "../redux/lobbySlice";
 import { socketService } from "../services/socketService";
 import GameBoard from "../components/GameBoard";
 import GameInfo from "../components/GameInfo";
@@ -36,33 +32,57 @@ export default function GameRoute() {
 
     console.log("🎮 GameRoute: Setting up for", { room, playerName });
 
+    // Set game config
     dispatch(setGameConfig({ room, playerName, gameMode: "multiplayer" }));
 
+    // Ensure socket service is initialized
     socketService.initialize();
 
-    socketService.socket.on("game:isSetup", () => {
-      console.log("🔧 GameRoute: Game is setup, sending player ready");
-      dispatch(gameSetup());
+    // Wait a bit for socket to be ready, then send player ready
+    const readyTimer = setTimeout(() => {
+      console.log("🔧 GameRoute: Sending player ready after setup");
+      console.log(
+        "🔧 GameRoute: Socket connected:",
+        socketService.socket.connected
+      );
       socketService.playerReady();
-    });
-
-    socketService.socket.on("game:isLaunching", () => {
-      console.log("🚀 GameRoute: Game is launching!");
-      dispatch(gameStarted());
-    });
-
-    socketService.socket.on("game:newState", (gameState) => {
-      console.log("📤 GameRoute: Received game state:", gameState);
-      dispatch(updateGameState(gameState));
-    });
+    }, 200);
 
     return () => {
-      console.log("🧹 GameRoute: Cleaning up");
-      socketService.socket.off("game:isSetup");
-      socketService.socket.off("game:isLaunching");
-      socketService.socket.off("game:newState");
+      clearTimeout(readyTimer);
+      console.log("🧹 GameRoute: Component unmounting, cleaning up");
     };
   }, [room, playerName, dispatch, navigate]);
+
+  useEffect(() => {
+    if (status === "gameOver") {
+      // Auto-navigate back to lobby after a delay
+      const timer = setTimeout(() => {
+        navigate(`/${room}/${playerName}`);
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [status, room, playerName, navigate]);
+
+  const handleExitToHome = () => {
+    console.log("🏠 GameRoute: Exiting to home, cleaning up...");
+
+    // Reset both game and lobby state
+    dispatch(resetGame());
+    dispatch(resetLobby());
+
+    // Leave the current room if connected
+    if (room && playerName) {
+      socketService.leaveRoom(playerName, room);
+    }
+
+    // Clean up socket listeners
+    socketService.cleanup();
+
+    // Navigate to home
+    navigate("/");
+  };
 
   if (error) {
     return (
@@ -82,19 +102,24 @@ export default function GameRoute() {
         <h2>Red Tetris - {room}</h2>
         <p>Player: {playerName}</p>
         <p>Waiting for game to start...</p>
+        <div style={{ marginTop: "20px" }}>
+          <div className="loading-spinner">⏳</div>
+          <p style={{ fontSize: "14px", color: "#666" }}>
+            Connecting to game...
+          </p>
+        </div>
 
-        {/*  DEBUG INFO */}
+        {/* Temporary debug section - remove when working */}
         <div style={{ marginTop: "20px", fontSize: "12px", color: "#666" }}>
           <p>Status: {status}</p>
           <p>
             Socket connected: {socketService.socket.connected ? "Yes" : "No"}
           </p>
+          <p>Socket ID: {socketService.socket.id}</p>
           <button
             onClick={() => {
               console.log("🔘 Manual ready trigger");
-              if (playerName && room) {
-                socketService.playerReady();
-              }
+              socketService.playerReady();
             }}
             style={{ margin: "5px", padding: "5px 10px" }}
           >
@@ -124,7 +149,9 @@ export default function GameRoute() {
         <GameOverModal
           score={score}
           lines={linesCleared}
-          onExit={() => navigate("/")}
+          isMultiplayer={true}
+          onReturnToLobby={() => navigate(`/${room}/${playerName}`)}
+          onExit={handleExitToHome}
         />
       )}
     </div>

@@ -21,6 +21,10 @@ class GameService {
   createGame(players: Player[], room: string) {
     this.logger.info(`Creating game for room ${room} with ${players.length} player(s)`);
 
+    if (this.games[room]) {
+      this.forceStopGame(room);
+    }
+
     const playerNames = players.map((p) => p.name);
     const game = new Game(room, playerNames);
     this.games[room] = game;
@@ -63,6 +67,7 @@ class GameService {
   }
 
   /** Mark a player as ready; when everyone’s ready, begin the match. */
+
   playerReady(playerName: string, room: string) {
     const game = this.games[room];
     if (!game) {
@@ -70,11 +75,24 @@ class GameService {
       throw new Error(`Game ${room} not found`);
     }
 
+    this.logger.info(`Player ${playerName} is setting ready in room ${room}`);
+    this.logger.info(`Current players in game: ${game.players.map((p) => p.name).join(", ")}`);
+
     const allReady = game.setPlayerReady(playerName);
+    this.logger.info(`All players ready in ${room}: ${allReady}`);
+
     if (allReady) {
-      this.logger.info(`All players in ${room} are ready; launching`);
-      MyWebSocket.getInstance().to(room).emit("game:isLaunching");
+      this.logger.info(`All players in ${room} are ready; launching game`);
+      const io = MyWebSocket.getInstance();
+
+      // Emit to room first
+      io.to(room).emit("game:isLaunching");
+      this.logger.info(`Emitted game:isLaunching to room ${room}`);
+
+      // Then launch the game
       this.launchGame(room);
+    } else {
+      this.logger.info(`Not all players ready yet in ${room}`);
     }
   }
 

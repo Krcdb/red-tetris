@@ -18,7 +18,6 @@ interface GameState {
   score: number;
   linesCleared: number;
   level: number;
-  status: "idle" | "playing" | "gameOver";
   gameMode: "solo" | "multiplayer";
   room: string;
   playerName: string;
@@ -32,6 +31,12 @@ interface GameState {
   error: string | null;
   needsNextPiece: boolean;
   gamers: any[];
+  status: "idle" | "playing" | "paused" | "gameOver";
+  gameOverNavigation?: {
+    shouldNavigateToLobby?: boolean;
+    room?: string;
+    playerName?: string;
+  };
 }
 
 const initialState: GameState = {
@@ -50,12 +55,28 @@ const initialState: GameState = {
   error: null,
   needsNextPiece: false,
   gamers: [],
+  gameOverNavigation: undefined,
 };
 
 const gameSlice = createSlice({
   name: "game",
   initialState,
   reducers: {
+    gameOver: (state) => {
+      state.status = "gameOver";
+    },
+    gameOverWithNavigation: (
+      state,
+      action: PayloadAction<{
+        shouldNavigateToLobby?: boolean;
+        room?: string;
+        playerName?: string;
+      }>
+    ) => {
+      state.status = "gameOver";
+      // Store navigation data for the component to handle
+      state.gameOverNavigation = action.payload;
+    },
     updateGameState: (state, action: PayloadAction<any>) => {
       const serverState = action.payload;
 
@@ -123,6 +144,7 @@ const gameSlice = createSlice({
     gameSetup: (state) => {
       state.status = "idle";
       state.isLoading = false;
+      state.error = null;
     },
 
     gameStarted: (state) => {
@@ -140,11 +162,6 @@ const gameSlice = createSlice({
       state.linesCleared = 0;
       state.level = 1;
       state.board = initialBoard();
-    },
-
-
-    gameOver: (state) => {
-      state.status = "gameOver";
     },
 
     setPieces: (
@@ -178,7 +195,12 @@ const gameSlice = createSlice({
       state.error = action.payload;
     },
 
-    resetGame: () => initialState,
+    // resetGame: () => initialState,
+
+    resetGame: (state) => {
+      // Completely reset to initial state
+      Object.assign(state, initialState);
+    },
   },
 });
 
@@ -194,6 +216,7 @@ export const {
   setLoading,
   setError,
   resetGame,
+  gameOverWithNavigation,
 } = gameSlice.actions;
 
 export default gameSlice.reducer;

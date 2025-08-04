@@ -5,12 +5,16 @@ interface GameOverModalProps {
   onExit: () => void;
   score: number;
   lines: number;
+  isMultiplayer?: boolean;
+  onReturnToLobby?: () => void;
 }
 
 export default function GameOverModal({
   onExit,
+  onReturnToLobby,
   score,
   lines,
+  isMultiplayer = false,
 }: GameOverModalProps) {
   return (
     <div className="modal-overlay">
@@ -19,7 +23,10 @@ export default function GameOverModal({
         <p>Score: {score}</p>
         <p>Lines: {lines}</p>
         <div className="modal-buttons">
-          <button onClick={onExit}>🏠 Exit</button>
+          {isMultiplayer && onReturnToLobby && (
+            <button onClick={onReturnToLobby}>🔄 Return to Lobby</button>
+          )}
+          <button onClick={onExit}>🏠 Exit to Home</button>
         </div>
       </div>
     </div>

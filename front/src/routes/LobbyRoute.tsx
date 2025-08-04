@@ -6,6 +6,7 @@ import { setLobbyConfig, setLoading } from "../redux/lobbySlice";
 import { setGameConfig } from "../redux/gameSlice";
 import { socketService } from "../services/socketService";
 import "./LobbyRoute.css";
+import { resetGame } from "../redux/gameSlice";
 
 export default function LobbyRoute() {
   const { room, playerName } = useParams<{
@@ -26,6 +27,8 @@ export default function LobbyRoute() {
     }
 
     console.log("🏠 LobbyRoute: Initializing with:", { room, playerName });
+
+    dispatch(resetGame());
 
     socketService.initialize();
 

@@ -1,11 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { resetGame } from "../redux/gameSlice";
+import { resetLobby } from "../redux/lobbySlice";
+import { socketService } from "../services/socketService";
 import "./Home.css";
 
 const Home: React.FC = () => {
   const [room, setRoom] = useState("");
   const [name, setName] = useState("");
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  // Ensure clean state when Home component mounts
+  useEffect(() => {
+    console.log("🏠 Home: Component mounted, ensuring clean state");
+    dispatch(resetGame());
+    dispatch(resetLobby());
+
+    // Reinitialize socket service for fresh connections
+    if (socketService.socket.connected) {
+      socketService.cleanup();
+    }
+  }, [dispatch]);
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();

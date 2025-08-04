@@ -46,16 +46,32 @@ export class Game {
 
   public setPlayerReady(playerName: string): boolean {
     const player = this.getPlayer(playerName);
-    if (player) {
-      player.setReady();
-      this.logger.info(`Player ${playerName} is ready`);
-      return this.areAllPlayersReady();
+    if (!player) {
+      this.logger.warn(`Player ${playerName} not found in game ${this.room}`);
+      return false;
     }
-    return false;
+
+    player.setReady();
+    const readyCount = this.players.filter((p) => p.isReady).length;
+    const totalCount = this.players.length;
+
+    this.logger.info(`Player ${playerName} is ready. Ready players: ${readyCount}/${totalCount}`);
+
+    const allReady = this.areAllPlayersReady();
+    this.logger.info(`All players ready check result: ${allReady}`);
+
+    return allReady;
   }
 
   public areAllPlayersReady(): boolean {
-    return this.players.every((player) => player.isReady);
+    const readyCount = this.players.filter((p) => p.isReady).length;
+    const totalCount = this.players.length;
+    const allReady = this.players.every((player) => player.isReady);
+
+    this.logger.info(`Ready check: ${readyCount}/${totalCount} players ready, all ready: ${allReady}`);
+    this.logger.info(`Player ready states: ${this.players.map((p) => `${p.name}:${p.isReady}`).join(", ")}`);
+
+    return allReady;
   }
 
   public updatePlayerInput(playerName: string, input: InputDTO): void {
@@ -92,7 +108,6 @@ export class Game {
     if (linesCleared > 1 && !this.isSolo) {
       this.sendPenaltyLines(player, linesCleared - 1);
     }
-
 
     if (player.isGameOver()) {
       this.logger.info(`Game over for ${player.name}!`);
@@ -168,7 +183,6 @@ export class Game {
         ...player.getState(),
         nextPieces: this.pieces.slice(player.currentPieceIndex, player.currentPieceIndex + 5).map((p) => this.pieceToTetrisPiece(p)),
       })),
-    
     };
   }
 
