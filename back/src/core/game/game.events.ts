@@ -17,6 +17,11 @@ export function registerGameHandler(socket: CustomeSocket) {
     }
 
     try {
+      const game = gameService.getGame(currentRoom);
+      if (game && game.isRunning) {
+        logger.info(`Game ${currentRoom} already running, ignoring ready from ${playerName}`);
+        return;
+      }
       gameService.playerReady(playerName, currentRoom);
     } catch (error) {
       logger.error(`room ${currentRoom}: couldn't set player ${playerName} ready`);

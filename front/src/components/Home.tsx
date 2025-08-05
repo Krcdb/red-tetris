@@ -5,29 +5,54 @@ import { resetGame } from "../redux/gameSlice";
 import { resetLobby } from "../redux/lobbySlice";
 import { socketService } from "../services/socketService";
 import "./Home.css";
+import {
+  validateGameMode,
+  getGameModeDisplay,
+  VALID_GAME_MODES,
+  GAME_MODE_INFO,
+  GameMode,
+} from "../utils/gameMode";
 
 const Home: React.FC = () => {
   const [room, setRoom] = useState("");
   const [name, setName] = useState("");
+  const [selectedGameMode, setSelectedGameMode] = useState<GameMode>("normal");
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Ensure clean state when Home component mounts
   useEffect(() => {
     console.log("🏠 Home: Component mounted, ensuring clean state");
+
     dispatch(resetGame());
     dispatch(resetLobby());
 
-    // Reinitialize socket service for fresh connections
-    if (socketService.socket.connected) {
-      socketService.cleanup();
-    }
+    sessionStorage.clear();
+
+    socketService.resetForHome();
+
+    setTimeout(() => {
+      console.log("🏠 Home: Cleanup complete, ready for new game");
+    }, 200);
   }, [dispatch]);
+
+  const gameModes = Object.values(GAME_MODE_INFO);
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!room || !name) return;
-    navigate(`/${encodeURIComponent(room)}/${encodeURIComponent(name)}`);
+
+    const validMode = validateGameMode(selectedGameMode);
+
+    navigate(
+      `/${encodeURIComponent(room)}/${encodeURIComponent(
+        name
+      )}?mode=${validMode}`
+    );
+  };
+
+  const handleGameModeChange = (mode: string) => {
+    const validMode = validateGameMode(mode);
+    setSelectedGameMode(validMode);
   };
 
   return (
@@ -46,6 +71,25 @@ const Home: React.FC = () => {
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
+
+        <div className="game-mode-section">
+          <h3 className="mode-title">Choose Game Mode:</h3>
+          <div className="game-modes">
+            {gameModes.map((mode) => (
+              <div
+                key={mode.id}
+                className={`game-mode-option ${
+                  selectedGameMode === mode.id ? "selected" : ""
+                }`}
+                onClick={() => handleGameModeChange(mode.id)}
+              >
+                <div className="mode-name">{mode.name}</div>
+                <div className="mode-description">{mode.description}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <button className="retro-button" type="submit">
           Join / Create Game
         </button>

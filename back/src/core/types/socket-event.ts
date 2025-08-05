@@ -8,8 +8,9 @@ export interface ClientToServerEvents {
   "game:playerInputChanges": (data: { input: InputDTO }) => void;
   "game:pieceLanded": () => void;
 
-  "match:playerJoin": (data: { playerName: string; room: string }) => void;
+  "match:playerJoin": (data: { playerName: string; room: string; gameMode?: string }) => void;
   "match:playerLeft": (data: { playerName: string; room: string }) => void;
+  "match:leaveCurrentRoom": () => void;
   "match:startGame": (data: { room: string }) => void;
 }
 
@@ -34,6 +35,7 @@ export interface InterServerEvents {
 export interface SocketData {
   playerName?: string;
   currentRoom?: string;
+  gameMode?: string;
 }
 
 export type CustomeSocket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;

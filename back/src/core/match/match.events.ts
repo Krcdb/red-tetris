@@ -12,19 +12,54 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
   const logger = getLogger("MatchHandler");
 
   socket.on("match:playerJoin", (data) => {
-    const { playerName, room } = data;
+    const { playerName, room, gameMode } = data;
     let match: Match;
 
     try {
-      match = matchService.playerJoin(playerName, room, socket);
-    } catch {
-      socket.emit("match:nameTaken", playerName);
-      logger.info(`name taken: ${playerName}`);
+      match = matchService.playerJoin(playerName, room, socket, gameMode);
+    } catch (error) {
+      // Handle different types of errors
+      if (error instanceof Error) {
+        if (error.message.includes("Name already taken")) {
+          socket.emit("match:nameTaken", playerName);
+          logger.info(`name taken: ${playerName}`);
+        } else if (error.message.includes("game mode")) {
+          // Emit the match:error event for game mode conflicts
+          socket.emit("match:error", error.message);
+          logger.info(`game mode conflict: ${error.message}`);
+        } else {
+          socket.emit("match:error", error.message);
+          logger.error(`join error: ${error.message}`);
+        }
+      }
       return;
     }
 
     socket.join(room);
     io.to(room).emit("match:playerHasJoin", match);
+  });
+
+  socket.on("match:leaveCurrentRoom", () => {
+    const { playerName, currentRoom } = socket.data;
+
+    if (playerName && currentRoom) {
+      logger.info(`Player ${playerName} explicitly leaving room ${currentRoom}`);
+
+      const match = matchService.playerLeave(playerName, currentRoom, socket);
+
+      if (match) {
+        io.to(currentRoom).emit("match:playerHasLeft", match);
+      } else {
+        io.to(currentRoom).emit("match:roomDeleted", { room: currentRoom });
+      }
+
+      socket.leave(currentRoom);
+
+      // Clear socket data completely
+      socket.data.currentRoom = undefined;
+      socket.data.playerName = undefined;
+      socket.data.gameMode = undefined;
+    }
   });
 
   socket.on("match:playerLeft", (data) => {
@@ -45,6 +80,23 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
   });
 
   socket.on("disconnect", (reason) => {
+    logger.info(`Socket ${socket.id} disconnected: ${reason}`);
+
+    const { playerName, currentRoom } = socket.data;
+
+    if (playerName && currentRoom) {
+      logger.info(`Cleaning up player ${playerName} from room ${currentRoom} due to disconnect`);
+      matchService.playerLeave(playerName, currentRoom, socket);
+
+      // Notify room of the disconnection
+      const match = matchService.getMatch(currentRoom);
+      if (match) {
+        io.to(currentRoom).emit("match:playerHasLeft", match);
+      } else {
+        io.to(currentRoom).emit("match:roomDeleted", { room: currentRoom });
+      }
+    }
+
     matchService.handleDisconnect(socket, reason);
   });
 

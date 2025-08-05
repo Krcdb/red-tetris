@@ -12,17 +12,19 @@ export class Game {
   public currentPieceIndex: number;
   public isRunning: boolean;
   public isSolo: boolean;
+  public gameMode: string;
   private logger = getLogger("Game");
 
-  constructor(room: string, playerNames: string[]) {
+  constructor(room: string, playerNames: string[], gameMode: string = "normal") {
     this.room = room;
+    this.gameMode = gameMode;
     this.players = playerNames.map((name) => new Player(name));
     this.pieces = Piece.generatePieceSequence(1000);
     this.currentPieceIndex = 0;
     this.isRunning = false;
     this.isSolo = playerNames.length === 1;
 
-    this.logger.info(`Created new Game for room ${room} with ${playerNames.length} players`);
+    this.logger.info(`Created new Game for room ${room} with ${playerNames.length} players, mode: ${gameMode}`);
   }
 
   public start(): void {
@@ -49,6 +51,16 @@ export class Game {
     if (!player) {
       this.logger.warn(`Player ${playerName} not found in game ${this.room}`);
       return false;
+    }
+
+    if (this.isRunning) {
+      this.logger.warn(`Game ${this.room} already running, ignoring ready from ${playerName}`);
+      return true; // Return true to avoid errors, but don't process
+    }
+
+    if (player.isReady) {
+      this.logger.info(`Player ${playerName} is already ready`);
+      return this.areAllPlayersReady();
     }
 
     player.setReady();
@@ -113,6 +125,7 @@ export class Game {
       this.logger.info(`Game over for ${player.name}!`);
       const io = MyWebSocket.getInstance();
       io.to(this.room).emit("game:over", { playerName: player.name });
+      
       this.stop();
       return;
     }

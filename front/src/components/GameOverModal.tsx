@@ -24,9 +24,11 @@ export default function GameOverModal({
         <p>Lines: {lines}</p>
         <div className="modal-buttons">
           {isMultiplayer && onReturnToLobby && (
-            <button onClick={onReturnToLobby}>🔄 Return to Lobby</button>
+            <button onClick={onReturnToLobby}>
+              🔄 Return to Lobby (Same Mode)
+            </button>
           )}
-          <button onClick={onExit}>🏠 Exit to Home</button>
+          <button onClick={onExit}>🏠 Exit to Home (Change Mode)</button>
         </div>
       </div>
     </div>

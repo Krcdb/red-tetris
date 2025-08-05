@@ -8,12 +8,36 @@ export class TetrisGameLoop {
   private io: MyWebSocket;
   private logger = getLogger("TetrisGameLoop");
   private room: string;
+  private gameMode: string = "normal";
 
   /** `initialGameState` is accepted for API-compat but managed inside GameService. */
-  constructor(initialGameState: unknown, room: string) {
+  constructor(initialGameState: unknown, room: string, gameMode?: string) {
     this.room = room;
+    this.gameMode = gameMode || "normal";
     this.io = MyWebSocket.getInstance();
-    this.logger.info(`TetrisGameLoop created for room ${room}`);
+    this.logger.info(`TetrisGameLoop created for room ${room}, with mode ${this.gameMode}`);
+  }
+
+  private getGameMode(): string {
+    return this.gameMode;
+  }
+
+  private getGravitySpeed(): number {
+    const gameMode = this.getGameMode();
+    const game = gameService.getGame(this.room);
+
+    switch (gameMode) {
+      case "speed":
+        // Get average lines cleared across all players
+        let avgLines = 0;
+        if (game && Array.isArray(game.players) && game.players.length > 0) {
+          avgLines = game.players.reduce((sum, p) => sum + p.linesCleared, 0) / game.players.length;
+        }
+        // Start at 200ms, get faster every 10 lines
+        return Math.max(30, 150 - Math.floor(avgLines / 10) * 15);
+      default:
+        return 500;
+    }
   }
 
   /** Start two timers: one for rapid input polling, one for gravity/refresh. */
@@ -25,17 +49,16 @@ export class TetrisGameLoop {
 
     this.logger.info(`Starting game loop for room ${this.room}`);
 
-    /* --- 20 ms input polling --- */
+    // /* --- 20 ms input polling --- */
     this.inputInterval = setInterval(() => {
       this.processInputs();
       this.sendGameState();
     }, 100);
 
-    /* --- 500 ms gravity & broadcast --- */
     this.gravityInterval = setInterval(() => {
       this.processGravity();
       this.sendGameState();
-    }, 500);
+    }, this.getGravitySpeed());
   }
 
   /** Clear both timers and mark loop stopped. */

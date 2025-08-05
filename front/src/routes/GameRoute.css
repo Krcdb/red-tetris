@@ -38,6 +38,24 @@
   text-align: center;
 }
 
+/* Add game mode display styling */
+.game-mode-display {
+  margin: 0.5rem 0 1rem 0;
+  padding: 0.5rem 1rem;
+  background: #222;
+  border: 2px solid #00fff7;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 5px #00fff7;
+}
+
+.game-mode-text {
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.6rem;
+  color: #00fff7;
+  margin: 0;
+  text-align: center;
+}
+
 @media (max-width: 768px) {
   .game-container {
     grid-template-columns: 1fr;
@@ -47,5 +65,14 @@
   .center-panel,
   .right-panel {
     max-width: 95vw;
+  }
+
+  .game-mode-display {
+    margin: 0.5rem 0;
+    padding: 0.4rem 0.8rem;
+  }
+
+  .game-mode-text {
+    font-size: 0.5rem;
   }
 }

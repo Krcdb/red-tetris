@@ -11,6 +11,7 @@ import GameBoard from "../components/GameBoard";
 import GameInfo from "../components/GameInfo";
 import GameControls from "../components/GameControls";
 import GameOverModal from "../components/GameOverModal";
+import { validateGameMode, getGameModeDisplay } from "../utils/gameMode";
 
 export default function GameRoute() {
   const { room, playerName } = useParams<{
@@ -24,6 +25,10 @@ export default function GameRoute() {
     (state: RootState) => state.game
   );
 
+  const currentGameMode = validateGameMode(
+    sessionStorage.getItem("selectedGameMode") || "normal"
+  );
+
   useEffect(() => {
     if (!room || !playerName) {
       navigate("/");
@@ -32,13 +37,10 @@ export default function GameRoute() {
 
     console.log("🎮 GameRoute: Setting up for", { room, playerName });
 
-    // Set game config
     dispatch(setGameConfig({ room, playerName, gameMode: "multiplayer" }));
 
-    // Ensure socket service is initialized
     socketService.initialize();
 
-    // Wait a bit for socket to be ready, then send player ready
     const readyTimer = setTimeout(() => {
       console.log("🔧 GameRoute: Sending player ready after setup");
       console.log(
@@ -53,10 +55,8 @@ export default function GameRoute() {
       console.log("🧹 GameRoute: Component unmounting, cleaning up");
     };
   }, [room, playerName, dispatch, navigate]);
-
   useEffect(() => {
     if (status === "gameOver") {
-      // Auto-navigate back to lobby after a delay
       const timer = setTimeout(() => {
         navigate(`/${room}/${playerName}`);
       }, 3000);
@@ -65,23 +65,26 @@ export default function GameRoute() {
     }
   }, [status, room, playerName, navigate]);
 
-  const handleExitToHome = () => {
-    console.log("🏠 GameRoute: Exiting to home, cleaning up...");
+  const handleReturnToLobby = () => {
+    console.log("🔄 GameRoute: Returning to lobby, preserving game mode...");
 
-    // Reset both game and lobby state
+    dispatch(resetGame());
+
+    const currentMode = sessionStorage.getItem("selectedGameMode") || "normal";
+    navigate(`/${room}/${playerName}?mode=${currentMode}`);
+  };
+
+  const handleExitToHome = () => {
+    console.log("🏠 GameRoute: Exiting to home, cleaning up everything...");
+
     dispatch(resetGame());
     dispatch(resetLobby());
 
-    // Leave the current room if connected
-    if (room && playerName) {
-      socketService.leaveRoom(playerName, room);
-    }
+    sessionStorage.clear();
 
-    // Clean up socket listeners
-    socketService.cleanup();
+    socketService.resetForHome();
 
-    // Navigate to home
-    navigate("/");
+    navigate("/", { replace: true });
   };
 
   if (error) {
@@ -139,6 +142,11 @@ export default function GameRoute() {
         <div className="center-panel">
           <h2 className="retro-title">Red Tetris - {room}</h2>
           <p>Player: {playerName}</p>
+          <div className="game-mode-display">
+            <p className="game-mode-text">
+              Mode: {getGameModeDisplay(currentGameMode)}
+            </p>
+          </div>
           <GameBoard />
         </div>
         <div className="right-panel">
@@ -150,7 +158,7 @@ export default function GameRoute() {
           score={score}
           lines={linesCleared}
           isMultiplayer={true}
-          onReturnToLobby={() => navigate(`/${room}/${playerName}`)}
+          onReturnToLobby={handleReturnToLobby}
           onExit={handleExitToHome}
         />
       )}

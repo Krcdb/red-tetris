@@ -18,15 +18,17 @@ class GameService {
   }
 
   /** Create a fresh Game instance and notify the room that setup is done. */
-  createGame(players: Player[], room: string) {
+  createGame(players: Player[], room: string, gameMode: string = "normal") {
     this.logger.info(`Creating game for room ${room} with ${players.length} player(s)`);
 
     if (this.games[room]) {
       this.forceStopGame(room);
     }
 
+    // const gameMode = "normal"; // TODO: Get from socket data or pass as parameter
+
     const playerNames = players.map((p) => p.name);
-    const game = new Game(room, playerNames);
+    const game = new Game(room, playerNames, gameMode);
     this.games[room] = game;
 
     MyWebSocket.getInstance().to(room).emit("game:isSetup");
@@ -51,7 +53,9 @@ class GameService {
     this.logger.info(`Launching game ${room}`);
     game.start();
 
-    const loop = new TetrisGameLoop(game.getGameState(), room);
+    const gameMode = game.gameMode || "normal";
+    this.logger.info(`Creating TetrisGameLoop for room ${room} with mode ${gameMode}`);
+    const loop = new TetrisGameLoop(game.getGameState(), room, gameMode);
     this.gameLoops[room] = loop;
     loop.start();
   }

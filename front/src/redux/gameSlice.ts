@@ -195,8 +195,6 @@ const gameSlice = createSlice({
       state.error = action.payload;
     },
 
-    // resetGame: () => initialState,
-
     resetGame: (state) => {
       // Completely reset to initial state
       Object.assign(state, initialState);

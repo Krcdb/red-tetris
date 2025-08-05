@@ -3,8 +3,27 @@ import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import { formatScore, getLevel } from "../utils/tetris";
 import "./GameInfo.css";
+import { validateGameMode } from "../utils/gameMode";
 
 function NextPiecePreview({ nextPieces }: { nextPieces: any[] }) {
+  const rawGameMode = sessionStorage.getItem("selectedGameMode") || "normal";
+  const gameMode = validateGameMode(rawGameMode);
+  
+  // Hide preview in no-preview mode
+  if (gameMode === "no-preview") {
+    return (
+      <div className="next-piece-preview">
+        <h4>Next</h4>
+        <div
+          className="next-piece"
+          style={{ padding: "20px", textAlign: "center", color: "#666" }}
+        >
+          ???
+        </div>
+      </div>
+    );
+  }
+
   const next = nextPieces[0];
   if (!next) return null;
   return (

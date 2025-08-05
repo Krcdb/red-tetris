@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+/* @import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
 
 body {
   margin: 0;
@@ -60,4 +60,146 @@ body {
 .retro-button:hover {
   background-color: #fff;
   color: #ff003c;
+} */
+
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+
+body {
+  margin: 0;
+  background-color: #111;
+  font-family: "Press Start 2P", monospace;
+  color: #fff;
+}
+
+.retro-container {
+  text-align: center;
+  margin-top: 3rem;
+  padding: 0 1rem;
+}
+
+.retro-title {
+  font-size: 2rem;
+  color: #ff003c;
+  text-shadow: 2px 2px #000;
+  margin-bottom: 2rem;
+}
+
+.retro-form {
+  display: inline-block;
+  background: #222;
+  padding: 2rem;
+  border: 4px solid #ff003c;
+  box-shadow: 0 0 10px #ff003c;
+  border-radius: 0.5rem;
+  max-width: 500px;
+  width: 100%;
+}
+
+.retro-input {
+  display: block;
+  margin: 1rem auto;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 2px solid #ff003c;
+  background: #000;
+  color: #fff;
+  width: 250px;
+}
+
+.retro-input:focus {
+  outline: none;
+  border-color: #00fff7;
+}
+
+/* Game Mode Selection Styles */
+.game-mode-section {
+  margin: 1.5rem 0;
+  text-align: left;
+}
+
+.mode-title {
+  font-size: 0.8rem;
+  color: #00fff7;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.game-modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.game-mode-option {
+  background: #111;
+  border: 2px solid #666;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 0.25rem;
+}
+
+.game-mode-option:hover {
+  border-color: #00fff7;
+  box-shadow: 0 0 5px #00fff7;
+}
+
+.game-mode-option.selected {
+  border-color: #ff003c;
+  background: #330011;
+  box-shadow: 0 0 8px #ff003c;
+}
+
+.mode-name {
+  font-size: 0.6rem;
+  color: #fff;
+  margin-bottom: 0.25rem;
+}
+
+.mode-description {
+  font-size: 0.4rem;
+  color: #aaa;
+  line-height: 1.2;
+}
+
+.game-mode-option.selected .mode-name {
+  color: #ff003c;
+}
+
+.game-mode-option.selected .mode-description {
+  color: #ccc;
+}
+
+.retro-button {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  font-family: inherit;
+  font-size: 1rem;
+  color: #fff;
+  background-color: #ff003c;
+  border: 2px solid #fff;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.retro-button:hover {
+  background-color: #fff;
+  color: #ff003c;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .retro-form {
+    padding: 1rem;
+  }
+
+  .game-modes {
+    grid-template-columns: 1fr;
+  }
+
+  .retro-input {
+    width: 200px;
+  }
 }

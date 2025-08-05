@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../redux/store";
@@ -7,12 +7,16 @@ import { setGameConfig } from "../redux/gameSlice";
 import { socketService } from "../services/socketService";
 import "./LobbyRoute.css";
 import { resetGame } from "../redux/gameSlice";
+import { validateGameMode, getGameModeDisplay } from "../utils/gameMode";
 
 export default function LobbyRoute() {
   const { room, playerName } = useParams<{
     room: string;
     playerName: string;
   }>();
+  const [searchParams] = useSearchParams();
+  const gameMode = searchParams.get("mode") || "normal";
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -29,57 +33,39 @@ export default function LobbyRoute() {
     console.log("🏠 LobbyRoute: Initializing with:", { room, playerName });
 
     dispatch(resetGame());
-
     socketService.initialize();
 
     dispatch(setLobbyConfig({ room, playerName }));
     dispatch(setGameConfig({ room, playerName, gameMode: "multiplayer" }));
     dispatch(setLoading(false));
 
-    socketService.joinRoom(playerName, room);
-    socketService.socket.on("game:isLaunching", () => {
-      console.log("🚀 LobbyRoute: Game is launching, navigating to game route");
-    });
+    sessionStorage.setItem("selectedGameMode", gameMode);
+
+    socketService.joinRoom(playerName, room, gameMode);
+
+    // socketService.socket.on("game:isLaunching", () => {
+    //   console.log("🚀 LobbyRoute: Game is launching, navigating to game route");
+    // });
 
     socketService.socket.on("game:isSetup", () => {
       console.log("🎮 LobbyRoute: Received game:isSetup, navigating to game");
       navigate(`/${room}/${playerName}/game`);
     });
 
-    socketService.socket.on("game:isLaunching", () => {
-      console.log("🚀 LobbyRoute: Game is launching, navigating to game route");
-    });
+    // socketService.socket.on("game:isLaunching", () => {
+    //   console.log("🚀 LobbyRoute: Game is launching, navigating to game route");
+    // });
 
     return () => {
       socketService.socket.off("game:isSetup");
-      socketService.socket.off("game:isLaunching");
+      // socketService.socket.off("game:isLaunching");
     };
-  }, [room, playerName, dispatch, navigate]);
+  }, [room, playerName, gameMode, dispatch, navigate]);
 
   const startGame = () => {
-    console.log("🚀 LobbyRoute: Start game button clicked!");
-    console.log("🚀 LobbyRoute: Current state:", {
-      canStart,
-      room,
-      playerName,
-    });
-    console.log("🚀 LobbyRoute: Players length:", players.length);
-    console.log("🚀 LobbyRoute: Is loading:", isLoading);
-
+    console.log("🚀 LobbyRoute: Starting game with mode:", gameMode);
     if (canStart && room) {
-      console.log(
-        "🚀 LobbyRoute: Conditions met, calling socketService.startGame"
-      );
       socketService.startGame(room);
-      console.log(
-        "🚀 LobbyRoute: socketService.startGame called, navigating..."
-      );
-      navigate(`/${room}/${playerName}/game`);
-    } else {
-      console.log("🚀 LobbyRoute: Conditions NOT met:", {
-        canStart,
-        hasRoom: !!room,
-      });
     }
   };
 
@@ -99,7 +85,22 @@ export default function LobbyRoute() {
         <h2>Lobby: {room}</h2>
         <p>You are: {playerName}</p>
 
-        {isLoading && <p>Joining room...</p>}
+        {/* ✅ Simple game mode display */}
+        <div className="game-mode-indicator">
+          <p
+            style={{
+              color: "#00fff7",
+              fontSize: "0.8rem",
+              margin: "0.5rem 0",
+              padding: "0.5rem",
+              background: "#111",
+              border: "1px solid #00fff7",
+              borderRadius: "0.25rem",
+            }}
+          >
+            🎮 Mode: {getGameModeDisplay(gameMode)}
+          </p>
+        </div>
 
         <h3>Players in room ({players.length}):</h3>
         <ul>
@@ -114,15 +115,18 @@ export default function LobbyRoute() {
 
         <button
           onClick={startGame}
-          disabled={!canStart || players.length < 1 || isLoading}
+          disabled={!canStart || isLoading}
           className="retro-button"
-          style={{
-            opacity: !canStart ? 0.5 : 1,
-          }}
         >
-          {canStart
-            ? `Start Game (${players.length} players ready)`
-            : "Waiting for leader..."}
+          {canStart ? "Start Game" : "Waiting for leader..."}
+        </button>
+
+        <button
+          onClick={() => navigate("/")}
+          className="retro-button"
+          style={{ marginTop: "1rem", backgroundColor: "#666" }}
+        >
+          🏠 Back to Home
         </button>
       </div>
     </div>
