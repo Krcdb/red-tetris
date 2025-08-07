@@ -43,7 +43,7 @@ describe("WebSocket Server", () => {
   it("should handle match:playerJoin and call matchService", async () => {
     const spy = vi.fn();
 
-    vi.mocked(matchService.playerJoin).mockReturnValueOnce(matchTest)
+    vi.mocked(matchService.playerJoin).mockReturnValueOnce(matchTest);
     clientSocket.on("match:playerHasJoin", spy);
 
     clientSocket.emit("match:playerJoin", socketTestData);
@@ -72,7 +72,7 @@ describe("WebSocket Server", () => {
   it("should handle match:playerLeft and call matchService", async () => {
     const spy = vi.fn();
 
-    vi.mocked(matchService.playerLeave).mockReturnValueOnce(matchTest)
+    vi.mocked(matchService.playerLeave).mockReturnValueOnce(matchTest);
 
     clientSocket.on("match:playerHasLeft", spy);
 

@@ -1,15 +1,38 @@
-// back/src/core/types/game.ts
-
 import { Piece } from "../classes/Piece";
 
 export type Cell = number;
 
-export interface InputDTO {
-  down: boolean;
-  left: boolean;
-  right: boolean;
-  space: boolean;
-  up: boolean;
+export interface ClientGamer {
+  currentPiece: null | TetrisPiece;
+  currentPieceIndex: number;
+  grid: Cell[][];
+  isReady: boolean;
+  linesCleared: number;
+  name: string;
+  score: number;
+}
+
+export interface ClientGameState {
+  currentPieceIndex: number;
+  gamers: ClientGamer[];
+  isRunning: boolean;
+  nextPieces: TetrisPiece[];
+  pieceSequenceLength?: number;
+  room: string;
+}
+
+export interface Gamer {
+  currentPiece: null | TetrisPiece;
+  currentPieceIndex?: number;
+  forcedFall?: boolean;
+  grid: Cell[][];
+  input: GamerInputs;
+  isReady: boolean;
+  linesCleared: number;
+  name: string;
+  needsNextPiece: boolean;
+  nextPieces: Piece[];
+  score: number;
 }
 
 export interface GamerInputs {
@@ -22,59 +45,34 @@ export interface GamerInputs {
   upHasBeenCounted: boolean;
 }
 
-export interface TetrisPiece {
-  shape: Cell[][];
-  x: number;
-  y: number;
-  type?: string;
-  color?: number;
-  rotation?: number;
-}
-
-export interface Gamer {
-  isReady: boolean;
-  name: string;
-  input: GamerInputs;
-  grid: Cell[][];
-  currentPiece: TetrisPiece | null;
-  currentPieceIndex?: number;
-  score: number;
-  linesCleared: number;
-  needsNextPiece: boolean;
-  forcedFall?: boolean;
-  nextPieces: Piece[];
-}
-
 export interface GameState {
-  room: string;
+  currentPieceIndex: number;
+  gamers: Gamer[];
   isRunning: boolean;
   isSolo: boolean;
-  gamers: Gamer[];
-  sharedPieces: Array<{
+  room: string;
+  sharedPieces: {
+    rotation: number;
+    shape: number[][];
     type: string;
     x: number;
     y: number;
-    shape: number[][];
-    rotation: number;
-  }>;
-  currentPieceIndex: number;
+  }[];
 }
 
-export interface ClientGamer {
-  name: string;
-  grid: Cell[][];
-  currentPiece: TetrisPiece | null;
-  currentPieceIndex: number;
-  score: number;
-  linesCleared: number;
-  isReady: boolean;
+export interface InputDTO {
+  down: boolean;
+  left: boolean;
+  right: boolean;
+  space: boolean;
+  up: boolean;
 }
 
-export interface ClientGameState {
-  room: string;
-  currentPieceIndex: number;
-  nextPieces: TetrisPiece[];
-  gamers: ClientGamer[];
-  isRunning: boolean;
-  pieceSequenceLength?: number;
+export interface TetrisPiece {
+  color?: number;
+  rotation?: number;
+  shape: Cell[][];
+  type?: string;
+  x: number;
+  y: number;
 }

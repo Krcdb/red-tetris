@@ -1,31 +1,30 @@
-import { scrypt } from "crypto";
-import { GamerInputs, Cell, TetrisPiece, InputDTO } from "../types/game.js";
+import { Cell, GamerInputs, InputDTO, TetrisPiece } from "../types/game.js";
 
 export class Player {
-  public name: string;
-  public isReady: boolean;
-  public input: GamerInputs;
-  public grid: Cell[][];
-  public currentPiece: TetrisPiece | null;
+  public currentPiece: null | TetrisPiece;
   public currentPieceIndex: number;
-  public score: number;
-  public linesCleared: number;
-  public needsNextPiece: boolean;
   public forcedFall: boolean;
-  public lockDelayCounter: number = 0;
-  public isTouchingGround: boolean = false;
-  public lockMoveResets: number = 0;
+  public grid: Cell[][];
+  public input: GamerInputs;
+  public isReady: boolean;
+  public isTouchingGround = false;
+  public linesCleared: number;
+  public lockDelayCounter = 0;
+  public lockMoveResets = 0;
+  public name: string;
+  public needsNextPiece: boolean;
+  public score: number;
 
   constructor(name: string) {
     this.name = name;
     this.isReady = false;
     this.input = {
-      up: false,
+      down: false,
       left: false,
       right: false,
-      down: false,
       space: false,
       spaceHasBeenCounted: false,
+      up: false,
       upHasBeenCounted: false,
     };
     this.grid = this.initializeGrid();
@@ -37,51 +36,24 @@ export class Player {
     this.forcedFall = false;
   }
 
-  private initializeGrid(): Cell[][] {
-    const grid: Cell[][] = [];
-    for (let i = 0; i < 20; i++) {
-      grid.push(new Array(10).fill(0));
-    }
-    return grid;
-  }
-
-  public setReady(): void {
-    this.isReady = true;
-  }
-
-  public updateInput(newInput: InputDTO): void {
-    let spaceHasBeenCounted = this.input.spaceHasBeenCounted;
-    if (spaceHasBeenCounted) {
-      spaceHasBeenCounted = newInput.space === this.input.space;
-    }
-
-    let upHasBeenCounted = this.input.upHasBeenCounted;
-    if (upHasBeenCounted) {
-      upHasBeenCounted = newInput.up === this.input.up;
-    }
-    this.input = { 
-      ...newInput,
-      spaceHasBeenCounted,
-      upHasBeenCounted
-    };
-  }
-
-  public setPiece(piece: TetrisPiece, index: number): void {
-    this.currentPiece = { ...piece };
-    this.currentPieceIndex = index;
-    this.needsNextPiece = false;
+  public addLinesCleared(lines: number): void {
+    this.linesCleared += lines;
   }
 
   public addScore(points: number): void {
     this.score += points;
   }
 
-  public addLinesCleared(lines: number): void {
-    this.linesCleared += lines;
-  }
-
-  public updateGrid(newGrid: Cell[][]): void {
-    this.grid = newGrid.map((row) => [...row]);
+  public getState() {
+    return {
+      currentPiece: this.currentPiece,
+      currentPieceIndex: this.currentPieceIndex,
+      grid: this.grid,
+      isReady: this.isReady,
+      linesCleared: this.linesCleared,
+      name: this.name,
+      score: this.score,
+    };
   }
 
   public isGameOver(): boolean {
@@ -95,15 +67,42 @@ export class Player {
     return false;
   }
 
-  public getState() {
-    return {
-      name: this.name,
-      isReady: this.isReady,
-      grid: this.grid,
-      currentPiece: this.currentPiece,
-      currentPieceIndex: this.currentPieceIndex,
-      score: this.score,
-      linesCleared: this.linesCleared,
+  public setPiece(piece: TetrisPiece, index: number): void {
+    this.currentPiece = { ...piece };
+    this.currentPieceIndex = index;
+    this.needsNextPiece = false;
+  }
+
+  public setReady(): void {
+    this.isReady = true;
+  }
+
+  public updateGrid(newGrid: Cell[][]): void {
+    this.grid = newGrid.map((row) => [...row]);
+  }
+
+  public updateInput(newInput: InputDTO): void {
+    let spaceHasBeenCounted = this.input.spaceHasBeenCounted;
+    if (spaceHasBeenCounted) {
+      spaceHasBeenCounted = newInput.space === this.input.space;
+    }
+
+    let upHasBeenCounted = this.input.upHasBeenCounted;
+    if (upHasBeenCounted) {
+      upHasBeenCounted = newInput.up === this.input.up;
+    }
+    this.input = {
+      ...newInput,
+      spaceHasBeenCounted,
+      upHasBeenCounted,
     };
+  }
+
+  private initializeGrid(): Cell[][] {
+    const grid: Cell[][] = [];
+    for (let i = 0; i < 20; i++) {
+      grid.push(new Array(10).fill(0));
+    }
+    return grid;
   }
 }

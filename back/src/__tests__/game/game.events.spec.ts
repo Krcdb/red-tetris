@@ -5,12 +5,10 @@ import { gameService } from "../../core/game/GameService.js";
 import { ClientToServerEvents, CustomeSocket } from "../../core/types/socket-event.js";
 
 describe("registerGameHandler", () => {
-let socket: Partial<CustomeSocket> & {
-  on: <E extends keyof ClientToServerEvents>(
-    event: E,
-    listener: (...args: Parameters<ClientToServerEvents[E]>) => void
-  ) => CustomeSocket;
-};  let onHandlers: Record<string, Function>;
+  let socket: Partial<CustomeSocket> & {
+    on: <E extends keyof ClientToServerEvents>(event: E, listener: (...args: Parameters<ClientToServerEvents[E]>) => void) => CustomeSocket;
+  };
+  let onHandlers: Record<string, Function>;
 
   beforeEach(() => {
     onHandlers = {};
@@ -22,7 +20,6 @@ let socket: Partial<CustomeSocket> & {
         return socket as CustomeSocket;
       }),
     };
-
 
     vi.spyOn(gameService, "playerReady").mockImplementation(() => {});
     vi.spyOn(gameService, "playerInputChange").mockImplementation(() => {});

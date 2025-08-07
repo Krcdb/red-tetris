@@ -1,9 +1,7 @@
-// back/src/core/types/player.ts
-
 export interface Player {
-  name: string;
   isLeader?: boolean;
   isReady?: boolean;
+  name: string;
 }
 
 export interface PlayerInputs {

@@ -28,8 +28,8 @@ vi.mock("../../core/tetris/TetrisGameLoop", () => {
 
 describe("GameService", () => {
   const players: Player[] = [
-    { name: "bob", isLeader: true },
-    { name: "alice", isLeader: false },
+    { isLeader: true, name: "bob" },
+    { isLeader: false, name: "alice" },
   ];
   const room = "test-room";
 
