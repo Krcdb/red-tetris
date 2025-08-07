@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+
 import { Player } from "../../core/classes/Player";
 import { InputDTO, TetrisPiece } from "../../core/types/game";
 
@@ -13,12 +14,12 @@ describe("Player class", () => {
     expect(player.name).toBe("Alice");
     expect(player.isReady).toBe(false);
     expect(player.input).toEqual({
-      up: false,
+      down: false,
       left: false,
       right: false,
-      down: false,
       space: false,
       spaceHasBeenCounted: false,
+      up: false,
       upHasBeenCounted: false,
     });
     expect(player.grid.length).toBe(20);
@@ -73,13 +74,13 @@ describe("Player class", () => {
   it("should return correct state", () => {
     const state = player.getState();
     expect(state).toMatchObject({
-      name: "Alice",
-      isReady: false,
-      grid: player.grid,
       currentPiece: null,
       currentPieceIndex: 0,
-      score: 0,
+      grid: player.grid,
+      isReady: false,
       linesCleared: 0,
+      name: "Alice",
+      score: 0,
     });
   });
 });

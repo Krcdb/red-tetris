@@ -1,9 +1,8 @@
-import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
-import { TetrisGameLoop } from "../../core/tetris/TetrisGameLoop.js";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { gameService } from "../../core/game/GameService.js";
+import { TetrisGameLoop } from "../../core/tetris/TetrisGameLoop.js";
 
-
-// Mocks
 const loggerMock = {
   info: vi.fn(),
   warn: vi.fn(),
@@ -12,26 +11,24 @@ const emitMock = vi.fn();
 const toMock = vi.fn(() => ({ emit: emitMock }));
 const getInstanceMock = vi.fn(() => ({ to: toMock }));
 
-// Fake game state with minimal shape
 const mockGame = {
-  isRunning: true,
-  processPlayerInputsOnly: vi.fn(),
-  processGravity: vi.fn(),
-  processPlayerActions: vi.fn(),
-  stop: vi.fn(),
   getGameState: vi.fn(() => ({
     gamers: [
       {
         grid: [
-          [0, 0, 0, 0, 0, 0, 0, 0, 0, 1], // One non-zero cell -> game over
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         ],
       },
     ],
   })),
+  isRunning: true,
+  processGravity: vi.fn(),
+  processPlayerActions: vi.fn(),
+  processPlayerInputsOnly: vi.fn(),
+  stop: vi.fn(),
 };
 
-// Mock Logger and gameService
 vi.mock("../../core/utils/Logger", () => ({
   getLogger: () => loggerMock,
 }));
@@ -42,13 +39,13 @@ vi.mock("../../core/socket/websocket", () => {
   const getInstanceMock = vi.fn(() => ({ to: toMock }));
 
   return {
-    default: {
-      getInstance: getInstanceMock,
-    },
     __mocked: {
       emitMock,
-      toMock,
       getInstanceMock,
+      toMock,
+    },
+    default: {
+      getInstance: getInstanceMock,
     },
   };
 });
@@ -76,9 +73,7 @@ describe("TetrisGameLoop", () => {
 
   it("should start the game loop with two timers", () => {
     loop.start();
-    expect(loggerMock.info).toHaveBeenCalledWith(
-      "Starting game loop for room test-room",
-    );
+    expect(loggerMock.info).toHaveBeenCalledWith("Starting game loop for room test-room");
 
     vi.advanceTimersByTime(100);
     expect(mockGame.processPlayerInputsOnly).toHaveBeenCalled();
@@ -90,7 +85,7 @@ describe("TetrisGameLoop", () => {
 
   it("should not start loop if already running", () => {
     loop.start();
-    loop.start(); // second call
+    loop.start();
     expect(loggerMock.warn).toHaveBeenCalledWith("Game test-room already started");
   });
 
@@ -105,9 +100,7 @@ describe("TetrisGameLoop", () => {
 
     loop.start();
     vi.advanceTimersByTime(100);
-    expect(loggerMock.info).toHaveBeenCalledWith(
-      "Game test-room not running — stopping loop",
-    );
+    expect(loggerMock.info).toHaveBeenCalledWith("Game test-room not running — stopping loop");
   });
 
   it("should call gameService.sendGameState during intervals", () => {
@@ -120,9 +113,7 @@ describe("TetrisGameLoop", () => {
     loop.updateGame();
     expect(mockGame.processPlayerActions).toHaveBeenCalled();
     expect(mockGame.stop).toHaveBeenCalled();
-    expect(loggerMock.info).toHaveBeenCalledWith(
-      "Game over detected in room test-room",
-    );
+    expect(loggerMock.info).toHaveBeenCalledWith("Game over detected in room test-room");
   });
 
   it("should stop if game is not running in updateGame", () => {
@@ -131,8 +122,6 @@ describe("TetrisGameLoop", () => {
     const localLoop = new TetrisGameLoop({}, "test-room");
     localLoop.updateGame();
 
-    expect(loggerMock.info).not.toHaveBeenCalledWith(
-      "Game over detected in room test-room",
-    );
+    expect(loggerMock.info).not.toHaveBeenCalledWith("Game over detected in room test-room");
   });
 });

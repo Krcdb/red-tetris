@@ -1,4 +1,3 @@
-// back/src/core/match/match.events.ts
 import MyWebSocket from "../socket/websocket.js";
 import { Match } from "../types/match.js";
 import { CustomeSocket } from "../types/socket-event.js";
@@ -45,7 +44,7 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
   /* -------- leader starts the game -------- */
   socket.on("match:startGame", (data) => {
     const { room } = data;
-    matchService.startGame(room, socket); // Validation happens inside MatchService
+    matchService.startGame(room, socket);
   });
 
   /* -------- socket disconnect cleanup -------- */

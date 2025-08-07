@@ -1,11 +1,10 @@
-// back/src/core/match/MatchService.ts
 import { gameService } from "../game/GameService.js";
 import MyWebSocket from "../socket/websocket.js";
 import { Match } from "../types/match.js";
 import { CustomeSocket } from "../types/socket-event.js";
 import { getLogger } from "../utils/Logger.js";
 
-type Matchs = { [key: string]: Match };
+type Matchs = Record<string, Match>;
 
 class MatchService {
   matchs: Matchs;
@@ -13,6 +12,43 @@ class MatchService {
 
   constructor() {
     this.matchs = {};
+  }
+
+  canPlayerStartGame(playerName: string, room: string): boolean {
+    return !!this.matchs[room]?.player.find((p) => p.name === playerName && p.isLeader);
+  }
+
+  getMatch(room: string): Match | null {
+    return this.matchs[room] ?? null;
+  }
+
+  getPlayerCount(room: string): number {
+    return this.matchs[room]?.player.length ?? 0;
+  }
+
+  /* ---------- convenience getters ---------- */
+
+  getRoomNames(): string[] {
+    return Object.keys(this.matchs);
+  }
+
+  handleDisconnect(socket: CustomeSocket, reason: string) {
+    const playerName = socket.data.playerName;
+    const room = socket.data.currentRoom;
+
+    if (!playerName || !room) {
+      this.logger.info(`socket ${socket.id} disconnected (no room)`);
+      return;
+    }
+
+    this.logger.info(`player ${playerName} disconnected from room ${room} (${reason})`);
+
+    this.playerLeave(playerName, room, socket);
+    this.cleanupGameIfNeeded(room);
+  }
+
+  isRoomFull(room: string, maxPlayers = 4): boolean {
+    return this.getPlayerCount(room) >= maxPlayers;
   }
 
   /** Join (or switch) rooms, enforcing unique names and leader rules. */
@@ -24,9 +60,7 @@ class MatchService {
       const oldPlayerName = socket.data.playerName!;
       const oldRoom = socket.data.currentRoom;
 
-      this.logger.info(
-        `player ${oldPlayerName} is already in ${oldRoom}, leaving first`,
-      );
+      this.logger.info(`player ${oldPlayerName} is already in ${oldRoom}, leaving first`);
 
       this.playerLeave(oldPlayerName, oldRoom, socket);
 
@@ -51,29 +85,23 @@ class MatchService {
     /* --- Add the player --- */
     const isFirstPlayer = this.matchs[room].player.length === 0;
     this.matchs[room].player.push({
-      name: playerName,
       isLeader: isFirstPlayer,
       isReady: false,
+      name: playerName,
     });
 
     socket.data.currentRoom = room;
     socket.data.playerName = playerName;
 
     this.logger.info(
-      `player ${playerName} joined room ${room} as ${
-        isFirstPlayer ? "LEADER" : "member"
-      } | total players: ${this.matchs[room].player.length}`,
+      `player ${playerName} joined room ${room} as ${isFirstPlayer ? "LEADER" : "member"} | total players: ${this.matchs[room].player.length}`,
     );
 
     return this.matchs[room];
   }
 
   /** Remove a player from a room and clean up leader/game state if needed. */
-  playerLeave(
-    playerName: string,
-    room: string,
-    socket: CustomeSocket,
-  ): Match | undefined {
+  playerLeave(playerName: string, room: string, socket: CustomeSocket): Match | undefined {
     const match = this.matchs[room];
     if (!match) {
       this.logger.info(`room ${room} not found for deletion`);
@@ -98,9 +126,7 @@ class MatchService {
     /* --- Promote a new leader if needed --- */
     if (wasLeader && match.player.length > 0) {
       match.player[0].isLeader = true;
-      this.logger.info(
-        `player ${match.player[0].name} promoted to leader in room ${room}`,
-      );
+      this.logger.info(`player ${match.player[0].name} promoted to leader in room ${room}`);
       MyWebSocket.getInstance().to(room).emit("match:newLeader", match);
     }
 
@@ -115,6 +141,8 @@ class MatchService {
     return match;
   }
 
+  /* ---------- socket-disconnect cleanup ---------- */
+
   /** Only the leader can start the game. */
   startGame(room: string, socket: CustomeSocket) {
     const match = this.matchs[room];
@@ -123,60 +151,13 @@ class MatchService {
       return;
     }
 
-    const isLeader = match.player.find(
-      (p) => p.name === socket.data.playerName,
-    )?.isLeader;
+    const isLeader = match.player.find((p) => p.name === socket.data.playerName)?.isLeader;
 
     if (isLeader) {
       gameService.createGame(match.player, room);
     } else {
-      this.logger.warn(
-        `startGame denied: player ${socket.data.playerName} is not leader`,
-      );
+      this.logger.warn(`startGame denied: player ${socket.data.playerName} is not leader`);
     }
-  }
-
-  /* ---------- convenience getters ---------- */
-
-  getMatch(room: string): Match | null {
-    return this.matchs[room] ?? null;
-  }
-
-  canPlayerStartGame(playerName: string, room: string): boolean {
-    return !!this.matchs[room]?.player.find(
-      (p) => p.name === playerName && p.isLeader,
-    );
-  }
-
-  getRoomNames(): string[] {
-    return Object.keys(this.matchs);
-  }
-
-  getPlayerCount(room: string): number {
-    return this.matchs[room]?.player.length ?? 0;
-  }
-
-  isRoomFull(room: string, maxPlayers = 4): boolean {
-    return this.getPlayerCount(room) >= maxPlayers;
-  }
-
-  /* ---------- socket-disconnect cleanup ---------- */
-
-  handleDisconnect(socket: CustomeSocket, reason: string) {
-    const playerName = socket.data.playerName;
-    const room = socket.data.currentRoom;
-
-    if (!playerName || !room) {
-      this.logger.info(`socket ${socket.id} disconnected (no room)`);
-      return;
-    }
-
-    this.logger.info(
-      `player ${playerName} disconnected from room ${room} (${reason})`,
-    );
-
-    this.playerLeave(playerName, room, socket);
-    this.cleanupGameIfNeeded(room);
   }
 
   private cleanupGameIfNeeded(room: string) {

@@ -1,6 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { Piece } from "../../core/classes/Piece.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import type { Cell } from "../../core/types/game.js";
+
+import { Piece } from "../../core/classes/Piece.js";
 
 describe("Piece", () => {
   let emptyBoard: Cell[][];
@@ -82,7 +84,7 @@ describe("Piece", () => {
     const piece = new Piece("J", 0, 0);
     const rotated = piece.rotateWallKick(emptyBoard);
     expect(rotated.rotation).toBe(1);
-    expect(rotated.x).not.toBeLessThan(0); // wall kick applied
+    expect(rotated.x).not.toBeLessThan(0);
   });
 
   it("should generate a random piece", () => {

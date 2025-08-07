@@ -1,7 +1,6 @@
-// back/src/core/tetris/TetrisGameLoop.ts
+import { gameService } from "../game/GameService.js";
 import MyWebSocket from "../socket/websocket.js";
 import { getLogger } from "../utils/Logger.js";
-import { gameService } from "../game/GameService.js";
 
 export class TetrisGameLoop {
   private gravityInterval: NodeJS.Timeout | null = null;
@@ -54,34 +53,10 @@ export class TetrisGameLoop {
 
   /* ---------- internal helpers ---------- */
 
-  private processInputs() {
-    const game = gameService.getGame(this.room);
-    if (!game || !game.isRunning) {
-      this.logger.info(`Game ${this.room} not running — stopping loop`);
-      this.stop();
-      return;
-    }
-    game.processPlayerInputsOnly();
-  }
-
-  private processGravity() {
-    const game = gameService.getGame(this.room);
-    if (!game || !game.isRunning) {
-      this.logger.info(`Game ${this.room} not running — stopping loop`);
-      this.stop();
-      return;
-    }
-    game.processGravity();
-  }
-
-  private sendGameState() {
-    gameService.sendGameState(this.room);
-  }
-
   /* -- Optional one-shot updater retained for flexibility (unused by .start()) -- */
   updateGame() {
     const game = gameService.getGame(this.room);
-    if (!game || !game.isRunning) {
+    if (!game?.isRunning) {
       this.stop();
       return;
     }
@@ -90,16 +65,36 @@ export class TetrisGameLoop {
 
     const hasGameOverPlayer = game
       .getGameState()
-      .gamers?.some((g: any) =>
-        [...Array(2).keys()].some((row) =>
-          [...Array(10).keys()].some((col) => g.grid?.[row]?.[col] !== 0),
-        ),
-      );
+      .gamers?.some((g: any) => [...Array(2).keys()].some((row) => [...Array(10).keys()].some((col) => g.grid?.[row]?.[col] !== 0)));
 
     if (hasGameOverPlayer) {
       this.logger.info(`Game over detected in room ${this.room}`);
       game.stop();
       this.stop();
     }
+  }
+
+  private processGravity() {
+    const game = gameService.getGame(this.room);
+    if (!game?.isRunning) {
+      this.logger.info(`Game ${this.room} not running — stopping loop`);
+      this.stop();
+      return;
+    }
+    game.processGravity();
+  }
+
+  private processInputs() {
+    const game = gameService.getGame(this.room);
+    if (!game?.isRunning) {
+      this.logger.info(`Game ${this.room} not running — stopping loop`);
+      this.stop();
+      return;
+    }
+    game.processPlayerInputsOnly();
+  }
+
+  private sendGameState() {
+    gameService.sendGameState(this.room);
   }
 }

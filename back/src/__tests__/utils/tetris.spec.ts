@@ -1,27 +1,20 @@
-import {
-  rotatePiece,
-  isValidPosition,
-  mergePiece,
-  clearLines,
-  canMoveDown,
-} from "../../core/utils/tetris";
-import { TetrisPiece, Cell } from "../../core/types/game";
 import { describe, expect, it } from "vitest";
+
+import { Cell, TetrisPiece } from "../../core/types/game";
+import { canMoveDown, clearLines, isValidPosition, mergePiece, rotatePiece } from "../../core/utils/tetris";
 
 describe("utils.ts", () => {
   const samplePiece: TetrisPiece = {
+    color: 3,
     shape: [
       [1, 0],
       [1, 1],
     ],
     x: 4,
     y: 0,
-    color: 3,
   };
 
-  const emptyBoard: Cell[][] = Array.from({ length: 20 }, () =>
-    Array(10).fill(0)
-  );
+  const emptyBoard: Cell[][] = Array.from({ length: 20 }, () => Array(10).fill(0));
 
   describe("rotatePiece", () => {
     it("should rotate the piece clockwise", () => {
@@ -45,7 +38,7 @@ describe("utils.ts", () => {
 
     it("should return false if overlapping filled cell", () => {
       const board = structuredClone(emptyBoard);
-      board[0][4] = 1; // conflict
+      board[0][4] = 1;
       expect(isValidPosition(board, samplePiece)).toBe(false);
     });
   });
@@ -60,9 +53,9 @@ describe("utils.ts", () => {
   describe("clearLines", () => {
     it("should clear full lines", () => {
       const fullBoard = structuredClone(emptyBoard);
-      fullBoard[19] = Array(10).fill(1); // last row full
+      fullBoard[19] = Array(10).fill(1);
 
-      const { newBoard, linesCleared } = clearLines(fullBoard);
+      const { linesCleared, newBoard } = clearLines(fullBoard);
       expect(linesCleared).toBe(1);
       expect(newBoard.length).toBe(20);
       expect(newBoard[19]).toEqual(Array(10).fill(0));

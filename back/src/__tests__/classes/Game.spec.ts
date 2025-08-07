@@ -1,20 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { Game } from "../../core/classes/Game";
-import { Player } from "../../core/classes/Player";
 import { Piece } from "../../core/classes/Piece";
+import { Player } from "../../core/classes/Player";
 
 vi.mock("../utils/Logger.js", () => ({
   getLogger: () => ({
+    error: vi.fn(),
     info: vi.fn(),
     warn: vi.fn(),
-    error: vi.fn(),
   }),
 }));
 
 vi.mock("../socket/websocket.js", () => {
   const mockIo = {
-    to: vi.fn().mockReturnThis(),
     emit: vi.fn(),
+    to: vi.fn().mockReturnThis(),
   };
   return {
     default: {
@@ -29,10 +30,8 @@ describe("Game", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
 
-    vi.spyOn(Piece, 'generatePieceSequence').mockReturnValue([
-        new Piece('T'), new Piece('I'), new Piece('L'), new Piece('J'), new Piece('S')
-    ]);
-    
+    vi.spyOn(Piece, "generatePieceSequence").mockReturnValue([new Piece("T"), new Piece("I"), new Piece("L"), new Piece("J"), new Piece("S")]);
+
     game = new Game("room1", ["Alice", "Bob"]);
   });
 
@@ -59,9 +58,9 @@ describe("Game", () => {
       game.start();
       expect(game.isRunning).toBe(true);
       expect(game.players[0].currentPiece).not.toBeNull();
-      expect(game.players[0].currentPiece?.type).toBe('T');
+      expect(game.players[0].currentPiece?.type).toBe("T");
       expect(game.players[1].currentPiece).not.toBeNull();
-      expect(game.players[1].currentPiece?.type).toBe('T');
+      expect(game.players[1].currentPiece?.type).toBe("T");
     });
 
     it("should stop the game", () => {
@@ -77,7 +76,7 @@ describe("Game", () => {
       expect(player).toBeInstanceOf(Player);
       expect(player?.name).toBe("Alice");
     });
-    
+
     it("should return undefined for a non-existent player", () => {
       const player = game.getPlayer("Charlie");
       expect(player).toBeUndefined();
@@ -86,11 +85,11 @@ describe("Game", () => {
     it("should set a player to ready and check if all are ready", () => {
       const alice = game.getPlayer("Alice")!;
       const bob = game.getPlayer("Bob")!;
-      
+
       let allReady = game.setPlayerReady("Alice");
       expect(alice.isReady).toBe(true);
       expect(allReady).toBe(false);
-      
+
       allReady = game.setPlayerReady("Bob");
       expect(bob.isReady).toBe(true);
       expect(allReady).toBe(true);
