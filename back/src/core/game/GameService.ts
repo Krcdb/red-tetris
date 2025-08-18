@@ -69,7 +69,6 @@ class GameService {
     return this.games[room]?.isRunning ?? false;
   }
 
-  /** Start the Tetris game loop once all pre-checks pass. */
   launchGame(room: string) {
     const game = this.games[room];
     if (!game) {
@@ -89,6 +88,13 @@ class GameService {
     game.start();
 
     const gameMode = game.gameMode || "normal";
+
+    // 🔍 Add detailed logging
+    console.log(`🎯 LAUNCH GAME DEBUG:`);
+    console.log(`  - Room: ${room}`);
+    console.log(`  - Game.gameMode: "${game.gameMode}"`);
+    console.log(`  - Final gameMode: "${gameMode}"`);
+
     this.logger.info(`Creating TetrisGameLoop for room ${room} with mode ${gameMode}`);
     const loop = new TetrisGameLoop(game.getGameState(), room, gameMode);
     this.gameLoops[room] = loop;

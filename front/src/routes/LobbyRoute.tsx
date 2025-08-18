@@ -41,18 +41,10 @@ export default function LobbyRoute() {
 
     socketService.joinRoom(playerName, room, gameMode);
 
-    // socketService.socket.on("game:isLaunching", () => {
-    //   console.log("🚀 LobbyRoute: Game is launching, navigating to game route");
-    // });
-
     socketService.socket.on("game:isSetup", () => {
       console.log("🎮 LobbyRoute: Received game:isSetup, navigating to game");
       navigate(`/${room}/${playerName}/game`);
     });
-
-    // socketService.socket.on("game:isLaunching", () => {
-    //   console.log("🚀 LobbyRoute: Game is launching, navigating to game route");
-    // });
 
     return () => {
       socketService.socket.off("game:isSetup");

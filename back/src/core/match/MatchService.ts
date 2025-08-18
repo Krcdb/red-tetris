@@ -186,18 +186,30 @@ class MatchService {
 
   /* ---------- socket-disconnect cleanup ---------- */
 
-  /** Only the leader can start the game. */
   startGame(room: string, socket: CustomeSocket) {
     const match = this.matchs[room];
     if (!match) {
       this.logger.error(`cannot start match ${room}: room not found`);
       return;
     }
+
     const playerData = match.player.find((p) => p.name === socket.data.playerName);
     const isLeader = playerData?.isLeader;
 
+    // 🔍 Add detailed logging
+    console.log(`🎯 MATCH START GAME DEBUG:`);
+    console.log(`  - Room: ${room}`);
+    console.log(`  - Socket player name: "${socket.data.playerName}"`);
+    console.log(`  - Socket game mode: "${socket.data.gameMode}"`);
+    console.log(`  - Match game mode: "${match.gameMode}"`);
+    console.log(`  - Player is leader: ${isLeader}`);
+
     if (isLeader) {
-      const gameMode = socket.data.gameMode || "normal";
+      // Use the match's game mode instead of the socket's
+      const gameMode = match.gameMode || "normal";
+
+      console.log(`  - Final gameMode being passed: "${gameMode}"`);
+
       gameService.createGame(match.player, room, gameMode);
     } else {
       this.logger.warn(`startGame denied: player ${socket.data.playerName} is not leader`);

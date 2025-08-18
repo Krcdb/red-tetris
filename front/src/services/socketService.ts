@@ -13,23 +13,6 @@ const registerHandler = (event: string, handler: (...args: any[]) => void) => {
   registeredHandlers.set(event, handler);
 };
 
-// const onMatchError = (message: string) => {
-//   console.error("❌ SocketService: Match error:", message);
-
-//   if (message.includes("game mode") || message.includes("mode")) {
-//     alert(
-//       "⚠️ This room requires a different game mode. Please go back and select the correct mode, or choose a different room name."
-//     );
-//   } else if (message.includes("Name already taken")) {
-//     alert("⚠️ That player name is already taken in this room. Please choose a different name.");
-//   } else {
-//     alert(`⚠️ ${message}`);
-//   }
-//   setTimeout(() => {
-//     window.location.href = "/";
-//   }, 100);
-// };
-
 const initialize = () => {
   if (isInitialized) return;
   isInitialized = true;

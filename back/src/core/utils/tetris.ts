@@ -9,18 +9,18 @@ export function clearLines(board: Cell[][]): { linesCleared: number; newBoard: C
   const newBoard: Cell[][] = [];
   let linesCleared = 0;
 
-  for (let row = 0; row < board.length; row++) {
-    const isFullLine = board[row].every((cell) => cell !== 0);
+  for (const row of board) {
+    const isFullLine = row.every((cell) => cell !== 0);
 
     if (!isFullLine) {
-      newBoard.push([...board[row]]);
+      newBoard.push([...row]);
     } else {
       linesCleared++;
     }
   }
 
   while (newBoard.length < 20) {
-    newBoard.unshift(new Array(10).fill(0));
+    newBoard.unshift(new Array<number>(10).fill(0));
   }
 
   return { linesCleared, newBoard };
@@ -60,7 +60,7 @@ export function mergePiece(board: Cell[][], piece: TetrisPiece): Cell[][] {
         const boardX = x + col;
 
         if (boardY >= 0 && boardY < 20 && boardX >= 0 && boardX < 10) {
-          newBoard[boardY][boardX] = piece.color || shape[row][col];
+          newBoard[boardY][boardX] = piece.color ?? shape[row][col];
         }
       }
     }

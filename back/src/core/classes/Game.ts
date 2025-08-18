@@ -24,7 +24,14 @@ export class Game {
     this.isRunning = false;
     this.isSolo = playerNames.length === 1;
 
-    this.logger.info(`Created new Game for room ${room} with ${playerNames.length} players, mode: ${gameMode}`);
+    // 🔍 Add detailed logging
+    console.log(`🎯 GAME CONSTRUCTOR DEBUG:`);
+    console.log(`  - Room: ${room}`);
+    console.log(`  - GameMode parameter: "${gameMode}"`);
+    console.log(`  - Final this.gameMode: "${this.gameMode}"`);
+    console.log(`  - Players: ${playerNames.join(", ")}`);
+
+    this.logger.info(`Created new Game for room ${room} with ${String(playerNames.length)} players, mode: ${gameMode}`);
   }
 
   public areAllPlayersReady(): boolean {
