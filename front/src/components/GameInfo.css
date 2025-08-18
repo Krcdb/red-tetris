@@ -1,61 +1,69 @@
 .game-info {
   font-family: "Press Start 2P", monospace;
-  font-size: 0.55rem;
+  font-size: clamp(0.35rem, 1.2vw, 0.5rem);
   color: #fff;
-  padding: 1rem;
+  padding: 0.75rem;
   background-color: #111;
-  border: 3px solid #00fff7;
-  border-radius: 10px;
-  box-shadow: 0 0 8px #00fff7;
+  border: 2px solid #00fff7;
+  border-radius: 8px;
+  box-shadow: 0 0 6px #00fff7;
+  width: 100%;
+  max-width: 280px;
+  box-sizing: border-box;
 }
 
 .player-stats {
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   background-color: #000;
-  padding: 0.75rem;
+  padding: 0.5rem;
   border: 2px solid #ff003c;
 }
 
 .player-stats h3 {
   color: #ff003c;
-  margin-bottom: 0.75rem;
-  font-size: 0.7rem;
+  margin-bottom: 0.5rem;
+  font-size: clamp(0.4rem, 1.5vw, 0.6rem);
 }
 
 .player-stats p {
-  margin: 4px 0;
+  margin: 3px 0;
+  font-size: clamp(0.3rem, 1vw, 0.45rem);
 }
 
 .opponents-section h3 {
   color: #00fff7;
-  margin-top: 1rem;
-  font-size: 0.65rem;
+  margin-top: 0.75rem;
+  font-size: clamp(0.4rem, 1.5vw, 0.55rem);
 }
 
 .opponent-card {
   background: #000;
-  padding: 0.5rem;
-  margin-bottom: 0.75rem;
+  padding: 0.4rem;
+  margin-bottom: 0.5rem;
   border: 2px dashed #00fff7;
 }
 
 .opponent-card h4 {
-  margin: 0 0 4px 0;
+  margin: 0 0 3px 0;
   color: #00fff7;
+  font-size: clamp(0.35rem, 1.2vw, 0.5rem);
 }
 
 .opponent-card p {
-  font-size: 0.5rem;
+  font-size: clamp(0.3rem, 1vw, 0.4rem);
   margin: 2px 0;
 }
 
 .mini-board {
   display: grid;
-  grid-template-columns: repeat(10, 6px);
-  grid-template-rows: repeat(20, 6px);
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(20, 1fr);
   gap: 1px;
-  margin-top: 5px;
+  margin-top: 4px;
   background-color: #111;
+  width: 100%;
+  max-width: 100px;
+  height: 200px;
 }
 
 .mini-cell.filled {
@@ -67,22 +75,45 @@
 }
 
 .next-piece-preview {
-  margin-bottom: 20px;
-  padding: 0.75rem;
+  margin-bottom: 15px;
+  padding: 0.5rem;
   background-color: #000;
   border: 2px solid #ff003c;
 }
 
+.next-piece-preview h4 {
+  font-size: clamp(0.35rem, 1.2vw, 0.5rem);
+  margin-bottom: 0.5rem;
+}
+
 .next-piece {
-  margin-top: 5px;
+  margin-top: 4px;
   display: inline-block;
-  padding: 5px;
+  padding: 4px;
   background-color: #111;
   border: 2px dashed #ff003c;
 }
 
-.game-controls,
-.game-info {
-  width: 100%;
-  box-sizing: border-box;
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .game-info {
+    max-width: 100%;
+    padding: 0.5rem;
+  }
+
+  .mini-board {
+    max-width: 80px;
+    height: 160px;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-info {
+    padding: 0.4rem;
+  }
+
+  .mini-board {
+    max-width: 70px;
+    height: 140px;
+  }
 }

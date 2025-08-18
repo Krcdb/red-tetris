@@ -10,7 +10,7 @@ export interface ClientToServerEvents {
   "game:playerReady": () => void;
 
   "match:leaveCurrentRoom": () => void;
-  "match:playerJoin": (data: { gameMode?: string; playerName: string; room: string; }) => void;
+  "match:playerJoin": (data: { gameMode?: string; playerName: string; room: string }) => void;
   "match:playerLeft": (data: { playerName: string; room: string }) => void;
   "match:startGame": (data: { room: string }) => void;
 }

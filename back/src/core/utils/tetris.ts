@@ -5,7 +5,7 @@ export function canMoveDown(board: Cell[][], piece: TetrisPiece): boolean {
   return isValidPosition(board, testPiece);
 }
 
-export function clearLines(board: Cell[][]): { linesCleared: number; newBoard: Cell[][]; } {
+export function clearLines(board: Cell[][]): { linesCleared: number; newBoard: Cell[][] } {
   const newBoard: Cell[][] = [];
   let linesCleared = 0;
 
