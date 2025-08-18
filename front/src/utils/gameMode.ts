@@ -1,9 +1,4 @@
-export const VALID_GAME_MODES = [
-  "normal",
-  "invisible",
-  "no-preview",
-  "speed",
-] as const;
+export const VALID_GAME_MODES = ["normal", "invisible", "no-preview", "speed"] as const;
 export type GameMode = (typeof VALID_GAME_MODES)[number];
 
 export interface GameModeInfo {
@@ -44,10 +39,7 @@ export function isValidGameMode(mode: string): mode is GameMode {
   return VALID_GAME_MODES.includes(mode as GameMode);
 }
 
-export function validateGameMode(
-  mode: string,
-  fallback: GameMode = "normal"
-): GameMode {
+export function validateGameMode(mode: string, fallback: GameMode = "normal"): GameMode {
   if (isValidGameMode(mode)) {
     return mode;
   }

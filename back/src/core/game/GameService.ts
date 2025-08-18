@@ -1,9 +1,9 @@
+import { Game } from "../classes/Game.js";
 import MyWebSocket from "../socket/websocket.js";
 import { TetrisGameLoop } from "../tetris/TetrisGameLoop.js";
 import { GamerInputs, InputDTO } from "../types/game.js";
 import { Player } from "../types/player.js";
 import { getLogger } from "../utils/Logger.js";
-import { Game } from "../classes/Game.js";
 
 type GameLoops = Record<string, TetrisGameLoop>;
 
@@ -18,7 +18,7 @@ class GameService {
   }
 
   /** Create a fresh Game instance and notify the room that setup is done. */
-  createGame(players: Player[], room: string, gameMode: string = "normal") {
+  createGame(players: Player[], room: string, gameMode = "normal") {
     this.logger.info(`Creating game for room ${room} with ${players.length} player(s)`);
 
     if (this.games[room]) {
@@ -32,6 +32,41 @@ class GameService {
     this.games[room] = game;
 
     MyWebSocket.getInstance().to(room).emit("game:isSetup");
+  }
+
+  forceStopGame(room: string) {
+    this.logger.info(`Force-stopping game in room ${room}`);
+
+    const loop = this.gameLoops[room];
+    if (loop) {
+      loop.stop();
+      delete this.gameLoops[room];
+    }
+
+    const game = this.games[room];
+    if (game) {
+      game.stop();
+      delete this.games[room];
+    }
+  }
+
+  gameExists(room: string): boolean {
+    return room in this.games;
+  }
+
+  /** Mark a player as ready; when everyone’s ready, begin the match. */
+
+  getActiveGames(): string[] {
+    return Object.keys(this.games);
+  }
+
+  /** Utility helpers — useful all over the backend */
+  getGame(room: string): Game | null {
+    return this.games[room] ?? null;
+  }
+
+  isGameRunning(room: string): boolean {
+    return this.games[room]?.isRunning ?? false;
   }
 
   /** Start the Tetris game loop once all pre-checks pass. */
@@ -70,8 +105,6 @@ class GameService {
     game.updatePlayerInput(playerName, input);
   }
 
-  /** Mark a player as ready; when everyone’s ready, begin the match. */
-
   playerReady(playerName: string, room: string) {
     const game = this.games[room];
     if (!game) {
@@ -100,43 +133,10 @@ class GameService {
     }
   }
 
-  /** Utility helpers — useful all over the backend */
-  getGame(room: string): Game | null {
-    return this.games[room] ?? null;
-  }
-
   sendGameState(room: string) {
     const game = this.games[room];
     if (!game) return;
     MyWebSocket.getInstance().to(room).emit("game:newState", game.getGameState());
-  }
-
-  forceStopGame(room: string) {
-    this.logger.info(`Force-stopping game in room ${room}`);
-
-    const loop = this.gameLoops[room];
-    if (loop) {
-      loop.stop();
-      delete this.gameLoops[room];
-    }
-
-    const game = this.games[room];
-    if (game) {
-      game.stop();
-      delete this.games[room];
-    }
-  }
-
-  gameExists(room: string): boolean {
-    return room in this.games;
-  }
-
-  isGameRunning(room: string): boolean {
-    return this.games[room]?.isRunning ?? false;
-  }
-
-  getActiveGames(): string[] {
-    return Object.keys(this.games);
   }
 }
 

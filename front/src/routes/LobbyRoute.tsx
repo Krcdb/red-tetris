@@ -7,7 +7,7 @@ import { setGameConfig } from "../redux/gameSlice";
 import { socketService } from "../services/socketService";
 import "./LobbyRoute.css";
 import { resetGame } from "../redux/gameSlice";
-import { validateGameMode, getGameModeDisplay } from "../utils/gameMode";
+import { getGameModeDisplay } from "../utils/gameMode";
 
 export default function LobbyRoute() {
   const { room, playerName } = useParams<{
@@ -20,9 +20,7 @@ export default function LobbyRoute() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { players, canStart, isLoading, error } = useSelector(
-    (state: RootState) => state.lobby
-  );
+  const { players, canStart, isLoading, error } = useSelector((state: RootState) => state.lobby);
 
   useEffect(() => {
     if (!room || !playerName) {
@@ -113,11 +111,7 @@ export default function LobbyRoute() {
           ))}
         </ul>
 
-        <button
-          onClick={startGame}
-          disabled={!canStart || isLoading}
-          className="retro-button"
-        >
+        <button onClick={startGame} disabled={!canStart || isLoading} className="retro-button">
           {canStart ? "Start Game" : "Waiting for leader..."}
         </button>
 

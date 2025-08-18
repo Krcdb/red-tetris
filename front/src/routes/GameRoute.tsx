@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../redux/store";
@@ -21,13 +21,9 @@ export default function GameRoute() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { status, error, score, linesCleared } = useSelector(
-    (state: RootState) => state.game
-  );
+  const { status, error, score, linesCleared } = useSelector((state: RootState) => state.game);
 
-  const currentGameMode = validateGameMode(
-    sessionStorage.getItem("selectedGameMode") || "normal"
-  );
+  const currentGameMode = validateGameMode(sessionStorage.getItem("selectedGameMode") || "normal");
 
   useEffect(() => {
     if (!room || !playerName) {
@@ -43,10 +39,7 @@ export default function GameRoute() {
 
     const readyTimer = setTimeout(() => {
       console.log("🔧 GameRoute: Sending player ready after setup");
-      console.log(
-        "🔧 GameRoute: Socket connected:",
-        socketService.socket.connected
-      );
+      console.log("🔧 GameRoute: Socket connected:", socketService.socket.connected);
       socketService.playerReady();
     }, 200);
 
@@ -55,14 +48,15 @@ export default function GameRoute() {
       console.log("🧹 GameRoute: Component unmounting, cleaning up");
     };
   }, [room, playerName, dispatch, navigate]);
-  useEffect(() => {
-    if (status === "gameOver") {
-      const timer = setTimeout(() => {
-        navigate(`/${room}/${playerName}`);
-      }, 3000);
 
-      return () => clearTimeout(timer);
-    }
+  useEffect(() => {
+    if (status !== "gameOver") return;
+
+    const timer = setTimeout(() => {
+      navigate(`/${room}/${playerName}`);
+    }, 3000);
+
+    return () => clearTimeout(timer);
   }, [status, room, playerName, navigate]);
 
   const handleReturnToLobby = () => {
@@ -92,9 +86,7 @@ export default function GameRoute() {
       <div style={{ padding: "20px", color: "red" }}>
         <h2>Game Error</h2>
         <p>{error}</p>
-        <button onClick={() => navigate(`/${room}/${playerName}`)}>
-          Back to Lobby
-        </button>
+        <button onClick={() => navigate(`/${room}/${playerName}`)}>Back to Lobby</button>
       </div>
     );
   }
@@ -107,17 +99,13 @@ export default function GameRoute() {
         <p>Waiting for game to start...</p>
         <div style={{ marginTop: "20px" }}>
           <div className="loading-spinner">⏳</div>
-          <p style={{ fontSize: "14px", color: "#666" }}>
-            Connecting to game...
-          </p>
+          <p style={{ fontSize: "14px", color: "#666" }}>Connecting to game...</p>
         </div>
 
         {/* Temporary debug section - remove when working */}
         <div style={{ marginTop: "20px", fontSize: "12px", color: "#666" }}>
           <p>Status: {status}</p>
-          <p>
-            Socket connected: {socketService.socket.connected ? "Yes" : "No"}
-          </p>
+          <p>Socket connected: {socketService.socket.connected ? "Yes" : "No"}</p>
           <p>Socket ID: {socketService.socket.id}</p>
           <button
             onClick={() => {
@@ -143,9 +131,7 @@ export default function GameRoute() {
           <h2 className="retro-title">Red Tetris - {room}</h2>
           <p>Player: {playerName}</p>
           <div className="game-mode-display">
-            <p className="game-mode-text">
-              Mode: {getGameModeDisplay(currentGameMode)}
-            </p>
+            <p className="game-mode-text">Mode: {getGameModeDisplay(currentGameMode)}</p>
           </div>
           <GameBoard />
         </div>

@@ -2,8 +2,8 @@ import { Match } from "../core/types/match.js";
 import { Player } from "../core/types/player.js";
 
 export const playerOne: Player = {
-  name: "Alice",
   isLeader: true,
+  name: "Alice",
 };
 
 export const matchTest: Match = {

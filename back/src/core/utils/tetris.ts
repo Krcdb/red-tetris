@@ -1,22 +1,29 @@
 import { Cell, TetrisPiece } from "../types/game";
 
-export function rotatePiece(piece: TetrisPiece): TetrisPiece {
-  const { shape } = piece;
-  const rows = shape.length;
-  const cols = shape[0].length;
+export function canMoveDown(board: Cell[][], piece: TetrisPiece): boolean {
+  const testPiece = { ...piece, y: piece.y + 1 };
+  return isValidPosition(board, testPiece);
+}
 
-  const rotatedShape: number[][] = [];
-  for (let i = 0; i < cols; i++) {
-    rotatedShape[i] = [];
-    for (let j = 0; j < rows; j++) {
-      rotatedShape[i][j] = shape[rows - 1 - j][i];
+export function clearLines(board: Cell[][]): { linesCleared: number; newBoard: Cell[][]; } {
+  const newBoard: Cell[][] = [];
+  let linesCleared = 0;
+
+  for (let row = 0; row < board.length; row++) {
+    const isFullLine = board[row].every((cell) => cell !== 0);
+
+    if (!isFullLine) {
+      newBoard.push([...board[row]]);
+    } else {
+      linesCleared++;
     }
   }
 
-  return {
-    ...piece,
-    shape: rotatedShape,
-  };
+  while (newBoard.length < 20) {
+    newBoard.unshift(new Array(10).fill(0));
+  }
+
+  return { linesCleared, newBoard };
 }
 
 export function isValidPosition(board: Cell[][], piece: TetrisPiece): boolean {
@@ -62,28 +69,21 @@ export function mergePiece(board: Cell[][], piece: TetrisPiece): Cell[][] {
   return newBoard;
 }
 
-export function clearLines(board: Cell[][]): { newBoard: Cell[][]; linesCleared: number } {
-  const newBoard: Cell[][] = [];
-  let linesCleared = 0;
+export function rotatePiece(piece: TetrisPiece): TetrisPiece {
+  const { shape } = piece;
+  const rows = shape.length;
+  const cols = shape[0].length;
 
-  for (let row = 0; row < board.length; row++) {
-    const isFullLine = board[row].every((cell) => cell !== 0);
-
-    if (!isFullLine) {
-      newBoard.push([...board[row]]);
-    } else {
-      linesCleared++;
+  const rotatedShape: number[][] = [];
+  for (let i = 0; i < cols; i++) {
+    rotatedShape[i] = [];
+    for (let j = 0; j < rows; j++) {
+      rotatedShape[i][j] = shape[rows - 1 - j][i];
     }
   }
 
-  while (newBoard.length < 20) {
-    newBoard.unshift(new Array(10).fill(0));
-  }
-
-  return { newBoard, linesCleared };
-}
-
-export function canMoveDown(board: Cell[][], piece: TetrisPiece): boolean {
-  const testPiece = { ...piece, y: piece.y + 1 };
-  return isValidPosition(board, testPiece);
+  return {
+    ...piece,
+    shape: rotatedShape,
+  };
 }

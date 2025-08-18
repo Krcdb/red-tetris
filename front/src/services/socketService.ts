@@ -1,13 +1,6 @@
 import socket from "../utils/socket";
 import { store } from "../redux/store";
-import {
-  updateGameState,
-  gameSetup,
-  gameStarted,
-  gameOver,
-  setError as setGameError,
-  gameOverWithNavigation,
-} from "../redux/gameSlice";
+import { updateGameState, gameSetup, gameStarted, gameOver, setError as setGameError } from "../redux/gameSlice";
 import { updatePlayers, setError as setLobbyError } from "../redux/lobbySlice";
 import { validateGameMode } from "../utils/gameMode";
 
@@ -20,24 +13,22 @@ const registerHandler = (event: string, handler: (...args: any[]) => void) => {
   registeredHandlers.set(event, handler);
 };
 
-const onMatchError = (message: string) => {
-  console.error("❌ SocketService: Match error:", message);
+// const onMatchError = (message: string) => {
+//   console.error("❌ SocketService: Match error:", message);
 
-  if (message.includes("game mode") || message.includes("mode")) {
-    alert(
-      "⚠️ This room requires a different game mode. Please go back and select the correct mode, or choose a different room name."
-    );
-  } else if (message.includes("Name already taken")) {
-    alert(
-      "⚠️ That player name is already taken in this room. Please choose a different name."
-    );
-  } else {
-    alert(`⚠️ ${message}`);
-  }
-  setTimeout(() => {
-    window.location.href = "/";
-  }, 100);
-};
+//   if (message.includes("game mode") || message.includes("mode")) {
+//     alert(
+//       "⚠️ This room requires a different game mode. Please go back and select the correct mode, or choose a different room name."
+//     );
+//   } else if (message.includes("Name already taken")) {
+//     alert("⚠️ That player name is already taken in this room. Please choose a different name.");
+//   } else {
+//     alert(`⚠️ ${message}`);
+//   }
+//   setTimeout(() => {
+//     window.location.href = "/";
+//   }, 100);
+// };
 
 const initialize = () => {
   if (isInitialized) return;
@@ -190,9 +181,7 @@ const playerReady = () => {
   socket.emit("game:playerReady");
 
   setTimeout(() => {
-    console.log(
-      "⏰ SocketService: 5 seconds after playerReady, checking status..."
-    );
+    console.log("⏰ SocketService: 5 seconds after playerReady, checking status...");
     const state = store.getState();
     console.log("⏰ SocketService: Current game status:", state.game.status);
   }, 5000);

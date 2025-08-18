@@ -12,7 +12,7 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
   const logger = getLogger("MatchHandler");
 
   socket.on("match:playerJoin", (data) => {
-    const { playerName, room, gameMode } = data;
+    const { gameMode, playerName, room } = data;
     let match: Match;
 
     try {
@@ -40,7 +40,7 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
   });
 
   socket.on("match:leaveCurrentRoom", () => {
-    const { playerName, currentRoom } = socket.data;
+    const { currentRoom, playerName } = socket.data;
 
     if (playerName && currentRoom) {
       logger.info(`Player ${playerName} explicitly leaving room ${currentRoom}`);
@@ -82,7 +82,7 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
   socket.on("disconnect", (reason) => {
     logger.info(`Socket ${socket.id} disconnected: ${reason}`);
 
-    const { playerName, currentRoom } = socket.data;
+    const { currentRoom, playerName } = socket.data;
 
     if (playerName && currentRoom) {
       logger.info(`Cleaning up player ${playerName} from room ${currentRoom} due to disconnect`);

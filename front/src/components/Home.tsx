@@ -5,13 +5,7 @@ import { resetGame } from "../redux/gameSlice";
 import { resetLobby } from "../redux/lobbySlice";
 import { socketService } from "../services/socketService";
 import "./Home.css";
-import {
-  validateGameMode,
-  getGameModeDisplay,
-  VALID_GAME_MODES,
-  GAME_MODE_INFO,
-  GameMode,
-} from "../utils/gameMode";
+import { validateGameMode, GAME_MODE_INFO, GameMode } from "../utils/gameMode";
 
 const Home: React.FC = () => {
   const [room, setRoom] = useState("");
@@ -43,11 +37,7 @@ const Home: React.FC = () => {
 
     const validMode = validateGameMode(selectedGameMode);
 
-    navigate(
-      `/${encodeURIComponent(room)}/${encodeURIComponent(
-        name
-      )}?mode=${validMode}`
-    );
+    navigate(`/${encodeURIComponent(room)}/${encodeURIComponent(name)}?mode=${validMode}`);
   };
 
   const handleGameModeChange = (mode: string) => {
@@ -59,18 +49,8 @@ const Home: React.FC = () => {
     <div className="retro-container">
       <h1 className="retro-title">Red Tetris</h1>
       <form className="retro-form" onSubmit={onSubmit}>
-        <input
-          className="retro-input"
-          placeholder="Room name"
-          value={room}
-          onChange={(e) => setRoom(e.target.value)}
-        />
-        <input
-          className="retro-input"
-          placeholder="Your name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
+        <input className="retro-input" placeholder="Room name" value={room} onChange={(e) => setRoom(e.target.value)} />
+        <input className="retro-input" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} />
 
         <div className="game-mode-section">
           <h3 className="mode-title">Choose Game Mode:</h3>
@@ -78,9 +58,7 @@ const Home: React.FC = () => {
             {gameModes.map((mode) => (
               <div
                 key={mode.id}
-                className={`game-mode-option ${
-                  selectedGameMode === mode.id ? "selected" : ""
-                }`}
+                className={`game-mode-option ${selectedGameMode === mode.id ? "selected" : ""}`}
                 onClick={() => handleGameModeChange(mode.id)}
               >
                 <div className="mode-name">{mode.name}</div>

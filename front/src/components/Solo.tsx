@@ -1,24 +1,15 @@
-import React, { useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  startGame,
-  setPieces,
-  updateBoard,
-  gameOver,
-} from "../redux/gameSlice";
+import { startGame } from "../redux/gameSlice";
 import { RootState } from "../redux/store";
-import GameBoard from "./GameBoard";
 import GameInfo from "./GameInfo";
-import GameControls from "./GameControls";
 import GameOverModal from "./GameOverModal";
 import { useNavigate } from "react-router-dom";
 
 export default function Solo() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { status, score, linesCleared, level } = useSelector(
-    (state: RootState) => state.game
-  );
+  const { status, score, linesCleared } = useSelector((state: RootState) => state.game);
 
   const startNewGameSolo = useCallback(() => {
     dispatch(startGame({ gameMode: "solo" }));
@@ -36,13 +27,7 @@ export default function Solo() {
           </div>
         )}
 
-        {status === "gameOver" && (
-          <GameOverModal
-            score={score}
-            lines={linesCleared}
-            onExit={() => navigate("/")}
-          />
-        )}
+        {status === "gameOver" && <GameOverModal score={score} lines={linesCleared} onExit={() => navigate("/")} />}
       </div>
 
       <div>

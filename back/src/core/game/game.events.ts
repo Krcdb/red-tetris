@@ -9,7 +9,7 @@ export function registerGameHandler(socket: CustomeSocket) {
   socket.on("game:playerReady", () => {
     logger.info(`Player ready: socket ${JSON.stringify(socket.data)}`);
 
-    const { playerName, currentRoom } = socket.data;
+    const { currentRoom, playerName } = socket.data;
 
     if (!playerName || !currentRoom) {
       logger.warn(`missing data for player ready for ${socket.id}`);
@@ -30,7 +30,7 @@ export function registerGameHandler(socket: CustomeSocket) {
 
   socket.on("game:playerInputChanges", (data) => {
     const { input } = data;
-    const { playerName, currentRoom } = socket.data;
+    const { currentRoom, playerName } = socket.data;
 
     if (!playerName || !currentRoom) {
       logger.warn(`missing data for player ready for ${socket.id}`);

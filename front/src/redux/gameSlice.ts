@@ -55,7 +55,7 @@ const initialState: GameState = {
   error: null,
   needsNextPiece: false,
   gamers: [],
-  gameOverNavigation: undefined,
+  // gameOverNavigation: undefined,
 };
 
 const gameSlice = createSlice({
@@ -80,9 +80,7 @@ const gameSlice = createSlice({
     updateGameState: (state, action: PayloadAction<any>) => {
       const serverState = action.payload;
 
-      const currentPlayer = serverState.gamers?.find(
-        (g: any) => g.name === state.playerName
-      );
+      const currentPlayer = serverState.gamers?.find((g: any) => g.name === state.playerName);
       if (currentPlayer) {
         state.board = currentPlayer.grid || state.board;
         state.currentPiece = currentPlayer.currentPiece;
@@ -152,10 +150,7 @@ const gameSlice = createSlice({
       state.isLoading = false;
     },
 
-    startGame: (
-      state,
-      action: PayloadAction<{ gameMode: "solo" | "multiplayer" }>
-    ) => {
+    startGame: (state, action: PayloadAction<{ gameMode: "solo" | "multiplayer" }>) => {
       state.status = "playing";
       state.gameMode = action.payload.gameMode;
       state.score = 0;
@@ -164,10 +159,7 @@ const gameSlice = createSlice({
       state.board = initialBoard();
     },
 
-    setPieces: (
-      state,
-      action: PayloadAction<{ currentPiece: Piece | null; nextPieces: Piece[] }>
-    ) => {
+    setPieces: (state, action: PayloadAction<{ currentPiece: Piece | null; nextPieces: Piece[] }>) => {
       state.currentPiece = action.payload.currentPiece;
       state.nextPieces = action.payload.nextPieces;
       state.needsNextPiece = false;

@@ -4,22 +4,10 @@ import { Match } from "../types/match.js";
 import { CustomeSocket } from "../types/socket-event.js";
 import { getLogger } from "../utils/Logger.js";
 
-type Matchs = { [key: string]: Match };
+type Matchs = Record<string, Match>;
 
 const VALID_GAME_MODES = ["normal", "invisible", "no-preview", "speed"] as const;
 type GameMode = (typeof VALID_GAME_MODES)[number];
-
-function isValidGameMode(mode: string): mode is GameMode {
-  return VALID_GAME_MODES.includes(mode as GameMode);
-}
-
-function validateGameMode(mode: string, fallback: GameMode = "normal"): GameMode {
-  if (isValidGameMode(mode)) {
-    return mode;
-  }
-  console.warn(`Invalid game mode "${mode}", falling back to "${fallback}"`);
-  return fallback;
-}
 
 class MatchService {
   matchs: Matchs;
@@ -27,6 +15,60 @@ class MatchService {
 
   constructor() {
     this.matchs = {};
+  }
+
+  canPlayerStartGame(playerName: string, room: string): boolean {
+    return !!this.matchs[room]?.player.find((p) => p.name === playerName && p.isLeader);
+  }
+
+  forceCleanPlayer(playerName: string, socket: CustomeSocket): void {
+    this.logger.info(`Force cleaning player ${playerName} from all rooms`);
+
+    Object.keys(this.matchs).forEach((room) => {
+      const match = this.matchs[room];
+      if (match.player.some((p) => p.name === playerName)) {
+        this.logger.info(`Removing ${playerName} from room ${room}`);
+        this.playerLeave(playerName, room, socket);
+      }
+    });
+
+    // Clear socket data completely
+    socket.data.currentRoom = undefined;
+    socket.data.playerName = undefined;
+    socket.data.gameMode = undefined;
+  }
+
+  getMatch(room: string): Match | null {
+    return this.matchs[room] ?? null;
+  }
+
+  getPlayerCount(room: string): number {
+    return this.matchs[room]?.player.length ?? 0;
+  }
+
+  /* ---------- convenience getters ---------- */
+
+  getRoomNames(): string[] {
+    return Object.keys(this.matchs);
+  }
+
+  handleDisconnect(socket: CustomeSocket, reason: string) {
+    const playerName = socket.data.playerName;
+    const room = socket.data.currentRoom;
+
+    if (!playerName || !room) {
+      this.logger.info(`socket ${socket.id} disconnected (no room)`);
+      return;
+    }
+
+    this.logger.info(`player ${playerName} disconnected from room ${room} (${reason})`);
+
+    this.playerLeave(playerName, room, socket);
+    this.cleanupGameIfNeeded(room);
+  }
+
+  isRoomFull(room: string, maxPlayers = 4): boolean {
+    return this.getPlayerCount(room) >= maxPlayers;
   }
 
   playerJoin(playerName: string, room: string, socket: CustomeSocket, gameMode?: string): Match {
@@ -73,7 +115,7 @@ class MatchService {
     /* --- Create room entry if needed --- */
     if (!this.matchs[room]) {
       this.logger.info(`room ${room} does not exist – creating it with mode ${validatedGameMode}`);
-      this.matchs[room] = { player: [], roomName: room, gameMode: validatedGameMode };
+      this.matchs[room] = { gameMode: validatedGameMode, player: [], roomName: room };
     }
 
     /* --- Reject duplicate names --- */
@@ -85,9 +127,9 @@ class MatchService {
     /* --- Add the player --- */
     const isFirstPlayer = this.matchs[room].player.length === 0;
     this.matchs[room].player.push({
-      name: playerName,
       isLeader: isFirstPlayer,
       isReady: false,
+      name: playerName,
     });
 
     socket.data.currentRoom = room;
@@ -142,22 +184,7 @@ class MatchService {
     return match;
   }
 
-  forceCleanPlayer(playerName: string, socket: CustomeSocket): void {
-    this.logger.info(`Force cleaning player ${playerName} from all rooms`);
-
-    Object.keys(this.matchs).forEach((room) => {
-      const match = this.matchs[room];
-      if (match.player.some((p) => p.name === playerName)) {
-        this.logger.info(`Removing ${playerName} from room ${room}`);
-        this.playerLeave(playerName, room, socket);
-      }
-    });
-
-    // Clear socket data completely
-    socket.data.currentRoom = undefined;
-    socket.data.playerName = undefined;
-    socket.data.gameMode = undefined;
-  }
+  /* ---------- socket-disconnect cleanup ---------- */
 
   /** Only the leader can start the game. */
   startGame(room: string, socket: CustomeSocket) {
@@ -177,45 +204,6 @@ class MatchService {
     }
   }
 
-  /* ---------- convenience getters ---------- */
-
-  getMatch(room: string): Match | null {
-    return this.matchs[room] ?? null;
-  }
-
-  canPlayerStartGame(playerName: string, room: string): boolean {
-    return !!this.matchs[room]?.player.find((p) => p.name === playerName && p.isLeader);
-  }
-
-  getRoomNames(): string[] {
-    return Object.keys(this.matchs);
-  }
-
-  getPlayerCount(room: string): number {
-    return this.matchs[room]?.player.length ?? 0;
-  }
-
-  isRoomFull(room: string, maxPlayers = 4): boolean {
-    return this.getPlayerCount(room) >= maxPlayers;
-  }
-
-  /* ---------- socket-disconnect cleanup ---------- */
-
-  handleDisconnect(socket: CustomeSocket, reason: string) {
-    const playerName = socket.data.playerName;
-    const room = socket.data.currentRoom;
-
-    if (!playerName || !room) {
-      this.logger.info(`socket ${socket.id} disconnected (no room)`);
-      return;
-    }
-
-    this.logger.info(`player ${playerName} disconnected from room ${room} (${reason})`);
-
-    this.playerLeave(playerName, room, socket);
-    this.cleanupGameIfNeeded(room);
-  }
-
   private cleanupGameIfNeeded(room: string) {
     const match = this.matchs[room];
 
@@ -227,6 +215,18 @@ class MatchService {
       gameService.forceStopGame(room);
     }
   }
+}
+
+function isValidGameMode(mode: string): mode is GameMode {
+  return VALID_GAME_MODES.includes(mode as GameMode);
+}
+
+function validateGameMode(mode: string, fallback: GameMode = "normal"): GameMode {
+  if (isValidGameMode(mode)) {
+    return mode;
+  }
+  console.warn(`Invalid game mode "${mode}", falling back to "${fallback}"`);
+  return fallback;
 }
 
 export const matchService = new MatchService();

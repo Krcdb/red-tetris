@@ -1,23 +1,19 @@
-import React from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
-import { formatScore, getLevel } from "../utils/tetris";
+import { formatScore } from "../utils/tetris";
 import "./GameInfo.css";
 import { validateGameMode } from "../utils/gameMode";
 
 function NextPiecePreview({ nextPieces }: { nextPieces: any[] }) {
   const rawGameMode = sessionStorage.getItem("selectedGameMode") || "normal";
   const gameMode = validateGameMode(rawGameMode);
-  
+
   // Hide preview in no-preview mode
   if (gameMode === "no-preview") {
     return (
       <div className="next-piece-preview">
         <h4>Next</h4>
-        <div
-          className="next-piece"
-          style={{ padding: "20px", textAlign: "center", color: "#666" }}
-        >
+        <div className="next-piece" style={{ padding: "20px", textAlign: "center", color: "#666" }}>
           ???
         </div>
       </div>
@@ -51,8 +47,9 @@ function NextPiecePreview({ nextPieces }: { nextPieces: any[] }) {
 }
 
 export default function GameInfo() {
-  const { playerName, gamers, score, linesCleared, level, opponents, status } =
-    useSelector((state: RootState) => state.game);
+  const { playerName, gamers, score, linesCleared, level, opponents, status } = useSelector(
+    (state: RootState) => state.game
+  );
 
   const currentGamer = gamers?.find((g: any) => g.name === playerName);
   const nextPieces = currentGamer?.nextPieces || [];
@@ -80,10 +77,7 @@ export default function GameInfo() {
               <div className="mini-board">
                 {opponent.board.map((row, y) =>
                   row.map((cell, x) => (
-                    <div
-                      key={`${x}-${y}`}
-                      className={`mini-cell ${cell !== 0 ? "filled" : "empty"}`}
-                    />
+                    <div key={`${x}-${y}`} className={`mini-cell ${cell !== 0 ? "filled" : "empty"}`} />
                   ))
                 )}
               </div>
