@@ -91,13 +91,13 @@ export class Piece {
 
           // Check bounds
           if (boardX < 0 || boardX >= 10 || boardY < 0 || boardY >= 20) {
-            console.log(`  - ❌ Out of bounds: (${boardX}, ${boardY})`);
+            console.log(`  - ❌ Out of bounds: (${boardX.toString()}, ${boardY.toString()})`);
             return false;
           }
 
           // Check collision with existing pieces
           if (board[boardY][boardX] !== 0) {
-            console.log(`  - ❌ Collision at (${boardX}, ${boardY}) with cell value ${board[boardY][boardX]}`);
+            console.log(`  - ❌ Collision at (${boardX.toString()}, ${boardY.toString()}) with cell value ${board[boardY][boardX]}`);
             return false;
           }
         }
