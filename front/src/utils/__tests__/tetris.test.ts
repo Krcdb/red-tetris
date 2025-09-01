@@ -1,5 +1,14 @@
 import { describe, it, expect } from "vitest";
-import { initialBoard, getCellColor, formatScore, getLevel, getFallSpeed, renderBoardWithPiece } from "../tetris";
+import {
+  initialBoard,
+  getCellColor,
+  formatScore,
+  getLevel,
+  getFallSpeed,
+  renderBoardWithPiece,
+  renderGhostPiece,
+  formatNextPieces,
+} from "../tetris";
 
 describe("tetris utils", () => {
   describe("initialBoard", () => {
@@ -72,6 +81,46 @@ describe("tetris utils", () => {
       expect(result[0][5]).toBe(2);
       expect(result[1][4]).toBe(2);
       expect(result[1][5]).toBe(2);
+    });
+  });
+  describe("renderGhostPiece", () => {
+    it("returns original board when piece is null", () => {
+      const board = initialBoard();
+      const result = renderGhostPiece(board, null);
+      expect(result).toEqual(board);
+    });
+
+    it("renders ghost piece at bottom", () => {
+      const board = initialBoard();
+      const piece = {
+        shape: [[1]],
+        x: 4,
+        y: 0,
+        color: 1,
+      };
+
+      const result = renderGhostPiece(board, piece);
+      expect(result[19][4]).toBe(-1); // Ghost piece marker
+    });
+  });
+
+  describe("formatNextPieces", () => {
+    it("formats next pieces correctly", () => {
+      const pieces = [
+        { shape: [[1]], type: "I", color: 1 },
+        { shape: [[2]], type: "O", color: 2 },
+      ];
+
+      const result = formatNextPieces(pieces);
+      expect(result).toHaveLength(2);
+      expect(result[0].x).toBe(0);
+      expect(result[0].y).toBe(0);
+    });
+
+    it("limits to 5 pieces", () => {
+      const pieces = Array(10).fill({ shape: [[1]], type: "I", color: 1 });
+      const result = formatNextPieces(pieces);
+      expect(result).toHaveLength(5);
     });
   });
 });

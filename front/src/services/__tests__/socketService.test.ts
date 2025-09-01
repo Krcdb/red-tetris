@@ -74,4 +74,31 @@ describe("socketService", () => {
     const socketInstance = socketService.socket;
     expect(socketInstance).toBeDefined();
   });
+
+  describe("socketService additional methods", () => {
+    it("should handle initialization", () => {
+      socketService.initialize();
+      expect(mockSocket.on).toHaveBeenCalledWith("game:isSetup", expect.any(Function));
+      expect(mockSocket.on).toHaveBeenCalledWith("game:newState", expect.any(Function));
+    });
+
+    it("should handle cleanup", () => {
+      socketService.cleanup();
+      expect(mockSocket.off).toHaveBeenCalled();
+    });
+
+    it("should handle leave room", () => {
+      socketService.leaveRoom("testPlayer", "testRoom");
+      expect(mockSocket.emit).toHaveBeenCalledWith("match:playerLeft", {
+        playerName: "testPlayer",
+        room: "testRoom",
+      });
+    });
+
+    it("should send input", () => {
+      const input = { up: true, down: false, left: false, right: false, space: false };
+      socketService.sendInput(input);
+      expect(mockSocket.emit).toHaveBeenCalledWith("game:playerInputChanges", { input });
+    });
+  });
 });

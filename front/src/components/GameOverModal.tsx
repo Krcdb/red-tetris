@@ -17,7 +17,7 @@ export default function GameOverModal({
 }: GameOverModalProps) {
   return (
     <div className="modal-overlay">
-      <div className="gameover-modal">
+      <div className="gameover-modal" role="dialog" aria-label="Game Over">
         <h1>🕹️ Game Over</h1>
         <p>Score: {score}</p>
         <p>Lines: {lines}</p>
