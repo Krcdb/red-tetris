@@ -7,7 +7,7 @@ import { setGameConfig } from "../redux/gameSlice";
 import { socketService } from "../services/socketService";
 import "./LobbyRoute.css";
 import { resetGame } from "../redux/gameSlice";
-import { getGameModeDisplay } from "../utils/gameMode";
+import { getGameModeDisplay, validateGameMode } from "../utils/gameMode";
 
 export default function LobbyRoute() {
   const { room, playerName } = useParams<{
@@ -15,7 +15,10 @@ export default function LobbyRoute() {
     playerName: string;
   }>();
   const [searchParams] = useSearchParams();
-  const gameMode = searchParams.get("mode") || "normal";
+  const rawGameMode = searchParams.get("mode") || "normal";
+
+  // Fix: Validate the game mode to ensure it's a proper GameMode type
+  const gameMode = validateGameMode(rawGameMode);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -88,6 +91,7 @@ export default function LobbyRoute() {
               borderRadius: "0.25rem",
             }}
           >
+            {/* Fix: Now gameMode is properly typed as GameMode */}
             🎮 Mode: {getGameModeDisplay(gameMode)}
           </p>
         </div>

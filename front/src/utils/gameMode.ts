@@ -39,21 +39,13 @@ export function isValidGameMode(mode: string): mode is GameMode {
   return VALID_GAME_MODES.includes(mode as GameMode);
 }
 
-export function validateGameMode(mode: string, fallback: GameMode = "normal"): GameMode {
-  if (isValidGameMode(mode)) {
-    return mode;
-  }
-  console.warn(`Invalid game mode "${mode}", falling back to "${fallback}"`);
-  return fallback;
+export function validateGameMode(mode: string | null | undefined, fallback: GameMode = "normal"): GameMode {
+  // Handle null/undefined by providing a default
+  const safeMode = mode || fallback;
+  return isValidGameMode(safeMode) ? safeMode : fallback;
 }
 
-export function getGameModeDisplay(mode: string): string {
-  const validMode = validateGameMode(mode);
-  const info = GAME_MODE_INFO[validMode];
+export function getGameModeDisplay(mode: GameMode): string {
+  const info = GAME_MODE_INFO[mode] || GAME_MODE_INFO.normal;
   return `${info.emoji} ${info.name} Mode`;
-}
-
-export function getGameModeDescription(mode: string): string {
-  const validMode = validateGameMode(mode);
-  return GAME_MODE_INFO[validMode].description;
 }

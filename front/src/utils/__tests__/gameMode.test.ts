@@ -15,8 +15,9 @@ describe("gameMode utils", () => {
     });
 
     it("handles null and undefined inputs", () => {
-      expect(validateGameMode(null as string | null)).toBe("normal");
-      expect(validateGameMode(undefined as string | undefined)).toBe("normal");
+      // Fix: Cast to string or provide fallback
+      expect(validateGameMode(null as any)).toBe("normal");
+      expect(validateGameMode(undefined as any)).toBe("normal");
     });
   });
 
@@ -25,6 +26,7 @@ describe("gameMode utils", () => {
       expect(isValidGameMode("normal")).toBe(true);
       expect(isValidGameMode("speed")).toBe(true);
       expect(isValidGameMode("invisible")).toBe(true);
+      expect(isValidGameMode("no-preview")).toBe(true);
     });
 
     it("returns false for invalid modes", () => {
@@ -34,10 +36,15 @@ describe("gameMode utils", () => {
   });
 
   describe("getGameModeDisplay", () => {
-    it("returns correct display string for valid modes", () => {
-      expect(getGameModeDisplay("normal")).toContain("Normal");
-      expect(getGameModeDisplay("speed")).toContain("Speed");
-      expect(getGameModeDisplay("invisible")).toContain("Invisible");
+    it("returns correct display text", () => {
+      expect(getGameModeDisplay("normal")).toBe("🎮 Normal Mode");
+      expect(getGameModeDisplay("speed")).toBe("⚡ Speed Mode");
+      expect(getGameModeDisplay("invisible")).toBe("👻 Invisible Mode");
+      expect(getGameModeDisplay("no-preview")).toBe("🔮 No Preview Mode");
+    });
+
+    it("handles invalid modes gracefully", () => {
+      expect(getGameModeDisplay("invalid" as any)).toBe("🎮 Normal Mode");
     });
   });
 });

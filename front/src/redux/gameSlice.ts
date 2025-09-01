@@ -110,7 +110,7 @@ const gameSlice = createSlice({
 
       if (currentPlayer) {
         state.board = currentPlayer.grid || state.board;
-        state.currentPiece = currentPlayer.currentPiece;
+        state.currentPiece = currentPlayer.currentPiece || null;
         state.score = currentPlayer.score || 0;
         state.linesCleared = currentPlayer.linesCleared || 0;
         state.level = Math.floor(state.linesCleared / 10) + 1;

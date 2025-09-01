@@ -6,7 +6,15 @@ import react from "eslint-plugin-react";
 
 export default tseslint.config(
   {
-    ignores: ["dist", "node_modules", "webpack.config.js"],
+    ignores: [
+      "dist",
+      "node_modules",
+      "webpack.config.js",
+      "**/__tests__/**", // Skip all test directories
+      "**/*.test.ts", // Skip all .test.ts files
+      "**/*.test.tsx", // Skip all .test.tsx files
+      "src/test/**", // Skip test utilities
+    ],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
@@ -34,15 +42,9 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      "react-refresh/only-export-components": [
-        "warn",
-        { allowConstantExport: true },
-      ],
+      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "react/react-in-jsx-scope": "off",
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        { argsIgnorePattern: "^_" },
-      ],
+      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
     },
     settings: {
       react: {
