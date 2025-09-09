@@ -14,6 +14,7 @@ export class Player {
   public name: string;
   public needsNextPiece: boolean;
   public score: number;
+  public hasLost: boolean = false;
 
   constructor(name: string) {
     this.name = name;
@@ -53,6 +54,7 @@ export class Player {
       linesCleared: this.linesCleared,
       name: this.name,
       score: this.score,
+      hasLost: this.hasLost,
     };
   }
 
@@ -71,6 +73,10 @@ export class Player {
     this.currentPiece = { ...piece };
     this.currentPieceIndex = index;
     this.needsNextPiece = false;
+  }
+
+  public setHasLost(): void {
+    this.hasLost = true;
   }
 
   public setReady(): void {
