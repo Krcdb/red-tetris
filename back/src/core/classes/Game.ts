@@ -124,29 +124,29 @@ export class Game {
       let piece = this.tetrisPieceToPiece(player.currentPiece);
 
       // 🔍 Add debug logging
-      console.log(`⚡ GRAVITY DEBUG for ${player.name}:`);
+      /*console.log(`⚡ GRAVITY DEBUG for ${player.name}:`);
       console.log(`  - Piece at (${piece.x}, ${piece.y})`);
       console.log(`  - Can move down: ${piece.canMoveDown(player.grid)}`);
       console.log(`  - Is touching ground: ${player.isTouchingGround}`);
-      console.log(`  - Lock delay counter: ${player.lockDelayCounter}`);
+      console.log(`  - Lock delay counter: ${player.lockDelayCounter}`);*/
 
       if (!player.input.down && !player.forcedFall && piece.canMoveDown(player.grid)) {
         piece = piece.move(0, 1);
         player.lockDelayCounter = 0;
         player.isTouchingGround = false;
         player.lockMoveResets = 0;
-        console.log(`  - ✅ Moved down to (${piece.x}, ${piece.y})`);
+        //console.log(`  - ✅ Moved down to (${piece.x}, ${piece.y})`);
       } else {
         if (!player.isTouchingGround) {
           player.isTouchingGround = true;
           player.lockDelayCounter = 0;
           player.lockMoveResets = 0;
-          console.log(`  - 🎯 Now touching ground`);
+          //console.log(`  - 🎯 Now touching ground`);
         } else {
           player.lockDelayCounter++;
-          console.log(
+          /*console.log(
             `  - ⏰ Lock delay: ${player.lockDelayCounter}/${LOCK_DELAY_TICKS}`
-          );
+          );*/
         }
       }
 
@@ -158,9 +158,9 @@ export class Game {
         (player.lockDelayCounter >= LOCK_DELAY_TICKS ||
           player.lockMoveResets >= MAX_LOCK_RESETS)
       ) {
-        console.log(
+        /*console.log(
           `  - 🔒 Locking piece after ${player.lockDelayCounter} ticks`
-        );
+        );*/
         this.lockPiece(player);
         player.lockDelayCounter = 0;
         player.isTouchingGround = false;
@@ -302,11 +302,11 @@ export class Game {
 
     const piece = this.tetrisPieceToPiece(player.currentPiece);
 
-    console.log(`🔒 LOCK PIECE DEBUG:`);
+    /*console.log(`🔒 LOCK PIECE DEBUG:`);
     console.log(`  - Player: ${player.name}`);
     console.log(`  - Piece type: ${piece.type}`);
     console.log(`  - Piece position: (${piece.x}, ${piece.y})`);
-    console.log(`  - Is valid position: ${piece.isValidPosition(player.grid)}`);
+    console.log(`  - Is valid position: ${piece.isValidPosition(player.grid)}`);*/
 
     if (!piece.isValidPosition(player.grid)) {
       console.log(
