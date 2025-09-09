@@ -1,22 +1,29 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../redux/store";
 import { setLobbyConfig, setLoading } from "../redux/lobbySlice";
 import { setGameConfig } from "../redux/gameSlice";
 import { socketService } from "../services/socketService";
+import "./LobbyRoute.css";
+import { resetGame } from "../redux/gameSlice";
+import { getGameModeDisplay, validateGameMode } from "../utils/gameMode";
 
 export default function LobbyRoute() {
   const { room, playerName } = useParams<{
     room: string;
     playerName: string;
   }>();
+  const [searchParams] = useSearchParams();
+  const rawGameMode = searchParams.get("mode") || "normal";
+
+  // Fix: Validate the game mode to ensure it's a proper GameMode type
+  const gameMode = validateGameMode(rawGameMode);
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { players, canStart, isLoading, error } = useSelector(
-    (state: RootState) => state.lobby
-  );
+  const { players, canStart, isLoading, error } = useSelector((state: RootState) => state.lobby);
 
   useEffect(() => {
     if (!room || !playerName) {
@@ -26,62 +33,32 @@ export default function LobbyRoute() {
 
     console.log("🏠 LobbyRoute: Initializing with:", { room, playerName });
 
+    dispatch(resetGame());
     socketService.initialize();
 
     dispatch(setLobbyConfig({ room, playerName }));
     dispatch(setGameConfig({ room, playerName, gameMode: "multiplayer" }));
     dispatch(setLoading(false));
 
-    socketService.joinRoom(playerName, room);
-    socketService.socket.on("game:isLaunching", () => {
-      console.log("🚀 LobbyRoute: Game is launching, navigating to game route");
-      // navigate(`/${room}/${playerName}/game`);
-    });
+    sessionStorage.setItem("selectedGameMode", gameMode);
+
+    socketService.joinRoom(playerName, room, gameMode);
 
     socketService.socket.on("game:isSetup", () => {
       console.log("🎮 LobbyRoute: Received game:isSetup, navigating to game");
       navigate(`/${room}/${playerName}/game`);
     });
 
-    socketService.socket.on("game:isLaunching", () => {
-      console.log("🚀 LobbyRoute: Game is launching, navigating to game route");
-    });
-
     return () => {
-      // Leave room when component unmounts
-      // console.log("🏠 LobbyRoute: Cleanup - leaving room");
-      // socketService.leaveRoom(playerName, room);
       socketService.socket.off("game:isSetup");
-      socketService.socket.off("game:isLaunching");
-      // socketService.socket.off("game:isSetup");
+      // socketService.socket.off("game:isLaunching");
     };
-  }, [room, playerName, dispatch, navigate]);
-
+  }, [room, playerName, gameMode, dispatch, navigate]);
 
   const startGame = () => {
-    console.log("🚀 LobbyRoute: Start game button clicked!");
-    console.log("🚀 LobbyRoute: Current state:", {
-      canStart,
-      room,
-      playerName,
-    });
-    console.log("🚀 LobbyRoute: Players length:", players.length);
-    console.log("🚀 LobbyRoute: Is loading:", isLoading);
-
+    console.log("🚀 LobbyRoute: Starting game with mode:", gameMode);
     if (canStart && room) {
-      console.log(
-        "🚀 LobbyRoute: Conditions met, calling socketService.startGame"
-      );
       socketService.startGame(room);
-      console.log(
-        "🚀 LobbyRoute: socketService.startGame called, navigating..."
-      );
-      navigate(`/${room}/${playerName}/game`);
-    } else {
-      console.log("🚀 LobbyRoute: Conditions NOT met:", {
-        canStart,
-        hasRoom: !!room,
-      });
     }
   };
 
@@ -96,63 +73,52 @@ export default function LobbyRoute() {
   }
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Lobby: {room}</h2>
-      <p>You are: {playerName}</p>
+    <div className="lobby-container">
+      <div className="lobby-box">
+        <h2>Lobby: {room}</h2>
+        <p>You are: {playerName}</p>
 
-      {isLoading && <p>Joining room...</p>}
+        {/* ✅ Simple game mode display */}
+        <div className="game-mode-indicator">
+          <p
+            style={{
+              color: "#00fff7",
+              fontSize: "0.8rem",
+              margin: "0.5rem 0",
+              padding: "0.5rem",
+              background: "#111",
+              border: "1px solid #00fff7",
+              borderRadius: "0.25rem",
+            }}
+          >
+            {/* Fix: Now gameMode is properly typed as GameMode */}
+            🎮 Mode: {getGameModeDisplay(gameMode)}
+          </p>
+        </div>
 
-      <h3>Players in room ({players.length}):</h3>
-      <ul>
-        {players.map((p) => (
-          <li key={p.name}>
-            {p.name}
-            {p.name === playerName && " (you)"}
-            {p.isLeader && " (leader)"}
-          </li>
-        ))}
-      </ul>
+        <h3>Players in room ({players.length}):</h3>
+        <ul>
+          {players.map((p) => (
+            <li key={p.name}>
+              {p.name}
+              {p.name === playerName && " (you)"}
+              {p.isLeader && " (leader)"}
+            </li>
+          ))}
+        </ul>
 
-      {/* Debug info */}
-      <div
-        style={{
-          marginTop: "20px",
-          padding: "10px",
-          background: "#f0f0f0",
-          fontSize: "12px",
-        }}
-      >
-        <strong>Debug Info:</strong>
-        <br />
-        Can Start: {canStart ? "Yes" : "No"}
-        <br />
-        Your Name: {playerName}
-        <br />
-        Players: {JSON.stringify(players, null, 2)}
+        <button onClick={startGame} disabled={!canStart || isLoading} className="retro-button">
+          {canStart ? "Start Game" : "Waiting for leader..."}
+        </button>
+
+        <button
+          onClick={() => navigate("/")}
+          className="retro-button"
+          style={{ marginTop: "1rem", backgroundColor: "#666" }}
+        >
+          🏠 Back to Home
+        </button>
       </div>
-
-      <p style={{ fontSize: "12px", color: "blue" }}>
-        Button disabled: {String(!canStart || players.length < 1 || isLoading)}
-        (canStart: {String(canStart)}, players: {players.length}, isLoading:{" "}
-        {String(isLoading)})
-      </p>
-
-      <button
-        onClick={startGame}
-        disabled={!canStart || players.length < 1 || isLoading}
-        style={{
-          marginTop: "10px",
-          padding: "10px 20px",
-          backgroundColor: canStart ? "green" : "gray",
-          color: "white",
-          border: "none",
-          cursor: canStart ? "pointer" : "not-allowed",
-        }}
-      >
-        {canStart
-          ? `Start Game (${players.length} players ready)`
-          : "Waiting for leader..."}
-      </button>
     </div>
   );
 }

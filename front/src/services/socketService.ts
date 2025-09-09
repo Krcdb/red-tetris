@@ -1,130 +1,230 @@
 import socket from "../utils/socket";
 import { store } from "../redux/store";
-import {
-  updateGameState,
-  gameSetup,
-  gameStarted,
-  gameOver,
-  setError as setGameError,
-} from "../redux/gameSlice";
+import { updateGameState, gameSetup, gameStarted, gameOver, setError as setGameError } from "../redux/gameSlice";
 import { updatePlayers, setError as setLobbyError } from "../redux/lobbySlice";
+import { validateGameMode } from "../utils/gameMode";
 
-class SocketService {
-  private initialized = false;
+let isInitialized = false;
 
-  get socket() {
-    return socket;
-  }
+const registeredHandlers = new Map();
 
-  initialize() {
-    if (this.initialized) return;
-    this.initialized = true;
+const registerHandler = (event: string, handler: (...args: any[]) => void) => {
+  socket.on(event, handler);
+  registeredHandlers.set(event, handler);
+};
 
-    console.log("🔧 SocketService: Initializing...");
+const initialize = () => {
+  if (isInitialized) return;
+  isInitialized = true;
 
-    socket.onAny((eventName, ...args) => {
-      console.log("📡 Raw socket event received:", eventName, args);
-    });
+  console.log("🔧 SocketService: Initializing...");
 
-    socket.on("game:isSetup", () => {
-      console.log("🔧 SocketService: Game is setup");
-      store.dispatch(gameSetup());
-    });
+  const onAnyHandler = (eventName: string, ...args: any[]) => {
+    console.log("📡 Raw socket event received:", eventName, args);
+  };
 
-    socket.on("game:isLaunching", () => {
-      console.log("🚀 SocketService: Game is launching");
-      store.dispatch(gameStarted());
-    });
+  const onGameSetup = () => {
+    console.log("🔧 SocketService: Game is setup");
+    store.dispatch(gameSetup());
+  };
 
-    socket.on("game:newState", (gameState) => {
-      console.log("📤 SocketService: Received game state:", gameState);
-      store.dispatch(updateGameState(gameState));
-    });
+  const onGameLaunching = () => {
+    console.log("🚀 SocketService: Game is launching");
+    store.dispatch(gameStarted());
+  };
 
-    socket.on("match:playerHasJoin", (match) => {
-      console.log("👥 SocketService: Player joined event received!");
-      console.log("👥 SocketService: Match data:", match);
-      console.log("👥 SocketService: Match players:", match?.player);
-      store.dispatch(updatePlayers(match));
-    });
+  const onGameNewState = (gameState: any) => {
+    console.log("📤 SocketService: Received game state:", gameState);
+    store.dispatch(updateGameState(gameState));
+  };
 
-    socket.on("match:playerHasLeft", (match) => {
-      console.log("👋 SocketService: Player left, updating players:", match);
-      store.dispatch(updatePlayers(match));
-    });
+  const onPlayerJoin = (match: any) => {
+    console.log("👥 SocketService: Player joined event received!");
+    console.log("👥 SocketService: Match data:", match);
+    console.log("👥 SocketService: Match players:", match?.player);
+    store.dispatch(updatePlayers(match));
+  };
 
-    socket.on("match:newLeader", (match) => {
-      console.log("👑 SocketService: New leader assigned:", match);
-      store.dispatch(updatePlayers(match));
-    });
+  const onPlayerLeft = (match: any) => {
+    console.log("👋 SocketService: Player left, updating players:", match);
+    store.dispatch(updatePlayers(match));
+  };
 
-    socket.on("match:nameTaken", (playerName) => {
-      console.log("❌ SocketService: Name taken:", playerName);
-      store.dispatch(setLobbyError(`Name "${playerName}" is already taken!`));
-    });
+  const onNewLeader = (match: any) => {
+    console.log("👑 SocketService: New leader assigned:", match);
+    store.dispatch(updatePlayers(match));
+  };
 
-    socket.on("connect", () => {
-      console.log("🔌 SocketService: Connected to server");
-    });
+  const onNameTaken = (playerName: string) => {
+    console.log("❌ SocketService: Name taken:", playerName);
+    store.dispatch(setLobbyError(`Name "${playerName}" is already taken!`));
+  };
 
-    socket.on("disconnect", () => {
-      console.log("🔌 SocketService: Disconnected from server");
-    });
+  const onConnect = () => {
+    console.log("🔌 SocketService: Connected to server");
+  };
 
-    socket.on("connect_error", (error) => {
-      console.log("❌ SocketService: Connection error:", error);
-      store.dispatch(setGameError("Connection error: " + error.message));
-    });
+  const onDisconnect = () => {
+    console.log("🔌 SocketService: Disconnected from server");
+  };
 
-    socket.on("game:over", (data) => {
-      console.log("💀 SocketService: Game over event received", data);
-      store.dispatch(gameOver());
-    });
+  const onConnectError = (error: any) => {
+    console.log("❌ SocketService: Connection error:", error);
+    store.dispatch(setGameError("Connection error: " + error.message));
+  };
 
-    console.log("✅ SocketService: All event listeners registered");
-  }
+  const onGameOver = (data: any) => {
+    console.log("💀 SocketService: Game over event received", data);
+    store.dispatch(gameOver());
+  };
 
-  sendInput(input: any) {
-    console.log("🎮 SocketService: Sending input:", input);
-    socket.emit("game:playerInputChanges", { input });
-  }
+  const onMatchError = (message: string) => {
+    console.error("❌ SocketService: Match error:", message);
+    alert(`❌ Error: ${message}`);
+  };
 
-  playerReady() {
-    console.log("✅ SocketService: Player ready");
-    socket.emit("game:playerReady");
-  }
+  // ✅ Register all handlers in one place
+  const handlers = [
+    { event: "game:isSetup", handler: onGameSetup },
+    { event: "game:isLaunching", handler: onGameLaunching },
+    { event: "game:newState", handler: onGameNewState },
+    { event: "match:playerHasJoin", handler: onPlayerJoin },
+    { event: "match:playerHasLeft", handler: onPlayerLeft },
+    { event: "match:newLeader", handler: onNewLeader },
+    { event: "match:nameTaken", handler: onNameTaken },
+    { event: "match:error", handler: onMatchError }, // ✅ Only here
+    { event: "connect", handler: onConnect },
+    { event: "disconnect", handler: onDisconnect },
+    { event: "connect_error", handler: onConnectError },
+    { event: "game:over", handler: onGameOver },
+  ];
 
-  joinRoom(playerName: string, room: string) {
-    console.log("📥 SocketService: Sending join room event:", {
-      playerName,
-      room,
-    });
-    console.log("📥 SocketService: Socket connected?", socket.connected);
-    socket.emit("match:playerJoin", { playerName, room });
-    console.log("📥 SocketService: Join room event sent");
-  }
+  handlers.forEach(({ event, handler }) => {
+    registerHandler(event, handler);
+  });
 
-  leaveRoom(playerName: string, room: string) {
-    console.log("📤 SocketService: Leaving room:", { playerName, room });
-    socket.emit("match:playerLeft", { playerName, room });
-  }
+  socket.onAny(onAnyHandler);
+  registeredHandlers.set("onAny", onAnyHandler);
 
-  startGame(room: string) {
-    console.log("🚀 SocketService: Starting game in room:", room);
-    socket.emit("match:startGame", { room });
-  }
+  console.log("✅ SocketService: All event listeners registered");
+};
 
-  on(event: string, callback: (...args: any[]) => void) {
-    socket.on(event, callback);
-  }
+const cleanup = () => {
+  console.log("🧹 SocketService: Cleaning up all listeners");
 
-  off(event: string, callback?: (...args: any[]) => void) {
-    socket.off(event, callback);
-  }
-  disconnect() {
+  registeredHandlers.forEach((handler, event) => {
+    if (event === "onAny") {
+      socket.offAny(handler);
+    } else {
+      socket.off(event, handler);
+    }
+  });
+
+  registeredHandlers.clear();
+
+  isInitialized = false;
+
+  if (socket.connected) {
+    console.log("🔌 SocketService: Forcing socket disconnection");
     socket.disconnect();
-    this.initialized = false;
-  }
-}
 
-export const socketService = new SocketService();
+    setTimeout(() => {
+      socket.connect();
+    }, 100);
+  }
+
+  console.log("✅ SocketService: Cleanup complete");
+};
+
+const leaveCurrentRoom = () => {
+  console.log("🚪 SocketService: Leaving current room");
+  socket.emit("match:leaveCurrentRoom");
+};
+
+const resetForHome = () => {
+  console.log("🏠 SocketService: Resetting for home navigation");
+
+  leaveCurrentRoom();
+
+  cleanup();
+
+  sessionStorage.clear();
+};
+
+const sendInput = (input: any) => {
+  console.log("🎮 SocketService: Sending input:", input);
+  socket.emit("game:playerInputChanges", { input });
+};
+
+const playerReady = () => {
+  console.log("✅ SocketService: Sending player ready event");
+  console.log("✅ SocketService: Socket connected:", socket.connected);
+  console.log("✅ SocketService: Socket ID:", socket.id);
+
+  socket.emit("game:playerReady");
+
+  setTimeout(() => {
+    console.log("⏰ SocketService: 5 seconds after playerReady, checking status...");
+    const state = store.getState();
+    console.log("⏰ SocketService: Current game status:", state.game.status);
+  }, 5000);
+};
+
+const joinRoom = (playerName: string, room: string, gameMode?: string) => {
+  const validatedGameMode = gameMode ? validateGameMode(gameMode) : "normal";
+  console.log("📥 SocketService: Sending join room event:", {
+    playerName,
+    room,
+    gameMode,
+  });
+  console.log("📥 SocketService: Socket connected?", socket.connected);
+  socket.emit("match:playerJoin", {
+    playerName,
+    room,
+    gameMode: validatedGameMode,
+  });
+  console.log("📥 SocketService: Join room event sent");
+};
+
+const leaveRoom = (playerName: string, room: string) => {
+  console.log("📤 SocketService: Leaving room:", { playerName, room });
+  socket.emit("match:playerLeft", { playerName, room });
+};
+
+const startGame = (room: string) => {
+  console.log("🚀 SocketService: Starting game in room:", room);
+  socket.emit("match:startGame", { room });
+};
+
+const on = (event: string, callback: (...args: any[]) => void) => {
+  socket.on(event, callback);
+};
+
+const off = (event: string, callback?: (...args: any[]) => void) => {
+  socket.off(event, callback);
+};
+
+const disconnect = () => {
+  cleanup();
+  socket.disconnect();
+};
+
+const getSocket = () => socket;
+
+export const socketService = {
+  initialize,
+  cleanup,
+  resetForHome,
+  sendInput,
+  playerReady,
+  joinRoom,
+  leaveRoom,
+  leaveCurrentRoom,
+  startGame,
+  on,
+  off,
+  disconnect,
+  get socket() {
+    return getSocket();
+  },
+};

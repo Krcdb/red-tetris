@@ -22,10 +22,7 @@ const lobbySlice = createSlice({
   name: "lobby",
   initialState,
   reducers: {
-    setLobbyConfig: (
-      state,
-      action: PayloadAction<{ room: string; playerName: string }>
-    ) => {
+    setLobbyConfig: (state, action: PayloadAction<{ room: string; playerName: string }>) => {
       state.room = action.payload.room;
       state.playerName = action.payload.playerName;
     },
@@ -36,9 +33,7 @@ const lobbySlice = createSlice({
 
       state.players = match.player || [];
 
-      const currentPlayer = state.players.find(
-        (p) => p.name === state.playerName
-      );
+      const currentPlayer = state.players.find((p) => p.name === state.playerName);
       const isLeader = currentPlayer?.isLeader || false;
 
       console.log("🔍 Redux: Current player leadership status:", {
@@ -46,7 +41,7 @@ const lobbySlice = createSlice({
         currentPlayer,
         isLeader,
         allPlayers: state.players,
-      }); // Debug log
+      });
 
       state.canStart = isLeader;
     },
@@ -63,11 +58,5 @@ const lobbySlice = createSlice({
   },
 });
 
-export const {
-  setLobbyConfig,
-  updatePlayers,
-  setError,
-  setLoading,
-  resetLobby,
-} = lobbySlice.actions;
+export const { setLobbyConfig, updatePlayers, setError, setLoading, resetLobby } = lobbySlice.actions;
 export default lobbySlice.reducer;

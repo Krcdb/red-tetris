@@ -6,6 +6,9 @@ import { getLogger } from "../utils/Logger.js";
 
 type Matchs = Record<string, Match>;
 
+const VALID_GAME_MODES = ["normal", "invisible", "no-preview", "speed"] as const;
+type GameMode = (typeof VALID_GAME_MODES)[number];
+
 class MatchService {
   matchs: Matchs;
   private logger = getLogger("MatchService");
@@ -16,6 +19,23 @@ class MatchService {
 
   canPlayerStartGame(playerName: string, room: string): boolean {
     return !!this.matchs[room]?.player.find((p) => p.name === playerName && p.isLeader);
+  }
+
+  forceCleanPlayer(playerName: string, socket: CustomeSocket): void {
+    this.logger.info(`Force cleaning player ${playerName} from all rooms`);
+
+    Object.keys(this.matchs).forEach((room) => {
+      const match = this.matchs[room];
+      if (match.player.some((p) => p.name === playerName)) {
+        this.logger.info(`Removing ${playerName} from room ${room}`);
+        this.playerLeave(playerName, room, socket);
+      }
+    });
+
+    // Clear socket data completely
+    socket.data.currentRoom = undefined;
+    socket.data.playerName = undefined;
+    socket.data.gameMode = undefined;
   }
 
   getMatch(room: string): Match | null {
@@ -51,9 +71,31 @@ class MatchService {
     return this.getPlayerCount(room) >= maxPlayers;
   }
 
-  /** Join (or switch) rooms, enforcing unique names and leader rules. */
-  playerJoin(playerName: string, room: string, socket: CustomeSocket): Match {
-    this.logger.info(`player ${playerName} tries to join room ${room}`);
+  playerJoin(playerName: string, room: string, socket: CustomeSocket, gameMode?: string): Match {
+    this.logger.info(`player ${playerName} tries to join room ${room} with mode ${gameMode}`);
+
+    const validatedGameMode = gameMode ? validateGameMode(gameMode) : "normal";
+    const hasActiveGame = gameService.isGameRunning(room);
+
+    // ✅ Check game mode consistency for ANY existing room (active game or not)
+    if (this.matchs[room]) {
+      if (this.matchs[room].gameMode !== validatedGameMode) {
+        const errorMessage = hasActiveGame
+          ? `Room ${room} has an active game using ${this.matchs[room].gameMode} mode. Please wait for the game to finish or select the same mode.`
+          : `Room ${room} is set to ${this.matchs[room].gameMode} mode. Please select the same mode to join.`;
+
+        this.logger.warn(
+          `Player ${playerName} tried to join room ${room} with mode ${validatedGameMode}, but room is using ${this.matchs[room].gameMode}`,
+        );
+        throw new Error(errorMessage);
+      }
+    }
+
+    if (gameMode && gameMode !== validatedGameMode) {
+      this.logger.warn(`Invalid game mode "${gameMode}" provided, using "${validatedGameMode}"`);
+    }
+
+    socket.data.gameMode = validatedGameMode;
 
     /* --- If the socket is already in a room, leave that one first --- */
     if (socket.data.currentRoom !== undefined) {
@@ -72,8 +114,8 @@ class MatchService {
 
     /* --- Create room entry if needed --- */
     if (!this.matchs[room]) {
-      this.logger.info(`room ${room} does not exist – creating it`);
-      this.matchs[room] = { player: [], roomName: room };
+      this.logger.info(`room ${room} does not exist – creating it with mode ${validatedGameMode}`);
+      this.matchs[room] = { gameMode: validatedGameMode, player: [], roomName: room };
     }
 
     /* --- Reject duplicate names --- */
@@ -122,6 +164,7 @@ class MatchService {
     this.logger.info(`player ${playerName} left room ${room}`);
     socket.data.currentRoom = undefined;
     socket.data.playerName = undefined;
+    socket.data.gameMode = undefined;
 
     /* --- Promote a new leader if needed --- */
     if (wasLeader && match.player.length > 0) {
@@ -141,8 +184,6 @@ class MatchService {
     return match;
   }
 
-  /* ---------- socket-disconnect cleanup ---------- */
-
   /** Only the leader can start the game. */
   startGame(room: string, socket: CustomeSocket) {
     const match = this.matchs[room];
@@ -151,10 +192,24 @@ class MatchService {
       return;
     }
 
-    const isLeader = match.player.find((p) => p.name === socket.data.playerName)?.isLeader;
+    const playerData = match.player.find((p) => p.name === socket.data.playerName);
+    const isLeader = playerData?.isLeader;
+
+    // 🔍 Add detailed logging
+    console.log(`🎯 MATCH START GAME DEBUG:`);
+    console.log(`  - Room: ${room}`);
+    console.log(`  - Socket player name: "${socket.data.playerName}"`);
+    console.log(`  - Socket game mode: "${socket.data.gameMode}"`);
+    console.log(`  - Match game mode: "${match.gameMode}"`);
+    console.log(`  - Player is leader: ${isLeader}`);
 
     if (isLeader) {
-      gameService.createGame(match.player, room);
+      // Use the match's game mode instead of the socket's
+      const gameMode = match.gameMode || "normal";
+
+      console.log(`  - Final gameMode being passed: "${gameMode}"`);
+
+      gameService.createGame(match.player, room, gameMode);
     } else {
       this.logger.warn(`startGame denied: player ${socket.data.playerName} is not leader`);
     }
@@ -171,6 +226,18 @@ class MatchService {
       gameService.forceStopGame(room);
     }
   }
+}
+
+function isValidGameMode(mode: string): mode is GameMode {
+  return VALID_GAME_MODES.includes(mode as GameMode);
+}
+
+function validateGameMode(mode: string, fallback: GameMode = "normal"): GameMode {
+  if (isValidGameMode(mode)) {
+    return mode;
+  }
+  console.warn(`Invalid game mode "${mode}", falling back to "${fallback}"`);
+  return fallback;
 }
 
 export const matchService = new MatchService();

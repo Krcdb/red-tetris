@@ -1,13 +1,11 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import { socketService } from "../services/socketService";
 import "./GameControls.css";
 
 export default function GameControls() {
-  const { status, playerName, room } = useSelector(
-    (state: RootState) => state.game
-  );
+  const { status } = useSelector((state: RootState) => state.game);
   const keysPressed = useRef<Set<string>>(new Set());
   const inputRef = useRef({
     up: false,
@@ -90,17 +88,12 @@ export default function GameControls() {
       </ul>
 
       {status === "idle" && (
-        <button
-          className="ready-button"
-          onClick={() => socketService.playerReady()}
-        >
+        <button className="ready-button" onClick={() => socketService.playerReady()}>
           Ready to Play
         </button>
       )}
 
-      <div className={`status-indicator status-${status}`}>
-        Status: {status.toUpperCase()}
-      </div>
+      <div className={`status-indicator status-${status}`}>Status: {status.toUpperCase()}</div>
     </div>
   );
 }

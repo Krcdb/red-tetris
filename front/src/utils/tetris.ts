@@ -82,13 +82,7 @@ export function renderGhostPiece(board: Board, piece: Piece | null): Board {
       if (cell !== 0) {
         const boardY = ghostY + y;
         const boardX = piece.x + x;
-        if (
-          boardY >= 0 &&
-          boardY < 20 &&
-          boardX >= 0 &&
-          boardX < 10 &&
-          rendered[boardY][boardX] === 0
-        ) {
+        if (boardY >= 0 && boardY < 20 && boardX >= 0 && boardX < 10 && rendered[boardY][boardX] === 0) {
           rendered[boardY][boardX] = -1;
         }
       }

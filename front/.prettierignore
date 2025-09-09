@@ -1,0 +1,4 @@
+dist
+node_modules
+public/index.html
+webpack.config.js

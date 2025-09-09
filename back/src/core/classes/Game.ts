@@ -7,6 +7,7 @@ import { Player } from "./Player.js";
 
 export class Game {
   public currentPieceIndex: number;
+  public gameMode: string;
   public isRunning: boolean;
   public isSolo: boolean;
   public pieces: Piece[];
@@ -14,19 +15,42 @@ export class Game {
   public room: string;
   private logger = getLogger("Game");
 
-  constructor(room: string, playerNames: string[]) {
+  constructor(room: string, playerNames: string[], gameMode = "normal") {
     this.room = room;
+    this.gameMode = gameMode;
     this.players = playerNames.map((name) => new Player(name));
     this.pieces = Piece.generatePieceSequence(1000);
     this.currentPieceIndex = 0;
     this.isRunning = false;
     this.isSolo = playerNames.length === 1;
 
-    this.logger.info(`Created new Game for room ${room} with ${playerNames.length} players`);
+    // 🔍 Add detailed logging
+    console.log(`🎯 GAME CONSTRUCTOR DEBUG:`);
+    console.log(`  - Room: ${room}`);
+    console.log(`  - GameMode parameter: "${gameMode}"`);
+    console.log(`  - Final this.gameMode: "${this.gameMode}"`);
+    console.log(`  - Players: ${playerNames.join(", ")}`);
+
+    this.logger.info(
+      `Created new Game for room ${room} with ${String(playerNames.length)} players, mode: ${gameMode}`
+    );
   }
 
   public areAllPlayersReady(): boolean {
-    return this.players.every((player) => player.isReady);
+    const readyCount = this.players.filter((p) => p.isReady).length;
+    const totalCount = this.players.length;
+    const allReady = this.players.every((player) => player.isReady);
+
+    this.logger.info(
+      `Ready check: ${readyCount}/${totalCount} players ready, all ready: ${allReady}`
+    );
+    this.logger.info(
+      `Player ready states: ${this.players
+        .map((p) => `${p.name}:${p.isReady}`)
+        .join(", ")}`
+    );
+
+    return allReady;
   }
 
   public getGameState(): any {
@@ -34,7 +58,9 @@ export class Game {
       currentPieceIndex: this.currentPieceIndex,
       gamers: this.players.map((player) => ({
         ...player.getState(),
-        nextPieces: this.pieces.slice(player.currentPieceIndex, player.currentPieceIndex + 5).map((p) => this.pieceToTetrisPiece(p)),
+        nextPieces: this.pieces
+          .slice(player.currentPieceIndex, player.currentPieceIndex + 5)
+          .map((p) => this.pieceToTetrisPiece(p)),
       })),
       isRunning: this.isRunning,
       isSolo: this.isSolo,
@@ -62,11 +88,29 @@ export class Game {
     if (nextPiece) {
       const pieceForPlayer = this.pieceToTetrisPiece(nextPiece);
 
+      // 🔍 Check if the spawn position is valid
+      const testPiece = this.tetrisPieceToPiece(pieceForPlayer);
+      if (!testPiece.isValidPosition(player.grid)) {
+        console.log(
+          `🚨 GAME OVER: Cannot spawn piece ${nextPiece.type} at (${testPiece.x}, ${testPiece.y})`
+        );
+
+        this.logger.info(
+          `Game over for ${player.name}! Cannot spawn new piece.`
+        );
+        const io = MyWebSocket.getInstance();
+        io.to(this.room).emit("game:over", { playerName: player.name });
+        this.stop();
+        return;
+      }
+
       player.setPiece(pieceForPlayer, player.currentPieceIndex);
       player.currentPieceIndex++;
       player.forcedFall = false;
 
-      this.logger.info(`Gave ${player.name} piece #${this.currentPieceIndex - 1} (${nextPiece.type})`);
+      this.logger.info(
+        `Gave ${player.name} piece #${this.currentPieceIndex - 1} (${nextPiece.type})`
+      );
     }
   }
 
@@ -79,34 +123,55 @@ export class Game {
 
       let piece = this.tetrisPieceToPiece(player.currentPiece);
 
+      // 🔍 Add debug logging
+      console.log(`⚡ GRAVITY DEBUG for ${player.name}:`);
+      console.log(`  - Piece at (${piece.x}, ${piece.y})`);
+      console.log(`  - Can move down: ${piece.canMoveDown(player.grid)}`);
+      console.log(`  - Is touching ground: ${player.isTouchingGround}`);
+      console.log(`  - Lock delay counter: ${player.lockDelayCounter}`);
+
       if (!player.input.down && !player.forcedFall && piece.canMoveDown(player.grid)) {
         piece = piece.move(0, 1);
         player.lockDelayCounter = 0;
         player.isTouchingGround = false;
         player.lockMoveResets = 0;
+        console.log(`  - ✅ Moved down to (${piece.x}, ${piece.y})`);
       } else {
         if (!player.isTouchingGround) {
           player.isTouchingGround = true;
           player.lockDelayCounter = 0;
           player.lockMoveResets = 0;
+          console.log(`  - 🎯 Now touching ground`);
         } else {
           player.lockDelayCounter++;
+          console.log(
+            `  - ⏰ Lock delay: ${player.lockDelayCounter}/${LOCK_DELAY_TICKS}`
+          );
         }
       }
 
       player.currentPiece = this.pieceToTetrisPiece(piece);
 
-      if (player.isTouchingGround && (player.lockDelayCounter >= LOCK_DELAY_TICKS || player.lockMoveResets >= MAX_LOCK_RESETS)) {
+      // Lock the piece if lock delay has expired
+      if (
+        player.isTouchingGround &&
+        (player.lockDelayCounter >= LOCK_DELAY_TICKS ||
+          player.lockMoveResets >= MAX_LOCK_RESETS)
+      ) {
+        console.log(
+          `  - 🔒 Locking piece after ${player.lockDelayCounter} ticks`
+        );
         this.lockPiece(player);
         player.lockDelayCounter = 0;
         player.isTouchingGround = false;
         player.lockMoveResets = 0;
+        return;
       }
     });
   }
 
   public processPlayerActions(): void {
-    this.players.forEach((player) => {
+    this.players.forEach(() => {
       this.processGravity();
       this.processPlayerActions();
     });
@@ -177,12 +242,37 @@ export class Game {
 
   public setPlayerReady(playerName: string): boolean {
     const player = this.getPlayer(playerName);
-    if (player) {
-      player.setReady();
-      this.logger.info(`Player ${playerName} is ready`);
+    if (!player) {
+      this.logger.warn(
+        `Player ${playerName} not found in game ${this.room}`
+      );
+      return false;
+    }
+
+    if (this.isRunning) {
+      this.logger.warn(
+        `Game ${this.room} already running, ignoring ready from ${playerName}`
+      );
+      return true; // Ignore but don’t error out
+    }
+
+    if (player.isReady) {
+      this.logger.info(`Player ${playerName} is already ready`);
       return this.areAllPlayersReady();
     }
-    return false;
+
+    player.setReady();
+    const readyCount = this.players.filter((p) => p.isReady).length;
+    const totalCount = this.players.length;
+
+    this.logger.info(
+      `Player ${playerName} is ready. Ready players: ${readyCount}/${totalCount}`
+    );
+
+    const allReady = this.areAllPlayersReady();
+    this.logger.info(`All players ready check result: ${allReady}`);
+
+    return allReady;
   }
 
   public start(): void {
@@ -212,6 +302,26 @@ export class Game {
 
     const piece = this.tetrisPieceToPiece(player.currentPiece);
 
+    console.log(`🔒 LOCK PIECE DEBUG:`);
+    console.log(`  - Player: ${player.name}`);
+    console.log(`  - Piece type: ${piece.type}`);
+    console.log(`  - Piece position: (${piece.x}, ${piece.y})`);
+    console.log(`  - Is valid position: ${piece.isValidPosition(player.grid)}`);
+
+    if (!piece.isValidPosition(player.grid)) {
+      console.log(
+        `  - ⚠️ Cannot lock piece at current position - game over!`
+      );
+
+      this.logger.info(
+        `Game over for ${player.name}! Piece cannot be placed.`
+      );
+      const io = MyWebSocket.getInstance();
+      io.to(this.room).emit("game:over", { playerName: player.name });
+      this.stop();
+      return;
+    }
+
     const newBoard = piece.mergeIntoBoard(player.grid);
     player.updateGrid(newBoard);
 
@@ -222,14 +332,16 @@ export class Game {
     const points = linesCleared * 100 + (linesCleared >= 4 ? 400 : 0);
     player.addScore(points);
 
-    this.logger.info(`${player.name}: Locked piece, cleared ${linesCleared} lines, scored ${points} points`);
+    this.logger.info(
+      `${player.name}: Locked piece, cleared ${linesCleared} lines, scored ${points} points`
+    );
 
     if (linesCleared > 1 && !this.isSolo) {
       this.sendPenaltyLines(player, linesCleared - 1);
     }
 
     if (player.isGameOver()) {
-      this.logger.info(`Game over for ${player.name}!`);
+      this.logger.info(`Game over for ${player.name}! Top row is filled.`);
       const io = MyWebSocket.getInstance();
       io.to(this.room).emit("game:over", { playerName: player.name });
       this.stop();
@@ -251,11 +363,15 @@ export class Game {
   }
 
   private sendPenaltyLines(sender: Player, lineCount: number): void {
-    const penaltyLines = Array.from({ length: lineCount }, () => Array(10).fill(1));
+    const penaltyLines = Array.from({ length: lineCount }, () =>
+      Array(10).fill(1)
+    );
 
     this.players.forEach((player) => {
       if (player.name !== sender.name) {
-        const newGrid = penaltyLines.concat(player.grid.slice(0, 20 - penaltyLines.length));
+        const newGrid = penaltyLines.concat(
+          player.grid.slice(0, 20 - penaltyLines.length)
+        );
         player.updateGrid(newGrid);
         this.logger.info(`Sent ${lineCount} penalty lines to ${player.name}`);
       }

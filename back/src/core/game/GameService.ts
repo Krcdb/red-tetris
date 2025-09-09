@@ -18,11 +18,15 @@ class GameService {
   }
 
   /** Create a fresh Game instance and notify the room that setup is done. */
-  createGame(players: Player[], room: string) {
+  createGame(players: Player[], room: string, gameMode = "normal") {
     this.logger.info(`Creating game for room ${room} with ${players.length} player(s)`);
 
+    if (this.games[room]) {
+      this.forceStopGame(room);
+    }
+
     const playerNames = players.map((p) => p.name);
-    const game = new Game(room, playerNames);
+    const game = new Game(room, playerNames, gameMode);
     this.games[room] = game;
 
     MyWebSocket.getInstance().to(room).emit("game:isSetup");
@@ -48,6 +52,7 @@ class GameService {
     return room in this.games;
   }
 
+  /** Mark a player as ready; when everyone’s ready, begin the match. */
   getActiveGames(): string[] {
     return Object.keys(this.games);
   }
@@ -80,7 +85,16 @@ class GameService {
     this.logger.info(`Launching game ${room}`);
     game.start();
 
-    const loop = new TetrisGameLoop(game.getGameState(), room);
+    const gameMode = game.gameMode || "normal";
+
+    // 🔍 Add detailed logging
+    console.log(`🎯 LAUNCH GAME DEBUG:`);
+    console.log(`  - Room: ${room}`);
+    console.log(`  - Game.gameMode: "${game.gameMode}"`);
+    console.log(`  - Final gameMode: "${gameMode}"`);
+
+    this.logger.info(`Creating TetrisGameLoop for room ${room} with mode ${gameMode}`);
+    const loop = new TetrisGameLoop(game.getGameState(), room, gameMode);
     this.gameLoops[room] = loop;
     loop.start();
   }
@@ -95,7 +109,6 @@ class GameService {
     game.updatePlayerInput(playerName, input);
   }
 
-  /** Mark a player as ready; when everyone’s ready, begin the match. */
   playerReady(playerName: string, room: string) {
     const game = this.games[room];
     if (!game) {
@@ -103,11 +116,24 @@ class GameService {
       throw new Error(`Game ${room} not found`);
     }
 
+    this.logger.info(`Player ${playerName} is setting ready in room ${room}`);
+    this.logger.info(`Current players in game: ${game.players.map((p) => p.name).join(", ")}`);
+
     const allReady = game.setPlayerReady(playerName);
+    this.logger.info(`All players ready in ${room}: ${allReady}`);
+
     if (allReady) {
-      this.logger.info(`All players in ${room} are ready; launching`);
-      MyWebSocket.getInstance().to(room).emit("game:isLaunching");
+      this.logger.info(`All players in ${room} are ready; launching game`);
+      const io = MyWebSocket.getInstance();
+
+      // Emit to room first
+      io.to(room).emit("game:isLaunching");
+      this.logger.info(`Emitted game:isLaunching to room ${room}`);
+
+      // Then launch the game
       this.launchGame(room);
+    } else {
+      this.logger.info(`Not all players ready yet in ${room}`);
     }
   }
 
