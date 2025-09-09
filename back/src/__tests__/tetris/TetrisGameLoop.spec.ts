@@ -115,11 +115,11 @@ describe("TetrisGameLoop", () => {
       vi.advanceTimersByTime(100);
       expect(gameService.getGame).toHaveBeenCalled();
       expect(mockGame.processPlayerInputsOnly).toHaveBeenCalledTimes(1);
-      expect(gameService.sendGameState).toHaveBeenCalledTimes(1); // 1 pour l'input
+      expect(gameService.sendGameState).toHaveBeenCalledTimes(1);
 
       vi.advanceTimersByTime(100);
       expect(mockGame.processPlayerInputsOnly).toHaveBeenCalledTimes(2);
-      expect(gameService.sendGameState).toHaveBeenCalledTimes(2); // 2 pour l'input
+      expect(gameService.sendGameState).toHaveBeenCalledTimes(2);
 
       loop.stop();
     });
