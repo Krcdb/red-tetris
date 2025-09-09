@@ -49,6 +49,11 @@ export default function LobbyRoute() {
       navigate(`/${room}/${playerName}/game`);
     });
 
+    socketService.socket.on("match:error", () => {
+      console.log("Error joining lobby");
+      navigate(`/`);
+    })
+
     return () => {
       socketService.socket.off("game:isSetup");
       // socketService.socket.off("game:isLaunching");

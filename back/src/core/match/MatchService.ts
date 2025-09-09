@@ -78,6 +78,10 @@ class MatchService {
     const hasActiveGame = gameService.isGameRunning(room);
 
     // ✅ Check game mode consistency for ANY existing room (active game or not)
+    this.logger.debug(`Active game ${hasActiveGame}`)
+    if (hasActiveGame) {
+      throw new Error(`Room ${room} is already in game, please wait for the game to finish.`)
+    }
     if (this.matchs[room]) {
       if (this.matchs[room].gameMode !== validatedGameMode) {
         const errorMessage = hasActiveGame
