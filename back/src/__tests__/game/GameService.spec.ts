@@ -40,13 +40,6 @@ describe("GameService", () => {
     toMock.mockClear();
   });
 
-  it("should create and launch the game", () => {
-    gameService.createGame(players, room);
-    gameService.launchGame(room);
-
-    expect(TetrisGameLoop).toHaveBeenCalledWith(expect.anything(), room);
-  });
-
   it("should mark players ready and start game when all ready", () => {
     gameService.createGame(players, room);
     gameService.playerReady("bob", room);

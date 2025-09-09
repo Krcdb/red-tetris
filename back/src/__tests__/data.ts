@@ -9,6 +9,7 @@ export const playerOne: Player = {
 export const matchTest: Match = {
   player: [playerOne],
   roomName: "room2",
+  gameMode: "classic"
 };
 
 export const socketTestData = {
