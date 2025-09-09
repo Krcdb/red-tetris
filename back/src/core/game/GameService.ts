@@ -25,8 +25,6 @@ class GameService {
       this.forceStopGame(room);
     }
 
-    // const gameMode = "normal"; // TODO: Get from socket data or pass as parameter
-
     const playerNames = players.map((p) => p.name);
     const game = new Game(room, playerNames, gameMode);
     this.games[room] = game;
@@ -55,7 +53,6 @@ class GameService {
   }
 
   /** Mark a player as ready; when everyone’s ready, begin the match. */
-
   getActiveGames(): string[] {
     return Object.keys(this.games);
   }
@@ -69,6 +66,7 @@ class GameService {
     return this.games[room]?.isRunning ?? false;
   }
 
+  /** Start the Tetris game loop once all pre-checks pass. */
   launchGame(room: string) {
     const game = this.games[room];
     if (!game) {

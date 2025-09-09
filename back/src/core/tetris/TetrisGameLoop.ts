@@ -81,7 +81,9 @@ export class TetrisGameLoop {
 
     const gameState: GameState = game.getGameState() as GameState;
     const hasGameOverPlayer = gameState.gamers?.some((g) =>
-      Array.from({ length: 2 }).some((_, row) => Array.from({ length: 10 }).some((_, col) => g.grid[row]?.[col] !== 0)),
+      Array.from({ length: 2 }).some((_, row) =>
+        Array.from({ length: 10 }).some((_, col) => g.grid[row]?.[col] !== 0),
+      ),
     );
 
     if (hasGameOverPlayer) {

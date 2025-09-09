@@ -184,8 +184,7 @@ class MatchService {
     return match;
   }
 
-  /* ---------- socket-disconnect cleanup ---------- */
-
+  /** Only the leader can start the game. */
   startGame(room: string, socket: CustomeSocket) {
     const match = this.matchs[room];
     if (!match) {

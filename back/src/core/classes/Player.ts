@@ -1,5 +1,3 @@
-import { scrypt } from "crypto";
-
 import { Cell, GamerInputs, InputDTO, TetrisPiece } from "../types/game.js";
 
 export class Player {
