@@ -12,5 +12,5 @@ const httpServer = createServer(app);
 const io = MyWebSocket.getInstance(httpServer);
 
 httpServer.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`App listening on port ${port}`);
 });
