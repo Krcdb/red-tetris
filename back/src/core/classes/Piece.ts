@@ -93,12 +93,12 @@ export class Piece {
   public mergeIntoBoard(board: Cell[][]): Cell[][] {
     const newBoard = board.map((row) => [...row]); // Deep copy
 
-    console.log(`🔄 MERGE DEBUG:`);
+    /*console.log(`🔄 MERGE DEBUG:`);
     console.log(`  - Piece type: ${this.type} at (${this.x}, ${this.y})`);
     console.log(`  - Piece shape:`);
     this.shape.forEach((row) => {
       console.log(`    [${row.join(", ")}]`);
-    });
+    });*/
 
     for (let row = 0; row < this.shape.length; row++) {
       for (let col = 0; col < this.shape[row].length; col++) {
@@ -109,9 +109,9 @@ export class Piece {
           if (boardY >= 0 && boardY < 20 && boardX >= 0 && boardX < 10) {
             const oldValue = newBoard[boardY][boardX];
             newBoard[boardY][boardX] = this.color;
-            console.log(
+            /*console.log(
               `    - Set (${boardX}, ${boardY}): ${oldValue} → ${this.color}`
-            );
+            );*/
 
             // 🔍 Check for overwrites
             if (oldValue !== 0) {

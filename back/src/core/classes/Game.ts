@@ -79,6 +79,7 @@ export class Game {
   }
 
   public giveNextPiece(player: Player): void {
+    if (player.hasLost) return;
     if (this.currentPieceIndex >= this.pieces.length - 20) {
       this.pieces.push(...Piece.generatePieceSequence(100));
       this.logger.info("Generated more pieces for game continuation");
@@ -91,16 +92,10 @@ export class Game {
       // 🔍 Check if the spawn position is valid
       const testPiece = this.tetrisPieceToPiece(pieceForPlayer);
       if (!testPiece.isValidPosition(player.grid)) {
-        console.log(
-          `🚨 GAME OVER: Cannot spawn piece ${nextPiece.type} at (${testPiece.x}, ${testPiece.y})`
-        );
-
+        this.handlePlayerLoss(player);
         this.logger.info(
-          `Game over for ${player.name}! Cannot spawn new piece.`
+          `Game over for ${player.name}! Piece cannot spawn.`
         );
-        const io = MyWebSocket.getInstance();
-        io.to(this.room).emit("game:over", { playerName: player.name });
-        this.stop();
         return;
       }
 
@@ -171,7 +166,7 @@ export class Game {
   }
 
   public processPlayerActions(): void {
-    this.players.forEach(() => {
+    this.players.filter(p => !p.hasLost).forEach(() => {
       this.processGravity();
       this.processPlayerActions();
     });
@@ -297,6 +292,28 @@ export class Game {
     }
   }
 
+  private handlePlayerLoss(player: Player) {
+    this.logger.debug(`One player has lost check has lost ${player.hasLost}`)
+    player.setHasLost();
+    this.logger.debug(`One player has lost check has lost ${player.hasLost}`)
+    const io = MyWebSocket.getInstance();
+    if (this.isSolo) {
+      this.logger.debug("Solo game over");
+      io.to(this.room).emit("game:over", { playerName: player.name });
+      this.stop();
+      return;
+    }
+    
+    const activePlayers = this.players.filter(p => !p.hasLost);
+    this.logger.info(`Active players remaining: ${activePlayers.length}`);
+
+    if (activePlayers.length <= 1) {
+      this.logger.info(`Game ending. Winner: ${activePlayers[0]?.name ?? 'None'}`);
+      io.to(this.room).emit("game:over", { playerName: player.name });
+      this.stop();
+    }
+  }
+
   private lockPiece(player: Player): void {
     if (!player.currentPiece) return;
 
@@ -309,16 +326,10 @@ export class Game {
     console.log(`  - Is valid position: ${piece.isValidPosition(player.grid)}`);*/
 
     if (!piece.isValidPosition(player.grid)) {
-      console.log(
-        `  - ⚠️ Cannot lock piece at current position - game over!`
-      );
-
+      this.handlePlayerLoss(player);
       this.logger.info(
         `Game over for ${player.name}! Piece cannot be placed.`
       );
-      const io = MyWebSocket.getInstance();
-      io.to(this.room).emit("game:over", { playerName: player.name });
-      this.stop();
       return;
     }
 
@@ -341,10 +352,10 @@ export class Game {
     }
 
     if (player.isGameOver()) {
-      this.logger.info(`Game over for ${player.name}! Top row is filled.`);
-      const io = MyWebSocket.getInstance();
-      io.to(this.room).emit("game:over", { playerName: player.name });
-      this.stop();
+      this.handlePlayerLoss(player);
+      this.logger.info(
+        `Game over for ${player.name}! Piece cannot be placed.`
+      );
       return;
     }
 
