@@ -2,12 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TetrisGameLoop } from "../../core/tetris/TetrisGameLoop";
 import { gameService } from "../../core/game/GameService.js";
 
-
-
-// --- Mocks des dépendances externes ---
-
-// 1. Mock du GameService
-// Nous créons un mock complet pour simuler le comportement du jeu.
 const mockGame = {
   isRunning: true,
   players: [
@@ -27,7 +21,6 @@ vi.mock("../../core/game/GameService.js", () => ({
   },
 }));
 
-// 2. Mock du WebSocket
 vi.mock("../../core/socket/websocket.js", () => {
   const mockIo = {
     emit: vi.fn(),
@@ -40,7 +33,6 @@ vi.mock("../../core/socket/websocket.js", () => {
   };
 });
 
-// 3. Mock du Logger pour éviter les logs dans la console de test
 vi.mock("../../core/utils/Logger.js", () => ({
   getLogger: () => ({
     error: vi.fn(),
@@ -49,15 +41,11 @@ vi.mock("../../core/utils/Logger.js", () => ({
   }),
 }));
 
-// --- Suite de tests pour TetrisGameLoop ---
-
 describe("TetrisGameLoop", () => {
-  // On utilise des timers factices pour contrôler le temps nous-mêmes
   beforeEach(() => {
     vi.useFakeTimers();
     vi.spyOn(global, 'setInterval');
     vi.spyOn(global, 'clearInterval');
-    // On réinitialise l'état du jeu et les mocks avant chaque test
     mockGame.isRunning = true;
     mockGame.players = [
       { name: "Alice", linesCleared: 0 },
@@ -68,7 +56,7 @@ describe("TetrisGameLoop", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-    vi.useRealTimers(); // Important pour ne pas affecter d'autres suites de tests
+    vi.useRealTimers();
   });
 
   describe("Constructor", () => {
