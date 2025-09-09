@@ -91,6 +91,7 @@ const gameSlice = createSlice({
           score?: number;
           linesCleared?: number;
           currentPiece?: Piece | null;
+          nextPieces?: Piece[];
         }>;
         currentPieceIndex?: number;
         nextPieces?: Piece[];
@@ -98,6 +99,12 @@ const gameSlice = createSlice({
       }>
     ) => {
       const serverState = action.payload;
+
+        console.log("updateGameState received:", {
+    nextPieces: serverState.nextPieces,
+    nextPiecesLength: serverState.nextPieces?.length
+  });
+
 
       // Replace optional chaining with regular conditional checks
       const currentPlayer =
@@ -114,6 +121,11 @@ const gameSlice = createSlice({
         state.score = currentPlayer.score || 0;
         state.linesCleared = currentPlayer.linesCleared || 0;
         state.level = Math.floor(state.linesCleared / 10) + 1;
+
+         if (currentPlayer.nextPieces && Array.isArray(currentPlayer.nextPieces)) {
+      state.nextPieces = currentPlayer.nextPieces;
+      console.log("Setting nextPieces from current player:", currentPlayer.nextPieces);
+    }
 
         if (
           typeof serverState.currentPieceIndex === "number" &&

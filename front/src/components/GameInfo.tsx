@@ -117,7 +117,16 @@ function NextPiecePreview({ nextPieces }: { nextPieces: { shape: number[][] }[] 
   }
 
   const next = nextPieces[0];
-  if (!next) return null;
+  if (!next)
+    return (
+      <div className="next-piece-preview">
+        <h4>Next</h4>
+        <div className="next-piece" style={{ padding: "20px", textAlign: "center", color: "#666" }}>
+          ???
+        </div>
+      </div>
+    );
+
   return (
     <div className="next-piece-preview">
       <h4>Next</h4>
@@ -144,6 +153,12 @@ function NextPiecePreview({ nextPieces }: { nextPieces: { shape: number[][] }[] 
 
 export default function GameInfo() {
   const { score, linesCleared, level, opponents, status, nextPieces } = useSelector((state: RootState) => state.game);
+
+  console.log("GameInfo Redux state:", {
+    nextPiecesLength: nextPieces?.length,
+    nextPieces: nextPieces,
+    firstPiece: nextPieces?.[0]
+  });
 
   // Use nextPieces from the game state instead of trying to get it from gamers
   const displayNextPieces = nextPieces || [];
