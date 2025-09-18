@@ -54,12 +54,15 @@ export default function Solo() {
 		navigate("/");
 	};
 
+	// ✅ Check error state FIRST, before status
 	if (error) {
 		return (
 			<div style={{ padding: "20px", color: "red" }}>
 				<h2>Solo Game Error</h2>
 				<p>{error}</p>
-				<button type="button" onClick={handleExit}>Back to Home</button>
+				<button type="button" onClick={handleExit}>
+					Back to Home
+				</button>
 			</div>
 		);
 	}
