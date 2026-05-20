@@ -1,0 +1,8 @@
+# Claude Code
+CLAUDE.md
+.claude/
+
+# Environment variables
+.env
+.env.*
+!.env.example

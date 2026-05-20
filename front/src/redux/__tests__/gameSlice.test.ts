@@ -21,7 +21,7 @@ describe("gameSlice", () => {
 
   it("should handle gameSetup", () => {
     const actual = gameReducer(initialState, gameSetup());
-    expect(actual.status).toBe("idle");
+    expect(actual.status).toBe("setup");
     expect(actual.isLoading).toBe(false);
     expect(actual.error).toBe(null);
   });

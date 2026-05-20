@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "../../test/test-utils";
+import { render, screen, fireEvent, act } from "../../test/test-utils";
 import Solo from "../Solo";
+import { setError } from "../../redux/gameSlice";
 
 // Mock react-router-dom
 const mockNavigate = vi.fn();
@@ -13,7 +14,7 @@ vi.mock("react-router-dom", async () => {
 });
 
 describe("Solo", () => {
-  it("renders solo game interface", () => {
+  it("renders the setup/loading view while waiting for the backend", () => {
     const mockState = {
       game: {
         status: "idle" as const,
@@ -37,37 +38,23 @@ describe("Solo", () => {
     render(<Solo />, { preloadedState: mockState });
 
     expect(screen.getByText("Solo Tetris")).toBeInTheDocument();
-    expect(screen.getByText("Press SPACE to start!")).toBeInTheDocument();
-    expect(screen.getByText("Start Game")).toBeInTheDocument();
+    expect(screen.getByText("Setting up game...")).toBeInTheDocument();
   });
 
-  it("starts game when button is clicked", () => {
-    const mockState = {
-      game: {
-        status: "idle" as const,
-        score: 0,
-        linesCleared: 0,
-        board: [],
-        currentPiece: null,
-        nextPieces: [],
-        level: 1,
-        gameMode: "solo" as const,
-        room: "",
-        playerName: "",
-        opponents: [],
-        isLoading: false,
-        error: null,
-        needsNextPiece: false,
-        gamers: [],
-      },
-    };
+  it("renders an error view with a Back to Home button when an error is set", () => {
+    // Solo.tsx dispatches resetGame() on mount, which clears any preloaded
+    // error. Set the error AFTER the component mounts so it survives.
+    const { store } = render(<Solo />);
 
-    const { store } = render(<Solo />, { preloadedState: mockState });
+    act(() => {
+      store.dispatch(setError("Something went wrong"));
+    });
 
-    const startButton = screen.getByText("Start Game");
-    fireEvent.click(startButton);
+    expect(screen.getByText("Solo Game Error")).toBeInTheDocument();
+    expect(screen.getByText("Something went wrong")).toBeInTheDocument();
 
-    const state = store.getState();
-    expect(state.game.status).toBe("playing");
+    const backButton = screen.getByText("Back to Home");
+    fireEvent.click(backButton);
+    expect(mockNavigate).toHaveBeenCalledWith("/");
   });
 });

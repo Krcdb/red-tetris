@@ -47,17 +47,17 @@ export interface GamerInputs {
 
 export interface GameState {
   currentPieceIndex: number;
-  gamers: Gamer[];
+  gamers: {
+    grid: Cell[][];
+    linesCleared: number;
+    name: string;
+    nextPieces: TetrisPiece[];
+    score: number;
+  }[];
   isRunning: boolean;
   isSolo: boolean;
+  pieceSequenceLength: number;
   room: string;
-  sharedPieces: {
-    rotation: number;
-    shape: number[][];
-    type: string;
-    x: number;
-    y: number;
-  }[];
 }
 
 export interface InputDTO {
