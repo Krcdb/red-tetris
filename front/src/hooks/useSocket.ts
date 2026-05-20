@@ -1,29 +1,31 @@
 import { useEffect } from "react";
-import { io, Socket } from "socket.io-client";
-import { useDispatch } from "react-redux";
+import type { Socket } from "socket.io-client";
+import socket from "../utils/socket";
+
+// Legacy hook: pre-dates the canonical socket-events contract and is only
+// referenced by the (also-legacy) Lobby component. Routed through `unknown` so
+// the event names (`joinRoom`, `roomFull`) — which are not in the typed
+// contract — still compile.
+const legacy = socket as unknown as Socket;
 
 export function useSocket() {
-  const dispatch = useDispatch();
-  const socket: Socket = io("http://localhost:4000", {
-    autoConnect: false,
-  });
-
   useEffect(() => {
     const [, room, playerName] = window.location.pathname.split("/");
-    socket.auth = { room, playerName };
-    socket.connect();
+    legacy.auth = { room, playerName };
+    if (!legacy.connected) legacy.connect();
 
-    socket.emit("joinRoom", { room, playerName });
+    legacy.emit("joinRoom", { room, playerName });
 
-    socket.on("roomFull", () => {
+    const onRoomFull = () => {
       alert("Room is full. Redirecting you home.");
       window.location.replace("/");
-    });
+    };
+    legacy.on("roomFull", onRoomFull);
 
     return () => {
-      socket.disconnect();
+      legacy.off("roomFull", onRoomFull);
     };
-  }, [dispatch]);
+  }, []);
 
-  return socket;
+  return legacy;
 }

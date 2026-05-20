@@ -1,11 +1,19 @@
-import { io } from "socket.io-client";
+import { io, type Socket } from "socket.io-client";
+import type { ClientToServerEvents, ServerToClientEvents } from "../types/socket-events";
 
-const socket = io("http://localhost:4000", {
+export type AppSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
+
+const socket: AppSocket = io("http://localhost:4000", {
   autoConnect: true,
   transports: ["websocket", "polling"],
 });
 
-(window as any).socket = socket;
+declare global {
+  interface Window {
+    socket: AppSocket;
+  }
+}
+window.socket = socket;
 
 socket.on("connect", () => {
   console.log("🔌 Socket connected with ID:", socket.id);

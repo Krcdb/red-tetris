@@ -104,12 +104,13 @@ export function getFallSpeed(level: number): number {
   return Math.max(50, 1000 - (level - 1) * 100);
 }
 
-export function formatNextPieces(pieces: any[]): Piece[] {
-  return pieces.slice(0, 5).map((p) => ({
-    shape: p.shape,
-    x: 0,
-    y: 0,
-    type: p.type,
-    color: p.color,
-  }));
+export function formatNextPieces(
+  pieces: Array<{ shape: Cell[][]; type?: string; color?: number }>,
+): Piece[] {
+  return pieces.slice(0, 5).map((p) => {
+    const piece: Piece = { shape: p.shape, x: 0, y: 0 };
+    if (p.type !== undefined) piece.type = p.type;
+    if (p.color !== undefined) piece.color = p.color;
+    return piece;
+  });
 }

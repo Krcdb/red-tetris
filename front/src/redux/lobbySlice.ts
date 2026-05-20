@@ -1,7 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import type { Match, Player } from "../types/socket-events";
 
 interface LobbyState {
-  players: Array<{ name: string; isLeader?: boolean; isReady?: boolean }>;
+  players: Player[];
   room: string;
   playerName: string;
   canStart: boolean;
@@ -27,7 +28,7 @@ const lobbySlice = createSlice({
       state.playerName = action.payload.playerName;
     },
 
-    updatePlayers: (state, action: PayloadAction<any>) => {
+    updatePlayers: (state, action: PayloadAction<Match>) => {
       const match = action.payload;
       console.log("🔍 Redux: Received match data:", match);
 

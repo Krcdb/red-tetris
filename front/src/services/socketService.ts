@@ -3,15 +3,17 @@ import { store } from "../redux/store";
 import { updateGameState, gameSetup, gameStarted, gameOver, setError as setGameError } from "../redux/gameSlice";
 import { updatePlayers, setError as setLobbyError } from "../redux/lobbySlice";
 import { validateGameMode } from "../utils/gameMode";
+import type { Socket } from "socket.io-client";
+import type {
+  ClientGameState,
+  GameState,
+  InputDTO,
+  Match,
+} from "../types/socket-events";
 
 let isInitialized = false;
 
-const registeredHandlers = new Map();
-
-const registerHandler = (event: string, handler: (...args: any[]) => void) => {
-  socket.on(event, handler);
-  registeredHandlers.set(event, handler);
-};
+const cleanups: Array<() => void> = [];
 
 const initialize = () => {
   if (isInitialized) return;
@@ -19,7 +21,7 @@ const initialize = () => {
 
   console.log("🔧 SocketService: Initializing...");
 
-  const onAnyHandler = (eventName: string, ...args: any[]) => {
+  const onAnyHandler = (eventName: string, ...args: unknown[]) => {
     console.log("📡 Raw socket event received:", eventName, args);
   };
 
@@ -33,24 +35,24 @@ const initialize = () => {
     store.dispatch(gameStarted());
   };
 
-  const onGameNewState = (gameState: any) => {
+  const onGameNewState = (gameState: ClientGameState | GameState) => {
     console.log("📤 SocketService: Received game state:", gameState);
     store.dispatch(updateGameState(gameState));
   };
 
-  const onPlayerJoin = (match: any) => {
+  const onPlayerJoin = (match: Match) => {
     console.log("👥 SocketService: Player joined event received!");
     console.log("👥 SocketService: Match data:", match);
-    console.log("👥 SocketService: Match players:", match?.player);
+    console.log("👥 SocketService: Match players:", match.player);
     store.dispatch(updatePlayers(match));
   };
 
-  const onPlayerLeft = (match: any) => {
+  const onPlayerLeft = (match: Match) => {
     console.log("👋 SocketService: Player left, updating players:", match);
     store.dispatch(updatePlayers(match));
   };
 
-  const onNewLeader = (match: any) => {
+  const onNewLeader = (match: Match) => {
     console.log("👑 SocketService: New leader assigned:", match);
     store.dispatch(updatePlayers(match));
   };
@@ -68,12 +70,12 @@ const initialize = () => {
     console.log("🔌 SocketService: Disconnected from server");
   };
 
-  const onConnectError = (error: any) => {
+  const onConnectError = (error: Error) => {
     console.log("❌ SocketService: Connection error:", error);
     store.dispatch(setGameError("Connection error: " + error.message));
   };
 
-  const onGameOver = (data: any) => {
+  const onGameOver = (data: { playerName: string }) => {
     console.log("💀 SocketService: Game over event received", data);
     store.dispatch(gameOver());
   };
@@ -83,28 +85,44 @@ const initialize = () => {
     alert(`❌ Error: ${message}`);
   };
 
-  // ✅ Register all handlers in one place
-  const handlers = [
-    { event: "game:isSetup", handler: onGameSetup },
-    { event: "game:isLaunching", handler: onGameLaunching },
-    { event: "game:newState", handler: onGameNewState },
-    { event: "match:playerHasJoin", handler: onPlayerJoin },
-    { event: "match:playerHasLeft", handler: onPlayerLeft },
-    { event: "match:newLeader", handler: onNewLeader },
-    { event: "match:nameTaken", handler: onNameTaken },
-    { event: "match:error", handler: onMatchError }, // ✅ Only here
-    { event: "connect", handler: onConnect },
-    { event: "disconnect", handler: onDisconnect },
-    { event: "connect_error", handler: onConnectError },
-    { event: "game:over", handler: onGameOver },
-  ];
+  socket.on("game:isSetup", onGameSetup);
+  cleanups.push(() => socket.off("game:isSetup", onGameSetup));
 
-  handlers.forEach(({ event, handler }) => {
-    registerHandler(event, handler);
-  });
+  socket.on("game:isLaunching", onGameLaunching);
+  cleanups.push(() => socket.off("game:isLaunching", onGameLaunching));
+
+  socket.on("game:newState", onGameNewState);
+  cleanups.push(() => socket.off("game:newState", onGameNewState));
+
+  socket.on("match:playerHasJoin", onPlayerJoin);
+  cleanups.push(() => socket.off("match:playerHasJoin", onPlayerJoin));
+
+  socket.on("match:playerHasLeft", onPlayerLeft);
+  cleanups.push(() => socket.off("match:playerHasLeft", onPlayerLeft));
+
+  socket.on("match:newLeader", onNewLeader);
+  cleanups.push(() => socket.off("match:newLeader", onNewLeader));
+
+  socket.on("match:nameTaken", onNameTaken);
+  cleanups.push(() => socket.off("match:nameTaken", onNameTaken));
+
+  socket.on("match:error", onMatchError);
+  cleanups.push(() => socket.off("match:error", onMatchError));
+
+  socket.on("connect", onConnect);
+  cleanups.push(() => socket.off("connect", onConnect));
+
+  socket.on("disconnect", onDisconnect);
+  cleanups.push(() => socket.off("disconnect", onDisconnect));
+
+  socket.on("connect_error", onConnectError);
+  cleanups.push(() => socket.off("connect_error", onConnectError));
+
+  socket.on("game:over", onGameOver);
+  cleanups.push(() => socket.off("game:over", onGameOver));
 
   socket.onAny(onAnyHandler);
-  registeredHandlers.set("onAny", onAnyHandler);
+  cleanups.push(() => socket.offAny(onAnyHandler));
 
   console.log("✅ SocketService: All event listeners registered");
 };
@@ -112,15 +130,8 @@ const initialize = () => {
 const cleanup = () => {
   console.log("🧹 SocketService: Cleaning up all listeners");
 
-  registeredHandlers.forEach((handler, event) => {
-    if (event === "onAny") {
-      socket.offAny(handler);
-    } else {
-      socket.off(event, handler);
-    }
-  });
-
-  registeredHandlers.clear();
+  cleanups.forEach((fn) => fn());
+  cleanups.length = 0;
 
   isInitialized = false;
 
@@ -151,7 +162,7 @@ const resetForHome = () => {
   sessionStorage.clear();
 };
 
-const sendInput = (input: any) => {
+const sendInput = (input: InputDTO) => {
   console.log("🎮 SocketService: Sending input:", input);
   socket.emit("game:playerInputChanges", { input });
 };
@@ -196,12 +207,16 @@ const startGame = (room: string) => {
   socket.emit("match:startGame", { room });
 };
 
-const on = (event: string, callback: (...args: any[]) => void) => {
-  socket.on(event, callback);
+// Escape hatch for ad-hoc listeners (currently only used by tests). Cast
+// through `Socket` (untyped events map) so arbitrary string event names work.
+const untyped = socket as unknown as Socket;
+
+const on = (event: string, callback: (...args: unknown[]) => void) => {
+  untyped.on(event, callback);
 };
 
-const off = (event: string, callback?: (...args: any[]) => void) => {
-  socket.off(event, callback);
+const off = (event: string, callback?: (...args: unknown[]) => void) => {
+  untyped.off(event, callback);
 };
 
 const disconnect = () => {

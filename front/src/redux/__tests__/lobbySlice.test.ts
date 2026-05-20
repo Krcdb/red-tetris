@@ -26,6 +26,8 @@ describe("lobbySlice", () => {
   it("should handle updatePlayers", () => {
     const state = { ...initialState, playerName: "TestPlayer" };
     const match = {
+      gameMode: "normal",
+      roomName: "test",
       player: [
         { name: "TestPlayer", isLeader: true },
         { name: "Player2", isLeader: false },
