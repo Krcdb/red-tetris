@@ -71,6 +71,68 @@ describe("Player class", () => {
     expect(player.isGameOver()).toBe(false);
   });
 
+  it("should set hasLost", () => {
+    expect(player.hasLost).toBe(false);
+    player.setHasLost();
+    expect(player.hasLost).toBe(true);
+  });
+
+  it("should set a piece and clear needsNextPiece", () => {
+    const piece: TetrisPiece = {
+      color: 1,
+      rotation: 0,
+      shape: [[1]],
+      type: "T",
+      x: 4,
+      y: 0,
+    };
+    player.needsNextPiece = true;
+    player.setPiece(piece, 7);
+    expect(player.currentPiece).toEqual(piece);
+    expect(player.currentPieceIndex).toBe(7);
+    expect(player.needsNextPiece).toBe(false);
+  });
+
+  it("updateInput resets spaceHasBeenCounted when space goes back to released", () => {
+    const input: InputDTO = {
+      down: false,
+      left: false,
+      right: false,
+      space: true,
+      up: false,
+    };
+    player.updateInput(input);
+    expect(player.input.space).toBe(true);
+    expect(player.input.spaceHasBeenCounted).toBe(false);
+
+    // Simulate that the loop counted the press.
+    player.input.spaceHasBeenCounted = true;
+
+    // Same value (still pressed) → counted stays true.
+    player.updateInput(input);
+    expect(player.input.spaceHasBeenCounted).toBe(true);
+
+    // Release → counted resets to false.
+    player.updateInput({ ...input, space: false });
+    expect(player.input.spaceHasBeenCounted).toBe(false);
+  });
+
+  it("updateInput resets upHasBeenCounted on release", () => {
+    const input: InputDTO = {
+      down: false,
+      left: false,
+      right: false,
+      space: false,
+      up: true,
+    };
+    player.updateInput(input);
+    player.input.upHasBeenCounted = true;
+    player.updateInput(input);
+    expect(player.input.upHasBeenCounted).toBe(true);
+    player.updateInput({ ...input, up: false });
+    expect(player.input.upHasBeenCounted).toBe(false);
+  });
+
   it("should return correct state", () => {
     const state = player.getState();
     expect(state).toMatchObject({
