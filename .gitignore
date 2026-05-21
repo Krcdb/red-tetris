@@ -2,6 +2,8 @@
 CLAUDE.md
 .claude/
 memory/
+evaluation.md
+subject.md
 
 # Environment variables
 .env
