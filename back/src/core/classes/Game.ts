@@ -1,5 +1,6 @@
-import MyWebSocket from "../socket/websocket.js";
 import type { InputDTO, TetrisPiece } from "../types/game.js";
+
+import MyWebSocket from "../socket/websocket.js";
 import { getLogger } from "../utils/Logger.js";
 import { clearLines } from "../utils/tetris.js";
 import { Piece } from "./Piece.js";
@@ -23,14 +24,6 @@ export class Game {
 		this.currentPieceIndex = 0;
 		this.isRunning = false;
 		this.isSolo = playerNames.length === 1 || room.startsWith("solo-");
-
-		// 🔍 Add detailed logging
-		console.log(`🎯 GAME CONSTRUCTOR DEBUG:`);
-		console.log(`  - Room: ${room}`);
-		console.log(`  - GameMode parameter: "${gameMode}"`);
-		console.log(`  - Final this.gameMode: "${this.gameMode}"`);
-		console.log(`  - Players: ${playerNames.join(", ")}`);
-		console.log(`  - Is Solo: ${String(this.isSolo)}`);
 
 		this.logger.info(
 			`Created new Game for room ${room} with ${String(playerNames.length)} players, mode: ${gameMode}, solo: ${String(this.isSolo)}`,
@@ -139,18 +132,14 @@ export class Game {
 				player.lockDelayCounter = 0;
 				player.isTouchingGround = false;
 				player.lockMoveResets = 0;
-				//console.log(`  - ✅ Moved down to (${piece.x}, ${piece.y})`);
 			} else {
 				if (!player.isTouchingGround) {
 					player.isTouchingGround = true;
 					player.lockDelayCounter = 0;
 					player.lockMoveResets = 0;
-					//console.log(`  - 🎯 Now touching ground`);
 				} else {
 					player.lockDelayCounter++;
-					/*console.log(
-            `  - ⏰ Lock delay: ${player.lockDelayCounter}/${LOCK_DELAY_TICKS}`
-          );*/
+			
 				}
 			}
 
@@ -162,9 +151,7 @@ export class Game {
 				(player.lockDelayCounter >= LOCK_DELAY_TICKS ||
 					player.lockMoveResets >= MAX_LOCK_RESETS)
 			) {
-				/*console.log(
-          `  - 🔒 Locking piece after ${player.lockDelayCounter} ticks`
-        );*/
+
 				this.lockPiece(player);
 				player.lockDelayCounter = 0;
 				player.isTouchingGround = false;
@@ -336,11 +323,7 @@ export class Game {
 
 		const piece = this.tetrisPieceToPiece(player.currentPiece);
 
-		/*console.log(`🔒 LOCK PIECE DEBUG:`);
-    console.log(`  - Player: ${player.name}`);
-    console.log(`  - Piece type: ${piece.type}`);
-    console.log(`  - Piece position: (${piece.x}, ${piece.y})`);
-    console.log(`  - Is valid position: ${piece.isValidPosition(player.grid)}`);*/
+	
 
 		if (!piece.isValidPosition(player.grid)) {
 			this.handlePlayerLoss(player);

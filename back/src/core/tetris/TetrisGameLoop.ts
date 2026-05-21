@@ -15,11 +15,6 @@ export class TetrisGameLoop {
     this.gameMode = gameMode ?? "normal";
     this.io = MyWebSocket.getInstance();
 
-    console.log(`🎯 TETRIS GAME LOOP CONSTRUCTOR:`);
-    console.log(`  - Room: ${room}`);
-    console.log(`  - GameMode parameter: "${gameMode ?? "undefined"}"`);
-    console.log(`  - Final this.gameMode: "${this.gameMode}"`);
-
     this.logger.info(`TetrisGameLoop created for room ${room}, with mode ${this.gameMode}`);
   }
 
@@ -101,55 +96,18 @@ export class TetrisGameLoop {
     const gameMode = this.getGameMode();
     const game = gameService.getGame(this.room);
 
-    console.log(`🎯 GRAVITY SPEED DEBUG:`);
-    console.log(`  - Room: ${this.room}`);
-    console.log(`  - Game mode from this.gameMode: "${this.gameMode}"`);
-    console.log(`  - Game mode from getGameMode(): "${gameMode}"`);
-    console.log(`  - Game exists: ${!!game}`);
-    if (game) {
-      console.log(`  - Game.gameMode: "${game.gameMode}"`);
-      console.log(`  - Game.isRunning: ${game.isRunning}`);
-      console.log(`  - Game.players.length: ${game.players.length}`);
-    }
-
     switch (gameMode) {
       case "speed": {
-        console.log(`🏃 ENTERING SPEED MODE CASE`);
-        // Get average lines cleared across all players
         let avgLines = 0;
         if (game && Array.isArray(game.players) && game.players.length > 0) {
           const totalLines = game.players.reduce((sum, p) => sum + p.linesCleared, 0);
           avgLines = totalLines / game.players.length;
-
-          // 🔍 Debug logging
-          console.log(`🏃 SPEED MODE DEBUG:`);
-          console.log(`  - Room: ${this.room}`);
-          console.log(`  - Players: ${game.players.length.toString()}`);
-          console.log(
-            `  - Individual lines cleared:`,
-            game.players.map((p) => `${p.name}: ${p.linesCleared.toString()}`),
-          );
-          console.log(`  - Total lines: ${totalLines.toString()}`);
-          console.log(`  - Average lines: ${avgLines.toString()}`);
-        } else {
-          console.log(`🏃 SPEED MODE: No game or players found`);
         }
 
-        const calculatedSpeed = Math.max(30, 100 - Math.floor(avgLines / 10) * 10);
-
-        // 🔍 More debug logging
-        console.log(`  - Floor(avgLines / 20): ${Math.floor(avgLines / 20).toString()}`);
-        console.log(`  - Speed calculation: Math.max(15, 30 - ${Math.floor(avgLines / 20).toString()} * 3) = ${calculatedSpeed.toString()}ms`);
-        console.log(`  - Normal mode speed: 500ms`);
-        console.log(`  - Speed difference: ${(((500 - calculatedSpeed) / 500) * 100).toFixed(1)}% faster`);
-
-        return calculatedSpeed;
+        return Math.max(30, 100 - Math.floor(avgLines / 10) * 10);
       }
       default: {
-        console.log(`🎮 ENTERING DEFAULT CASE (should be normal mode)`);
-        const normalSpeed = 500;
-        console.log(`🎮 NORMAL MODE: ${normalSpeed.toString()}ms`);
-        return normalSpeed;
+        return 500;
       }
     }
   }
@@ -183,16 +141,10 @@ export class TetrisGameLoop {
 
     const newSpeed = this.getGravitySpeed();
 
-    console.log(`🔄 UPDATING GRAVITY INTERVAL:`);
-    console.log(`  - Previous interval was running`);
-    console.log(`  - New speed: ${newSpeed.toString()}ms`);
-
     clearInterval(this.gravityInterval);
     this.gravityInterval = setInterval(() => {
       this.processGravity();
       this.sendGameState();
     }, newSpeed);
-
-    console.log(`  - ✅ Gravity interval restarted with ${newSpeed.toString()}ms`);
   }
 }

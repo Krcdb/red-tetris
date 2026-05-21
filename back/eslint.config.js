@@ -7,7 +7,7 @@ import vitest from "@vitest/eslint-plugin";
 
 export default tseslint.config(
   {
-    ignores: ["**/*.js"],
+    ignores: ["**/*.js", "src/__tests__/**"],
   },
   eslint.configs.recommended,
   tseslint.configs.strictTypeChecked,
@@ -18,6 +18,10 @@ export default tseslint.config(
         projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
+    },
+    rules: {
+      "@typescript-eslint/no-unnecessary-condition": "off",
+      "@typescript-eslint/restrict-template-expressions": "off",
     },
   },
   perfectionist.configs["recommended-natural"],

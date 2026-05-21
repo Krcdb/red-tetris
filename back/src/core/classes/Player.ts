@@ -5,6 +5,7 @@ export class Player {
   public currentPieceIndex: number;
   public forcedFall: boolean;
   public grid: Cell[][];
+  public hasLost = false;
   public input: GamerInputs;
   public isReady: boolean;
   public isTouchingGround = false;
@@ -14,7 +15,6 @@ export class Player {
   public name: string;
   public needsNextPiece: boolean;
   public score: number;
-  public hasLost: boolean = false;
 
   constructor(name: string) {
     this.name = name;
@@ -50,33 +50,26 @@ export class Player {
       currentPiece: this.currentPiece,
       currentPieceIndex: this.currentPieceIndex,
       grid: this.grid,
+      hasLost: this.hasLost,
       isReady: this.isReady,
       linesCleared: this.linesCleared,
       name: this.name,
       score: this.score,
-      hasLost: this.hasLost,
     };
   }
 
   public isGameOver(): boolean {
-    for (let row = 0; row < 1; row++) {
-      for (let col = 0; col < this.grid[row].length; col++) {
-        if (this.grid[row][col] !== 0) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return this.grid[0].some((cell) => cell !== 0);
+  }
+
+  public setHasLost(): void {
+    this.hasLost = true;
   }
 
   public setPiece(piece: TetrisPiece, index: number): void {
     this.currentPiece = { ...piece };
     this.currentPieceIndex = index;
     this.needsNextPiece = false;
-  }
-
-  public setHasLost(): void {
-    this.hasLost = true;
   }
 
   public setReady(): void {
@@ -107,7 +100,7 @@ export class Player {
   private initializeGrid(): Cell[][] {
     const grid: Cell[][] = [];
     for (let i = 0; i < 20; i++) {
-      grid.push(new Array(10).fill(0));
+      grid.push(new Array<Cell>(10).fill(0));
     }
     return grid;
   }

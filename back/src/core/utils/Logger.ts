@@ -3,7 +3,9 @@ import { createLogger, format, transports, Logger as WinstonLogger } from "winst
 const { colorize, combine, printf, timestamp } = format;
 
 const customFormat = printf(({ context, level, message, timestamp }) => {
-  return `${timestamp} [${level}]${context ? ` [${context}]` : ""} ${message}`;
+  // return `${timestamp} [${level}]${context ? ` [${context}]` : ""} ${message}`;
+  const ctx = typeof context === "string" ? context : "";
+    return `${timestamp} [${level}]${ctx ? ` [${ctx}]` : ""} ${message}`;
 });
 
 const baseLogger = createLogger({

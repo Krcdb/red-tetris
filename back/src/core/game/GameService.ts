@@ -1,7 +1,7 @@
 import { Game } from "../classes/Game.js";
 import MyWebSocket from "../socket/websocket.js";
 import { TetrisGameLoop } from "../tetris/TetrisGameLoop.js";
-import { GamerInputs, InputDTO } from "../types/game.js";
+import { InputDTO } from "../types/game.js";
 import { Player } from "../types/player.js";
 import { getLogger } from "../utils/Logger.js";
 
@@ -38,12 +38,14 @@ class GameService {
     const loop = this.gameLoops[room];
     if (loop) {
       loop.stop();
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete this.gameLoops[room];
     }
 
     const game = this.games[room];
     if (game) {
       game.stop();
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete this.games[room];
     }
   }
@@ -86,12 +88,6 @@ class GameService {
     game.start();
 
     const gameMode = game.gameMode || "normal";
-
-    // 🔍 Add detailed logging
-    console.log(`🎯 LAUNCH GAME DEBUG:`);
-    console.log(`  - Room: ${room}`);
-    console.log(`  - Game.gameMode: "${game.gameMode}"`);
-    console.log(`  - Final gameMode: "${gameMode}"`);
 
     this.logger.info(`Creating TetrisGameLoop for room ${room} with mode ${gameMode}`);
     const loop = new TetrisGameLoop(game.getGameState(), room, gameMode);

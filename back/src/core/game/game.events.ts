@@ -18,12 +18,12 @@ export function registerGameHandler(socket: CustomeSocket) {
 
     try {
       const game = gameService.getGame(currentRoom);
-      if (game && game.isRunning) {
+      if (game?.isRunning) {
         logger.info(`Game ${currentRoom} already running, ignoring ready from ${playerName}`);
         return;
       }
       gameService.playerReady(playerName, currentRoom);
-    } catch (error) {
+    } catch {
       logger.error(`room ${currentRoom}: couldn't set player ${playerName} ready`);
     }
   });
@@ -39,8 +39,8 @@ export function registerGameHandler(socket: CustomeSocket) {
 
     try {
       gameService.playerInputChange(playerName, currentRoom, input);
-    } catch (error) {
-      logger.error(`room ${currentRoom}: couldn't set player ${playerName} ready`);
+    } catch {
+      logger.error(`room ${currentRoom}: couldn't apply input for player ${playerName}`);
     }
   });
 

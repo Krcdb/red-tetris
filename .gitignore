@@ -1,6 +1,7 @@
 # Claude Code
 CLAUDE.md
 .claude/
+memory/
 
 # Environment variables
 .env

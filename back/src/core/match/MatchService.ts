@@ -102,8 +102,8 @@ class MatchService {
     socket.data.gameMode = validatedGameMode;
 
     /* --- If the socket is already in a room, leave that one first --- */
-    if (socket.data.currentRoom !== undefined) {
-      const oldPlayerName = socket.data.playerName!;
+    if (socket.data.currentRoom !== undefined && socket.data.playerName !== undefined) {
+      const oldPlayerName = socket.data.playerName;
       const oldRoom = socket.data.currentRoom;
 
       this.logger.info(`player ${oldPlayerName} is already in ${oldRoom}, leaving first`);
@@ -112,7 +112,7 @@ class MatchService {
 
       const io = MyWebSocket.getInstance();
       const oldMatch = this.matchs[oldRoom];
-      socket.leave(oldRoom);
+      void socket.leave(oldRoom);
       if (oldMatch) io.to(oldRoom).emit("match:playerHasLeft", oldMatch);
     }
 
@@ -179,6 +179,7 @@ class MatchService {
 
     /* --- Delete empty rooms and stop games --- */
     if (match.player.length === 0) {
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete this.matchs[room];
       this.logger.info(`room ${room} is empty and has been deleted`);
       gameService.forceStopGame(room);
@@ -199,19 +200,9 @@ class MatchService {
     const playerData = match.player.find((p) => p.name === socket.data.playerName);
     const isLeader = playerData?.isLeader;
 
-    // 🔍 Add detailed logging
-    console.log(`🎯 MATCH START GAME DEBUG:`);
-    console.log(`  - Room: ${room}`);
-    console.log(`  - Socket player name: "${socket.data.playerName}"`);
-    console.log(`  - Socket game mode: "${socket.data.gameMode}"`);
-    console.log(`  - Match game mode: "${match.gameMode}"`);
-    console.log(`  - Player is leader: ${isLeader}`);
-
     if (isLeader) {
       // Use the match's game mode instead of the socket's
       const gameMode = match.gameMode || "normal";
-
-      console.log(`  - Final gameMode being passed: "${gameMode}"`);
 
       gameService.createGame(match.player, room, gameMode);
     } else {
@@ -240,7 +231,6 @@ function validateGameMode(mode: string, fallback: GameMode = "normal"): GameMode
   if (isValidGameMode(mode)) {
     return mode;
   }
-  console.warn(`Invalid game mode "${mode}", falling back to "${fallback}"`);
   return fallback;
 }
 

@@ -8,8 +8,8 @@ const app = express();
 app.use(cors());
 const port = process.env.PORT ?? "4000";
 
-const httpServer = createServer(app);
-const io = MyWebSocket.getInstance(httpServer);
+const httpServer = createServer((req, res) => { app(req, res); });;
+MyWebSocket.getInstance(httpServer);
 
 httpServer.listen(port, () => {
   console.log(`App listening on port ${port}`);

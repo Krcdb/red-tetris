@@ -35,7 +35,8 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
       return;
     }
 
-    socket.join(room);
+    // socket.join(room);
+    void socket.join(room);
     io.to(room).emit("match:playerHasJoin", match);
   });
 
@@ -53,7 +54,7 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
         io.to(currentRoom).emit("match:roomDeleted", { room: currentRoom });
       }
 
-      socket.leave(currentRoom);
+      void socket.leave(currentRoom);
 
       // Clear socket data completely
       socket.data.currentRoom = undefined;
@@ -71,7 +72,8 @@ export function registerMatchHanlder(io: MyWebSocket, socket: CustomeSocket) {
     } else {
       io.to(room).emit("match:roomDeleted", { room });
     }
-    socket.leave(room);
+    // socket.leave(room);
+    void socket.leave(room);
   });
 
   socket.on("match:startGame", (data) => {
