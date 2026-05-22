@@ -1,18 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { createGameMock, emitMock, forceStopGameMock, isGameRunningMock, toMock } = vi.hoisted(
-  () => {
-    const emitMock = vi.fn();
-    const toMock = vi.fn(() => ({ emit: emitMock }));
-    return {
-      createGameMock: vi.fn(),
-      emitMock,
-      forceStopGameMock: vi.fn(),
-      isGameRunningMock: vi.fn(() => false),
-      toMock,
-    };
-  },
-);
+const {
+  createGameMock,
+  emitMock,
+  forceStopGameMock,
+  isGameRunningMock,
+  playerDisconnectedMock,
+  toMock,
+} = vi.hoisted(() => {
+  const emitMock = vi.fn();
+  const toMock = vi.fn(() => ({ emit: emitMock }));
+  return {
+    createGameMock: vi.fn(),
+    emitMock,
+    forceStopGameMock: vi.fn(),
+    isGameRunningMock: vi.fn(() => false),
+    playerDisconnectedMock: vi.fn(),
+    toMock,
+  };
+});
 
 vi.mock("../../core/socket/websocket.js", () => ({
   default: {
@@ -27,6 +33,7 @@ vi.mock("../../core/game/GameService.js", () => ({
     createGame: createGameMock,
     forceStopGame: forceStopGameMock,
     isGameRunning: isGameRunningMock,
+    playerDisconnected: playerDisconnectedMock,
   },
 }));
 

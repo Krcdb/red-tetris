@@ -82,7 +82,7 @@ const initialize = () => {
 
   const onMatchError = (message: string) => {
     console.error("❌ SocketService: Match error:", message);
-    alert(`❌ Error: ${message}`);
+    store.dispatch(setLobbyError(message));
   };
 
   socket.on("game:isSetup", onGameSetup);

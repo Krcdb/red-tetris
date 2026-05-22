@@ -114,6 +114,18 @@ export class Game {
 		}
 	}
 
+	/**
+	 * Handle a player leaving mid-game (tab closed, disconnect, etc.).
+	 * Treats them as having lost so the win-condition check fires —
+	 * required by subject §V.1 "Games end when one player remains".
+	 */
+	public handlePlayerDisconnect(playerName: string): void {
+		const player = this.getPlayer(playerName);
+		if (!player || player.hasLost) return;
+		this.logger.info(`Player ${playerName} disconnected mid-game in room ${this.room}`);
+		this.handlePlayerLoss(player);
+	}
+
 	public processGravity(): void {
 		const LOCK_DELAY_TICKS = 1;
 		const MAX_LOCK_RESETS = 3;

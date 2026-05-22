@@ -347,6 +347,51 @@ describe("Game (extra coverage)", () => {
       expect(emitMock).toHaveBeenCalledWith("game:over", { playerName: "A" });
       expect(game.isRunning).toBe(false);
     });
+
+    it("handlePlayerDisconnect marks leaver as lost and ends a 2-player game", () => {
+      vi.spyOn(Piece, "generatePieceSequence").mockReturnValue(
+        makeDeterministicSequence(["T", "I"]),
+      );
+      const game = new Game("room", ["A", "B"]);
+      game.isRunning = true;
+
+      // A closes their tab mid-game; B is the only remaining player.
+      game.handlePlayerDisconnect("A");
+
+      expect(game.players[0].hasLost).toBe(true);
+      expect(game.players[1].hasLost).toBe(false);
+      expect(emitMock).toHaveBeenCalledWith("game:over", { playerName: "A" });
+      expect(game.isRunning).toBe(false);
+    });
+
+    it("handlePlayerDisconnect with 3+ players removes the leaver but keeps the game running", () => {
+      vi.spyOn(Piece, "generatePieceSequence").mockReturnValue(
+        makeDeterministicSequence(["T", "I"]),
+      );
+      const game = new Game("room", ["A", "B", "C"]);
+      game.isRunning = true;
+
+      game.handlePlayerDisconnect("B");
+
+      expect(game.players[1].hasLost).toBe(true);
+      expect(game.isRunning).toBe(true);
+      expect(emitMock).not.toHaveBeenCalledWith("game:over", expect.anything());
+    });
+
+    it("handlePlayerDisconnect is a no-op for unknown or already-lost players", () => {
+      vi.spyOn(Piece, "generatePieceSequence").mockReturnValue(
+        makeDeterministicSequence(["T", "I"]),
+      );
+      const game = new Game("room", ["A", "B"]);
+      game.isRunning = true;
+      game.players[0].setHasLost();
+
+      game.handlePlayerDisconnect("A"); // already lost
+      game.handlePlayerDisconnect("ghost"); // unknown
+
+      expect(game.isRunning).toBe(true);
+      expect(emitMock).not.toHaveBeenCalledWith("game:over", expect.anything());
+    });
   });
 
   describe("processPlayerActions", () => {

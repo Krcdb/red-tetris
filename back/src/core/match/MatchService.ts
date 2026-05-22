@@ -170,6 +170,10 @@ class MatchService {
     socket.data.playerName = undefined;
     socket.data.gameMode = undefined;
 
+    /* --- If a game is running, mark the leaver as lost so the
+       win-condition check fires (subject §V.1). --- */
+    gameService.playerDisconnected(playerName, room);
+
     /* --- Promote a new leader if needed --- */
     if (wasLeader && match.player.length > 0) {
       match.player[0].isLeader = true;

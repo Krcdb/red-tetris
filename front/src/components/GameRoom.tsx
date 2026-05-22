@@ -56,14 +56,11 @@ export default function GameRoom() {
 			dispatch(gameSetup());
 		});
 
-		socketService.socket.on("match:error", () => {
-			console.log("❌ GameRoom: Error joining lobby");
-			navigate("/");
-		});
+		// Note: match:error is handled by socketService → lobby slice;
+		// LobbyView renders the error in place so the user can read it.
 
 		return () => {
 			socketService.socket.off("game:isSetup");
-			socketService.socket.off("match:error");
 		};
 	}, [room, playerName, gameMode, dispatch, navigate]);
 

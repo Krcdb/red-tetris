@@ -36,9 +36,11 @@ export default function GameView() {
 
 	const handleReturnToLobby = () => {
 		console.log("🔄 GameView: Returning to lobby");
+		// Just reset the game slice — GameRoom will render LobbyView again because
+		// status becomes idle. Do NOT reload: a reload disconnects the socket and
+		// the backend promotes someone else to leader (subject §V.2.1: only the
+		// existing leader changes via disconnect, not via a return-to-lobby click).
 		dispatch(resetGame());
-		// Stay on same URL, just reset game state to return to lobby view
-		window.location.reload(); // Simple way to reset to lobby state
 	};
 
 	const handleExitToHome = () => {

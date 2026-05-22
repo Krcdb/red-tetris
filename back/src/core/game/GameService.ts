@@ -95,6 +95,17 @@ class GameService {
     loop.start();
   }
 
+  /**
+   * Handle a player leaving while a game is running.
+   * Marks them as lost so Game's win-condition check fires
+   * (subject §V.1: the round ends when only one player remains).
+   */
+  playerDisconnected(playerName: string, room: string) {
+    const game = this.games[room];
+    if (!game?.isRunning) return;
+    game.handlePlayerDisconnect(playerName);
+  }
+
   /** Called whenever a player presses or releases a control key. */
   playerInputChange(playerName: string, room: string, input: InputDTO) {
     const game = this.games[room];
