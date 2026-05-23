@@ -2,7 +2,7 @@ import type { InputDTO, TetrisPiece } from "../types/game.js";
 
 import MyWebSocket from "../socket/websocket.js";
 import { getLogger } from "../utils/Logger.js";
-import { clearLines } from "../utils/tetris.js";
+import { PENALTY_CELL, clearLines } from "../utils/tetris.js";
 import { Piece } from "./Piece.js";
 import { Player } from "./Player.js";
 
@@ -383,14 +383,14 @@ export class Game {
 
 	private sendPenaltyLines(sender: Player, lineCount: number): void {
 		const penaltyLines = Array.from({ length: lineCount }, () =>
-			Array<number>(10).fill(1),
+			Array<number>(10).fill(PENALTY_CELL),
 		);
 
 		this.players.forEach((player) => {
 			if (player.name !== sender.name) {
-				const newGrid = penaltyLines.concat(
-					player.grid.slice(0, 20 - penaltyLines.length),
-				);
+				const newGrid = player.grid
+					.slice(penaltyLines.length)
+					.concat(penaltyLines);
 				player.updateGrid(newGrid);
 				this.logger.info(
 					`Sent ${lineCount.toString()} penalty lines to ${player.name}`,

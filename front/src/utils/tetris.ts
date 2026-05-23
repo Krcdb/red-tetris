@@ -23,6 +23,7 @@ export function getCellColor(cellValue: Cell): string {
     5: "#ff0000", // Z piece (red)
     6: "#0000ff", // J piece (blue)
     7: "#ffa500", // L piece (orange)
+    8: "#444444", // Indestructible penalty line
   };
   return colors[cellValue as keyof typeof colors] || "transparent";
 }

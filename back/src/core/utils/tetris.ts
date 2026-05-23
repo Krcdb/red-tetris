@@ -1,5 +1,7 @@
 import { Cell, TetrisPiece } from "../types/game";
 
+export const PENALTY_CELL = 8;
+
 export function canMoveDown(board: Cell[][], piece: TetrisPiece): boolean {
   const testPiece = { ...piece, y: piece.y + 1 };
   return isValidPosition(board, testPiece);
@@ -10,7 +12,8 @@ export function clearLines(board: Cell[][]): { linesCleared: number; newBoard: C
   let linesCleared = 0;
 
   for (const row of board) {
-    const isFullLine = row.every((cell) => cell !== 0);
+    const isFullLine =
+      row.every((cell) => cell !== 0) && !row.includes(PENALTY_CELL);
 
     if (!isFullLine) {
       newBoard.push([...row]);

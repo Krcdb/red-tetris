@@ -241,9 +241,17 @@ const gameSlice = createSlice({
 		setError: (state, action: PayloadAction<string | null>) => {
 			state.error = action.payload;
 		},
-		resetGame: () => {
-			// Return a fresh copy of initial state
-			return { ...initialState };
+		resetGame: (state) => {
+			// Preserve player identity so a return-to-lobby + restart still finds
+			// the current player in subsequent `game:newState` payloads. Without
+			// this, playerName resets to "" and updateGameState can't match the
+			// local player, leaving the board/currentPiece blank after a restart.
+			return {
+				...initialState,
+				gameMode: state.gameMode,
+				playerName: state.playerName,
+				room: state.room,
+			};
 		},
 	},
 });

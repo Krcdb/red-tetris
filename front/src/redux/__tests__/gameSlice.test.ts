@@ -39,17 +39,24 @@ describe("gameSlice", () => {
     expect(actual.gameMode).toBe("multiplayer");
   });
 
-  it("should handle resetGame", () => {
+  it("should handle resetGame and preserve player identity", () => {
     const modifiedState = {
       ...initialState,
       score: 1000,
       status: "gameOver" as const,
       room: "test-room",
       playerName: "TestPlayer",
+      gameMode: "multiplayer" as const,
     };
 
     const actual = gameReducer(modifiedState, resetGame());
-    expect(actual).toEqual(initialState);
+    // Identity fields survive so a restart can match the local player.
+    expect(actual.room).toBe("test-room");
+    expect(actual.playerName).toBe("TestPlayer");
+    expect(actual.gameMode).toBe("multiplayer");
+    // Everything else is reset.
+    expect(actual.score).toBe(0);
+    expect(actual.status).toBe("idle");
   });
 
   it("should handle updateGameState", () => {

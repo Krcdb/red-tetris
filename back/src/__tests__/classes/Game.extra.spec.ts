@@ -13,6 +13,7 @@ vi.mock("../../core/socket/websocket.js", () => ({
 
 import { Game } from "../../core/classes/Game.js";
 import { Piece } from "../../core/classes/Piece.js";
+import { PENALTY_CELL } from "../../core/utils/tetris.js";
 
 function makeDeterministicSequence(types: string[]): Piece[] {
   return types.map((t) => new Piece(t));
@@ -316,18 +317,64 @@ describe("Game (extra coverage)", () => {
       playerA.input.down = false;
 
       const beforeBobLines = game.players[1].grid.filter((row) =>
-        row.every((c) => c === 1),
+        row.every((c) => c === PENALTY_CELL),
       ).length;
 
       game.processGravity();
 
       const afterBobPenalty = game.players[1].grid.filter((row) =>
-        row.every((c) => c === 1),
+        row.every((c) => c === PENALTY_CELL),
       ).length;
 
       // At least 1 penalty line was pushed onto Bob (2 cleared - 1 = 1 penalty)
       expect(afterBobPenalty).toBeGreaterThan(beforeBobLines);
       expect(playerA.linesCleared).toBeGreaterThanOrEqual(2);
+      // Penalty lines must sit at the BOTTOM of the field (subject §V.1).
+      expect(game.players[1].grid[19].every((c) => c === PENALTY_CELL)).toBe(true);
+    });
+
+    it("does not clear penalty lines even when the row is completed by the victim", () => {
+      vi.spyOn(Piece, "generatePieceSequence").mockReturnValue(
+        makeDeterministicSequence(["I", "T", "L"]),
+      );
+      const game = new Game("room", ["A", "B"]);
+      game.start();
+
+      const victim = game.players[1];
+      // Bottom row is a penalty line with a single hole at column 0; if it were
+      // clearable, completing it would erase the indestructible row.
+      const grid = Array.from({ length: 20 }, () => new Array<number>(10).fill(0));
+      grid[19] = [0, PENALTY_CELL, PENALTY_CELL, PENALTY_CELL, PENALTY_CELL, PENALTY_CELL, PENALTY_CELL, PENALTY_CELL, PENALTY_CELL, PENALTY_CELL];
+      victim.updateGrid(grid);
+
+      // Drop an O-piece-shaped block into column 0 of the bottom row to complete it.
+      victim.currentPiece = {
+        color: 2,
+        rotation: 0,
+        shape: [
+          [1, 0],
+          [1, 0],
+        ],
+        type: "O",
+        x: 0,
+        y: 18,
+      };
+      victim.isTouchingGround = true;
+      victim.lockDelayCounter = 5;
+      victim.input.down = false;
+
+      const beforePenalty = victim.grid.filter((row) =>
+        row.includes(PENALTY_CELL),
+      ).length;
+
+      game.processGravity();
+
+      const afterPenalty = victim.grid.filter((row) =>
+        row.includes(PENALTY_CELL),
+      ).length;
+
+      expect(afterPenalty).toBe(beforePenalty);
+      expect(victim.linesCleared).toBe(0);
     });
 
     it("emits game:over and stops when a multiplayer player loses leaving one alive", () => {
