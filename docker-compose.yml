@@ -1,0 +1,26 @@
+services:
+  back:
+    build:
+      context: ./back
+    image: red-tetris-back
+    container_name: red-tetris-back
+    environment:
+      - PORT=4000
+      - NODE_ENV=production
+    ports:
+      - "4000:4000"
+
+  front:
+    build:
+      context: ./front
+    image: red-tetris-front
+    container_name: red-tetris-front
+    environment:
+      # Baked into the bundle at webpack startup. Browser runs on the host,
+      # so default `http://localhost:4000` works when port 4000 is published.
+      # Override if the evaluator reaches the back container by another hostname.
+      - BACKEND_URL=${BACKEND_URL:-http://localhost:4000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - back

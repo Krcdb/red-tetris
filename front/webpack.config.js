@@ -1,5 +1,8 @@
 import path from "path";
 import HtmlWebpackPlugin from "html-webpack-plugin";
+import webpack from "webpack";
+
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:4000";
 
 export default {
   entry: "./src/main.tsx",
@@ -29,6 +32,9 @@ export default {
     new HtmlWebpackPlugin({
       template: "public/index.html",
     }),
+    new webpack.DefinePlugin({
+      "process.env.BACKEND_URL": JSON.stringify(BACKEND_URL),
+    }),
   ],
   devServer: {
     static: {
@@ -36,6 +42,8 @@ export default {
     },
     compress: true,
     port: 3000,
+    host: "0.0.0.0",
+    allowedHosts: "all",
     hot: true,
     historyApiFallback: true,
   },
