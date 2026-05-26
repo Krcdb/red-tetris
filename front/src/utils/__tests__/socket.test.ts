@@ -46,8 +46,6 @@ describe("utils/socket", () => {
     expect((window as unknown as { socket: unknown }).socket).toBe(fakeSocket);
 
     const events = fakeSocket.on.mock.calls.map(([name]) => name);
-    expect(events).toContain("connect");
-    expect(events).toContain("disconnect");
     expect(events).toContain("connect_error");
   });
 
@@ -73,8 +71,6 @@ describe("utils/socket", () => {
       (arg?: unknown) => void
     >;
 
-    expect(() => handlers.connect()).not.toThrow();
-    expect(() => handlers.disconnect("io server disconnect")).not.toThrow();
     expect(() => handlers.connect_error(new Error("boom"))).not.toThrow();
   });
 });

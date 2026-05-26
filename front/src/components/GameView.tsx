@@ -26,7 +26,6 @@ export default function GameView() {
 	);
 
 	useEffect(() => {
-		console.log("🎮 GameView: Sending player ready");
 		const readyTimer = setTimeout(() => {
 			socketService.playerReady();
 		}, 200);
@@ -35,7 +34,6 @@ export default function GameView() {
 	}, []);
 
 	const handleReturnToLobby = () => {
-		console.log("🔄 GameView: Returning to lobby");
 		// Just reset the game slice — GameRoom will render LobbyView again because
 		// status becomes idle. Do NOT reload: a reload disconnects the socket and
 		// the backend promotes someone else to leader (subject §V.2.1: only the
@@ -44,7 +42,6 @@ export default function GameView() {
 	};
 
 	const handleExitToHome = () => {
-		console.log("🏠 GameView: Exiting to home");
 		dispatch(resetGame());
 		dispatch(resetLobby());
 		sessionStorage.clear();

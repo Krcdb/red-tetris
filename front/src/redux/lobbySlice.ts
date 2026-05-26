@@ -30,21 +30,11 @@ const lobbySlice = createSlice({
 
     updatePlayers: (state, action: PayloadAction<Match>) => {
       const match = action.payload;
-      console.log("🔍 Redux: Received match data:", match);
 
       state.players = match.player || [];
 
       const currentPlayer = state.players.find((p) => p.name === state.playerName);
-      const isLeader = currentPlayer?.isLeader || false;
-
-      console.log("🔍 Redux: Current player leadership status:", {
-        playerName: state.playerName,
-        currentPlayer,
-        isLeader,
-        allPlayers: state.players,
-      });
-
-      state.canStart = isLeader;
+      state.canStart = currentPlayer?.isLeader || false;
     },
 
     setError: (state, action: PayloadAction<string | null>) => {

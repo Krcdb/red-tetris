@@ -69,13 +69,6 @@ export default function GameInfo() {
 	const { score, linesCleared, level, opponents, status, nextPieces } =
 		useSelector((state: RootState) => state.game);
 
-	console.log("GameInfo Redux state:", {
-		nextPiecesLength: nextPieces?.length,
-		nextPieces: nextPieces,
-		firstPiece: nextPieces?.[0],
-	});
-
-	// Use nextPieces from the game state instead of trying to get it from gamers
 	const displayNextPieces = nextPieces || [];
 
 	return (

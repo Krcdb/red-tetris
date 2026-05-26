@@ -16,7 +16,6 @@ export default function LobbyView() {
 	);
 
 	const startGame = () => {
-		console.log("🚀 LobbyView: Starting game with mode:", currentGameMode);
 		if (canStart && room) {
 			socketService.startGame(room);
 		}

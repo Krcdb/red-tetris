@@ -21,8 +21,6 @@ export default function GameRoom() {
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
 
-	// Get state from both slices - we need both!
-	const lobbyState = useSelector((state: RootState) => state.lobby);
 	const gameState = useSelector((state: RootState) => state.game);
 
 	useEffect(() => {
@@ -30,12 +28,6 @@ export default function GameRoom() {
 			navigate("/");
 			return;
 		}
-
-		console.log("🏠 GameRoom: Initializing with:", {
-			room,
-			playerName,
-			gameMode,
-		});
 
 		dispatch(resetGame());
 		dispatch(resetLobby());
@@ -51,8 +43,6 @@ export default function GameRoom() {
 
 		// Handle game setup (transition from lobby to game)
 		socketService.socket.on("game:isSetup", () => {
-			console.log("🎮 GameRoom: Game setup complete, updating game state");
-			// Update the game state to indicate setup is complete
 			dispatch(gameSetup());
 		});
 
@@ -70,13 +60,6 @@ export default function GameRoom() {
 		gameState.status === "setup" ||
 		gameState.status === "playing" ||
 		gameState.status === "gameOver";
-
-	console.log("🔍 GameRoom: Current states:", {
-		gameStatus: gameState.status,
-		lobbyError: lobbyState.error,
-		isInGame,
-		playersCount: lobbyState.players.length,
-	});
 
 	if (isInGame) {
 		return <GameView />;

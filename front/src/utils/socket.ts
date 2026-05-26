@@ -23,16 +23,8 @@ declare global {
 }
 window.socket = socket;
 
-socket.on("connect", () => {
-  console.log("🔌 Socket connected with ID:", socket.id);
-});
-
-socket.on("disconnect", (reason) => {
-  console.log("🔌 Socket disconnected:", reason);
-});
-
 socket.on("connect_error", (error) => {
-  console.log("❌ Socket connection error:", error);
+  console.error("Socket connection error:", error);
 });
 
 export default socket;

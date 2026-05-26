@@ -25,6 +25,4 @@ app.use((req, res, next) => {
 const httpServer = createServer((req, res) => { app(req, res); });
 MyWebSocket.getInstance(httpServer);
 
-httpServer.listen(port, () => {
-  console.log(`App listening on port ${port}`);
-});
+httpServer.listen(port);

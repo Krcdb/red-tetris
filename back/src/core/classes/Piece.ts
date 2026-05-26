@@ -69,19 +69,11 @@ export class Piece {
           const boardY = this.y + row;
           const boardX = this.x + col;
 
-          // Check bounds
           if (boardX < 0 || boardX >= 10 || boardY < 0 || boardY >= 20) {
-            console.log(
-              `  - ❌ Out of bounds: (${boardX.toString()}, ${boardY.toString()})`
-            );
             return false;
           }
 
-          // Check collision with existing pieces
           if (board[boardY][boardX] !== 0) {
-            console.log(
-              `  - ❌ Collision at (${boardX.toString()}, ${boardY.toString()}) with cell value ${board[boardY][boardX]}`
-            );
             return false;
           }
         }
@@ -91,9 +83,7 @@ export class Piece {
   }
 
   public mergeIntoBoard(board: Cell[][]): Cell[][] {
-    const newBoard = board.map((row) => [...row]); // Deep copy
-
-
+    const newBoard = board.map((row) => [...row]);
 
     for (let row = 0; row < this.shape.length; row++) {
       for (let col = 0; col < this.shape[row].length; col++) {
@@ -102,16 +92,7 @@ export class Piece {
           const boardX = this.x + col;
 
           if (boardY >= 0 && boardY < 20 && boardX >= 0 && boardX < 10) {
-            const oldValue = newBoard[boardY][boardX];
             newBoard[boardY][boardX] = this.color;
-           
-
-            // 🔍 Check for overwrites
-            if (oldValue !== 0) {
-              console.log(
-                `    - ⚠️ WARNING: Overwriting existing piece at (${boardX}, ${boardY})!`
-              );
-            }
           }
         }
       }

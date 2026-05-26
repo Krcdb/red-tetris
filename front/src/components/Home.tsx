@@ -21,18 +21,12 @@ const Home: React.FC = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    console.log("🏠 Home: Component mounted, ensuring clean state");
-
     dispatch(resetGame());
     dispatch(resetLobby());
 
     sessionStorage.clear();
 
     socketService.resetForHome();
-
-    setTimeout(() => {
-      console.log("🏠 Home: Cleanup complete, ready for new game");
-    }, 200);
   }, [dispatch]);
 
   const gameModes = Object.values(GAME_MODE_INFO);
