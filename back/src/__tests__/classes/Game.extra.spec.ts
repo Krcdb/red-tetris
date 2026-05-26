@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const emitMock = vi.fn();
 const toMock = vi.fn(() => ({ emit: emitMock }));
 
-vi.mock("../../core/socket/websocket.js", () => ({
+vi.mock("../../core/socket/websocket", () => ({
   default: {
     getInstance: vi.fn(() => ({
       to: toMock,
@@ -11,9 +11,9 @@ vi.mock("../../core/socket/websocket.js", () => ({
   },
 }));
 
-import { Game } from "../../core/classes/Game.js";
-import { Piece } from "../../core/classes/Piece.js";
-import { PENALTY_CELL } from "../../core/utils/tetris.js";
+import { Game } from "../../core/classes/Game";
+import { Piece } from "../../core/classes/Piece";
+import { PENALTY_CELL } from "../../core/utils/tetris";
 
 function makeDeterministicSequence(types: string[]): Piece[] {
   return types.map((t) => new Piece(t));

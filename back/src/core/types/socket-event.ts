@@ -1,7 +1,7 @@
 import { Socket } from "socket.io";
 
-import { ClientGameState, GameState, InputDTO } from "./game.js";
-import { Match } from "./match.js";
+import { ClientGameState, GameState, InputDTO } from "./game";
+import { Match } from "./match";
 
 export interface ClientToServerEvents {
   "game:end": (data: { room: string }) => void;

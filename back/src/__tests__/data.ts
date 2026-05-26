@@ -1,5 +1,5 @@
-import { Match } from "../core/types/match.js";
-import { Player } from "../core/types/player.js";
+import { Match } from "../core/types/match";
+import { Player } from "../core/types/player";
 
 export const playerOne: Player = {
   isLeader: true,

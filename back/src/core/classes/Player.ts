@@ -1,4 +1,4 @@
-import { Cell, GamerInputs, InputDTO, TetrisPiece } from "../types/game.js";
+import { Cell, GamerInputs, InputDTO, TetrisPiece } from "../types/game";
 
 export class Player {
   public currentPiece: null | TetrisPiece;

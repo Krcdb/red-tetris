@@ -4,7 +4,7 @@ import { Game } from "../../core/classes/Game";
 import { Piece } from "../../core/classes/Piece";
 import { Player } from "../../core/classes/Player";
 
-vi.mock("../utils/Logger.js", () => ({
+vi.mock("../utils/Logger", () => ({
   getLogger: () => ({
     error: vi.fn(),
     info: vi.fn(),
@@ -12,7 +12,7 @@ vi.mock("../utils/Logger.js", () => ({
   }),
 }));
 
-vi.mock("../socket/websocket.js", () => {
+vi.mock("../socket/websocket", () => {
   const mockIo = {
     emit: vi.fn(),
     to: vi.fn().mockReturnThis(),

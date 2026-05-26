@@ -4,14 +4,15 @@
   "description": "Backend for Red Tetris Project",
   "type": "module",
   "scripts": {
+    "predev": "tsc --noEmit",
     "dev": "tsx --watch --env-file .env src/index.ts",
-    "start": "node --env-file .env dist/index.js",
-    "build": "tsc",
+    "start": "tsx --env-file .env src/index.ts",
     "test": "vitest",
     "test:run": "vitest --run",
     "test:ui": "vitest --ui",
     "coverage": "vitest run --coverage",
     "type-check": "tsc --noEmit",
+    "type-check:watch": "tsc --noEmit --watch",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "format": "prettier --write .",
@@ -26,6 +27,7 @@
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "supertest": "^7.1.4",
+    "tsx": "^4.20.3",
     "winston": "^3.17.0"
   },
   "devDependencies": {
@@ -40,7 +42,6 @@
     "eslint": "^9.29.0",
     "eslint-plugin-perfectionist": "^4.15.0",
     "prettier": "^3.5.3",
-    "tsx": "^4.20.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.34.1",
     "vitest": "^3.2.4"

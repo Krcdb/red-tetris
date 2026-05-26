@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { Cell } from "../../core/types/game.js";
+import type { Cell } from "../../core/types/game";
 
-import { Piece } from "../../core/classes/Piece.js";
+import { Piece } from "../../core/classes/Piece";
 
 describe("Piece", () => {
   let emptyBoard: Cell[][];

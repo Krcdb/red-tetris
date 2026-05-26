@@ -20,7 +20,7 @@ const {
   };
 });
 
-vi.mock("../../core/socket/websocket.js", () => ({
+vi.mock("../../core/socket/websocket", () => ({
   default: {
     getInstance: vi.fn(() => ({
       to: toMock,
@@ -28,7 +28,7 @@ vi.mock("../../core/socket/websocket.js", () => ({
   },
 }));
 
-vi.mock("../../core/game/GameService.js", () => ({
+vi.mock("../../core/game/GameService", () => ({
   gameService: {
     createGame: createGameMock,
     forceStopGame: forceStopGameMock,
@@ -37,7 +37,7 @@ vi.mock("../../core/game/GameService.js", () => ({
   },
 }));
 
-import { matchService } from "../../core/match/MatchService.js";
+import { matchService } from "../../core/match/MatchService";
 
 const makeSocket = () =>
   ({

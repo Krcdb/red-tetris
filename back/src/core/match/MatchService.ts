@@ -1,8 +1,8 @@
-import { gameService } from "../game/GameService.js";
-import MyWebSocket from "../socket/websocket.js";
-import { Match } from "../types/match.js";
-import { CustomeSocket } from "../types/socket-event.js";
-import { getLogger } from "../utils/Logger.js";
+import { gameService } from "../game/GameService";
+import MyWebSocket from "../socket/websocket";
+import { Match } from "../types/match";
+import { CustomeSocket } from "../types/socket-event";
+import { getLogger } from "../utils/Logger";
 
 type Matchs = Record<string, Match>;
 

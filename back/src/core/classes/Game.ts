@@ -1,10 +1,10 @@
-import type { InputDTO, TetrisPiece } from "../types/game.js";
+import type { InputDTO, TetrisPiece } from "../types/game";
 
-import MyWebSocket from "../socket/websocket.js";
-import { getLogger } from "../utils/Logger.js";
-import { PENALTY_CELL, clearLines } from "../utils/tetris.js";
-import { Piece } from "./Piece.js";
-import { Player } from "./Player.js";
+import MyWebSocket from "../socket/websocket";
+import { getLogger } from "../utils/Logger";
+import { PENALTY_CELL, clearLines } from "../utils/tetris";
+import { Piece } from "./Piece";
+import { Player } from "./Player";
 
 export class Game {
 	public currentPieceIndex: number;

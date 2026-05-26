@@ -1,4 +1,4 @@
-import { Cell } from "../types/game.js";
+import { Cell } from "../types/game";
 
 export class Piece {
   private static wallKickOffset: [number, number][] = [

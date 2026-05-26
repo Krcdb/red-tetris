@@ -1,8 +1,8 @@
-import MyWebSocket from "../socket/websocket.js";
-import { Match } from "../types/match.js";
-import { CustomeSocket } from "../types/socket-event.js";
-import { getLogger } from "../utils/Logger.js";
-import { matchService } from "./MatchService.js";
+import MyWebSocket from "../socket/websocket";
+import { Match } from "../types/match";
+import { CustomeSocket } from "../types/socket-event";
+import { getLogger } from "../utils/Logger";
+import { matchService } from "./MatchService";
 
 /**
  * Attach all match-related socket handlers for a single connection.

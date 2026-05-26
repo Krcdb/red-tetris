@@ -1,11 +1,11 @@
 import { Server as HTTPServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 
-import { registerGameHandler } from "../game/game.events.js";
-import { registerMatchHanlder } from "../match/match.events.js";
-import { matchService } from "../match/MatchService.js";
-import { ClientToServerEvents, CustomeSocket, InterServerEvents, ServerToClientEvents, SocketData } from "../types/socket-event.js";
-import { getLogger } from "../utils/Logger.js";
+import { registerGameHandler } from "../game/game.events";
+import { registerMatchHanlder } from "../match/match.events";
+import { matchService } from "../match/MatchService";
+import { ClientToServerEvents, CustomeSocket, InterServerEvents, ServerToClientEvents, SocketData } from "../types/socket-event";
+import { getLogger } from "../utils/Logger";
 
 const logger = getLogger("WebSocket");
 

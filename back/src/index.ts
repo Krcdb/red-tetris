@@ -4,7 +4,7 @@ import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
 
-import MyWebSocket from "./core/socket/websocket.js";
+import MyWebSocket from "./core/socket/websocket";
 
 const app = express();
 app.use(cors());

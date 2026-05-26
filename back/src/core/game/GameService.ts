@@ -1,9 +1,9 @@
-import { Game } from "../classes/Game.js";
-import MyWebSocket from "../socket/websocket.js";
-import { TetrisGameLoop } from "../tetris/TetrisGameLoop.js";
-import { InputDTO } from "../types/game.js";
-import { Player } from "../types/player.js";
-import { getLogger } from "../utils/Logger.js";
+import { Game } from "../classes/Game";
+import MyWebSocket from "../socket/websocket";
+import { TetrisGameLoop } from "../tetris/TetrisGameLoop";
+import { InputDTO } from "../types/game";
+import { Player } from "../types/player";
+import { getLogger } from "../utils/Logger";
 
 type GameLoops = Record<string, TetrisGameLoop>;
 

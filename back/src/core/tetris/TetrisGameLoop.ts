@@ -1,6 +1,6 @@
-import { gameService } from "../game/GameService.js";
-import MyWebSocket from "../socket/websocket.js";
-import { getLogger } from "../utils/Logger.js";
+import { gameService } from "../game/GameService";
+import MyWebSocket from "../socket/websocket";
+import { getLogger } from "../utils/Logger";
 
 export class TetrisGameLoop {
   private gameMode = "normal";

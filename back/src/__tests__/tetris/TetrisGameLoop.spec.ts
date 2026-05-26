@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TetrisGameLoop } from "../../core/tetris/TetrisGameLoop";
-import { gameService } from "../../core/game/GameService.js";
+import { gameService } from "../../core/game/GameService";
 
 const mockGame = {
   isRunning: true,
@@ -14,14 +14,14 @@ const mockGame = {
   stop: vi.fn(),
 };
 
-vi.mock("../../core/game/GameService.js", () => ({
+vi.mock("../../core/game/GameService", () => ({
   gameService: {
     getGame: vi.fn(() => mockGame),
     sendGameState: vi.fn(),
   },
 }));
 
-vi.mock("../../core/socket/websocket.js", () => {
+vi.mock("../../core/socket/websocket", () => {
   const mockIo = {
     emit: vi.fn(),
     to: vi.fn().mockReturnThis(),
@@ -33,7 +33,7 @@ vi.mock("../../core/socket/websocket.js", () => {
   };
 });
 
-vi.mock("../../core/utils/Logger.js", () => ({
+vi.mock("../../core/utils/Logger", () => ({
   getLogger: () => ({
     error: vi.fn(),
     info: vi.fn(),
