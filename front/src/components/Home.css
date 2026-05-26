@@ -189,6 +189,32 @@ body {
   color: #ff003c;
 }
 
+.input-hint {
+  margin: 0.25rem auto 0.5rem;
+  font-size: 0.5rem;
+  color: #888;
+  line-height: 1.4;
+}
+
+.form-error {
+  margin: 0.5rem auto;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.6rem;
+  color: #ff003c;
+  border: 2px solid #ff003c;
+  background: #1a0008;
+  border-radius: 0.25rem;
+  max-width: 250px;
+  line-height: 1.4;
+}
+
+.solo-hint {
+  margin-top: 1rem;
+  font-size: 0.6rem;
+  color: #00fff7;
+  line-height: 1.4;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .retro-form {

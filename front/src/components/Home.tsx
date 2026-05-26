@@ -7,9 +7,15 @@ import { socketService } from "../services/socketService";
 import "./Home.css";
 import { validateGameMode, GAME_MODE_INFO, GameMode } from "../utils/gameMode";
 
+const NAME_MAX_LENGTH = 16;
+// Reject only chars that break URL paths or are non-printable.
+// Everything else (accents, spaces, apostrophes, kanji, emoji, …) is fine.
+const FORBIDDEN_CHARS = /[/\\?#\x00-\x1F\x7F]/;
+
 const Home: React.FC = () => {
   const [room, setRoom] = useState("");
   const [name, setName] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
   const [selectedGameMode, setSelectedGameMode] = useState<GameMode>("normal");
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -31,13 +37,39 @@ const Home: React.FC = () => {
 
   const gameModes = Object.values(GAME_MODE_INFO);
 
+  const validateField = (label: string, value: string): string | null => {
+    if (!value) return `Please enter ${label}.`;
+    const capitalized = `${label.charAt(0).toUpperCase()}${label.slice(1)}`;
+    if (value.length > NAME_MAX_LENGTH) {
+      return `${capitalized} must be ${String(NAME_MAX_LENGTH)} characters or fewer.`;
+    }
+    if (FORBIDDEN_CHARS.test(value)) {
+      return `${capitalized} cannot contain / \\ ? # or control characters.`;
+    }
+    return null;
+  };
+
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!room || !name) return;
 
+    const trimmedRoom = room.trim();
+    const trimmedName = name.trim();
+
+    const roomError = validateField("a room name", trimmedRoom);
+    if (roomError) {
+      setFormError(roomError);
+      return;
+    }
+    const nameError = validateField("your name", trimmedName);
+    if (nameError) {
+      setFormError(nameError);
+      return;
+    }
+
+    setFormError(null);
     const validMode = validateGameMode(selectedGameMode);
 
-    navigate(`/${encodeURIComponent(room)}/${encodeURIComponent(name)}?mode=${validMode}`);
+    navigate(`/${encodeURIComponent(trimmedRoom)}/${encodeURIComponent(trimmedName)}?mode=${validMode}`);
   };
 
   const handleGameModeChange = (mode: string) => {
@@ -49,8 +81,33 @@ const Home: React.FC = () => {
     <div className="retro-container">
       <h1 className="retro-title">Red Tetris</h1>
       <form className="retro-form" onSubmit={onSubmit}>
-        <input className="retro-input" placeholder="Room name" value={room} onChange={(e) => setRoom(e.target.value)} />
-        <input className="retro-input" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} />
+        <input
+          className="retro-input"
+          placeholder="Room name"
+          value={room}
+          maxLength={NAME_MAX_LENGTH}
+          onChange={(e) => {
+            setRoom(e.target.value);
+            if (formError) setFormError(null);
+          }}
+        />
+        <input
+          className="retro-input"
+          placeholder="Your name"
+          value={name}
+          maxLength={NAME_MAX_LENGTH}
+          onChange={(e) => {
+            setName(e.target.value);
+            if (formError) setFormError(null);
+          }}
+        />
+        <p className="input-hint">Max {NAME_MAX_LENGTH} chars. Avoid / \ ? #.</p>
+
+        {formError && (
+          <p className="form-error" role="alert">
+            {formError}
+          </p>
+        )}
 
         <div className="game-mode-section">
           <h3 className="mode-title">Choose Game Mode:</h3>
@@ -71,6 +128,10 @@ const Home: React.FC = () => {
         <button className="retro-button" type="submit">
           Join / Create Game
         </button>
+
+        <p className="solo-hint">
+          Tip: to play alone, create a room and click Start while you're the only player.
+        </p>
       </form>
     </div>
   );
