@@ -96,4 +96,23 @@ describe("gameSlice", () => {
     expect(actual.score).toBe(500);
     expect(actual.linesCleared).toBe(10);
   });
+
+  it("should handle setPieces", () => {
+    const pieces = {
+      currentPiece: { shape: [[1]], type: "I", color: 1 },
+      nextPieces: [
+        { shape: [[2]], type: "O", color: 2 },
+        { shape: [[3]], type: "T", color: 3 },
+      ],
+    };
+
+    const actual = gameReducer(initialState, {
+      type: "game/setPieces",
+      payload: pieces,
+    });
+
+    expect(actual.currentPiece).toEqual(pieces.currentPiece);
+    expect(actual.nextPieces).toEqual(pieces.nextPieces);
+    expect(actual.needsNextPiece).toBe(false);
+  });
 });
