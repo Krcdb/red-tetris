@@ -39,9 +39,7 @@ describe("GameInfo", () => {
             name: "Opponent1",
             score: 500,
             linesCleared: 5,
-            board: Array(20)
-              .fill(null)
-              .map(() => Array(10).fill(0)),
+            spectrum: [0, 1, 2, 3, 4, 5, 6, 7, 8, 20],
           },
         ],
         // ...other required properties
@@ -52,5 +50,10 @@ describe("GameInfo", () => {
 
     expect(screen.getByText("Opponents")).toBeInTheDocument();
     expect(screen.getByText("Opponent1")).toBeInTheDocument();
+    // Spectrum view (subject §V.1): 10 column bars, not a full mirror grid.
+    expect(screen.getByLabelText("Opponent1 spectrum")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("Opponent1 spectrum").querySelectorAll(".spectrum-column"),
+    ).toHaveLength(10);
   });
 });

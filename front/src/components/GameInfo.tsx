@@ -98,15 +98,15 @@ export default function GameInfo() {
 							<p>Score: {formatScore(opponent.score)}</p>
 							<p>Lines: {opponent.linesCleared}</p>
 
-							<div className="mini-board">
-								{opponent.board.map((row, y) =>
-									row.map((cell, x) => (
+							<div className="spectrum" aria-label={`${opponent.name} spectrum`}>
+								{opponent.spectrum.map((height, x) => (
+									<div key={x} className="spectrum-column">
 										<div
-											key={`cell-${y}-${x}-${cell}`}
-											className={`mini-cell ${cell !== 0 ? "filled" : "empty"}`}
+											className="spectrum-bar"
+											style={{ height: `${String((height / 20) * 100)}%` }}
 										/>
-									)),
-								)}
+									</div>
+								))}
 							</div>
 						</div>
 					))}

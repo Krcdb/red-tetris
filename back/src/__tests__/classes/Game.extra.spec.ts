@@ -49,6 +49,41 @@ describe("Game (extra coverage)", () => {
     });
   });
 
+  describe("computeSpectrum", () => {
+    it("returns zeros for an empty grid", () => {
+      const empty = Array.from({ length: 20 }, () => new Array<number>(10).fill(0));
+      expect(Game.computeSpectrum(empty)).toEqual(new Array<number>(10).fill(0));
+    });
+
+    it("returns column heights measured from the topmost non-empty cell to the floor", () => {
+      const grid = Array.from({ length: 20 }, () => new Array<number>(10).fill(0));
+      // Column 0: topmost block at row 19 → height 1
+      grid[19][0] = 1;
+      // Column 3: topmost block at row 15 → height 5 (even with gaps below)
+      grid[15][3] = 1;
+      grid[18][3] = 1;
+      // Column 9: topmost block at row 0 → height 20 (full column)
+      for (let y = 0; y < 20; y++) grid[y][9] = 1;
+
+      expect(Game.computeSpectrum(grid)).toEqual([1, 0, 0, 5, 0, 0, 0, 0, 0, 20]);
+    });
+
+    it("is included in getGameState gamers entries", () => {
+      vi.spyOn(Piece, "generatePieceSequence").mockReturnValue(
+        makeDeterministicSequence(["T", "I", "L", "J", "S", "O"]),
+      );
+      const game = new Game("room1", ["Alice", "Bob"]);
+      // Drop a block on Alice's bottom-right cell.
+      const grid = Array.from({ length: 20 }, () => new Array<number>(10).fill(0));
+      grid[19][9] = 1;
+      game.players[0].updateGrid(grid);
+
+      const state = game.getGameState();
+      expect(state.gamers[0].spectrum).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+      expect(state.gamers[1].spectrum).toEqual(new Array<number>(10).fill(0));
+    });
+  });
+
   describe("areAllPlayersReady", () => {
     it("returns false until everyone is ready, then true", () => {
       vi.spyOn(Piece, "generatePieceSequence").mockReturnValue(

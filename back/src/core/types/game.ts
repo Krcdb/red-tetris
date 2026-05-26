@@ -53,6 +53,7 @@ export interface GameState {
     name: string;
     nextPieces: TetrisPiece[];
     score: number;
+    spectrum: number[];
   }[];
   isRunning: boolean;
   isSolo: boolean;

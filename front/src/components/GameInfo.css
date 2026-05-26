@@ -54,24 +54,31 @@
   margin: 2px 0;
 }
 
-.mini-board {
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  grid-template-rows: repeat(20, 1fr);
+.spectrum {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
   gap: 1px;
   margin-top: 4px;
   background-color: #111;
   width: 100%;
   max-width: 100px;
   height: 200px;
+  padding: 1px;
+  box-sizing: border-box;
 }
 
-.mini-cell.filled {
-  background-color: #00ffcc;
-}
-
-.mini-cell.empty {
+.spectrum-column {
+  flex: 1 1 0;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
   background-color: #222;
+}
+
+.spectrum-bar {
+  width: 100%;
+  background-color: #00ffcc;
 }
 
 .next-piece-preview {
@@ -101,7 +108,7 @@
     padding: 0.5rem;
   }
 
-  .mini-board {
+  .spectrum {
     max-width: 80px;
     height: 160px;
   }
@@ -112,7 +119,7 @@
     padding: 0.4rem;
   }
 
-  .mini-board {
+  .spectrum {
     max-width: 70px;
     height: 140px;
   }

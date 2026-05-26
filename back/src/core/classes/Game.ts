@@ -30,6 +30,21 @@ export class Game {
 		);
 	}
 
+	public static computeSpectrum(grid: number[][]): number[] {
+		const cols = grid[0]?.length ?? 10;
+		const rows = grid.length;
+		const spectrum: number[] = new Array<number>(cols).fill(0);
+		for (let x = 0; x < cols; x++) {
+			for (let y = 0; y < rows; y++) {
+				if (grid[y][x] !== 0) {
+					spectrum[x] = rows - y;
+					break;
+				}
+			}
+		}
+		return spectrum;
+	}
+
 	public areAllPlayersReady(): boolean {
 		const readyCount = this.players.filter((p) => p.isReady).length;
 		const totalCount = this.players.length;
@@ -55,6 +70,7 @@ export class Game {
 			name: string;
 			nextPieces: TetrisPiece[];
 			score: number;
+			spectrum: number[];
 		}[];
 		isRunning: boolean;
 		isSolo: boolean;
@@ -68,6 +84,7 @@ export class Game {
 				nextPieces: this.pieces
 					.slice(player.currentPieceIndex, player.currentPieceIndex + 5)
 					.map((p) => this.pieceToTetrisPiece(p)),
+				spectrum: Game.computeSpectrum(player.grid),
 			})),
 			isRunning: this.isRunning,
 			isSolo: this.isSolo,

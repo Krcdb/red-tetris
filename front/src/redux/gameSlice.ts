@@ -24,7 +24,7 @@ interface GameState {
 	playerName: string;
 	opponents: Array<{
 		name: string;
-		board: Board;
+		spectrum: number[];
 		score: number;
 		linesCleared: number;
 	}>;
@@ -93,6 +93,7 @@ const gameSlice = createSlice({
 					linesCleared?: number;
 					currentPiece?: Piece | null;
 					nextPieces?: Piece[];
+					spectrum?: number[];
 				}>;
 				currentPieceIndex?: number;
 				nextPieces?: Piece[];
@@ -150,14 +151,13 @@ const gameSlice = createSlice({
 			// Always update gamers array
 			state.gamers = serverState.gamers || [];
 
-			// Replace optional chaining around line 104
 			state.opponents =
 				serverState.gamers && Array.isArray(serverState.gamers)
 					? serverState.gamers
 							.filter(
 								(g: {
 									name: string;
-									grid?: Board;
+									spectrum?: number[];
 									score?: number;
 									linesCleared?: number;
 								}) => g.name !== state.playerName,
@@ -165,12 +165,12 @@ const gameSlice = createSlice({
 							.map(
 								(g: {
 									name: string;
-									grid?: Board;
+									spectrum?: number[];
 									score?: number;
 									linesCleared?: number;
 								}) => ({
 									name: g.name,
-									board: g.grid || initialBoard(),
+									spectrum: g.spectrum ?? new Array<number>(10).fill(0),
 									score: g.score || 0,
 									linesCleared: g.linesCleared || 0,
 								}),
