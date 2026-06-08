@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import type { RootState } from "../redux/store";
 import { socketService } from "../services/socketService";
 import { getGameModeDisplay, validateGameMode } from "../utils/gameMode";
-import "../routes/LobbyRoute.css";
+import "./LobbyView.css";
 
 export default function LobbyView() {
 	const navigate = useNavigate();

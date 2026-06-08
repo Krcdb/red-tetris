@@ -11,7 +11,7 @@ import GameBoard from "./GameBoard";
 import GameControls from "./GameControls";
 import GameInfo from "./GameInfo";
 import GameOverModal from "./GameOverModal";
-import "../routes/GameRoute.css";
+import "./GameView.css";
 
 export default function GameView() {
 	const navigate = useNavigate();
