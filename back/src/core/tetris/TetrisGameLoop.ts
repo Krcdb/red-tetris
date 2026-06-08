@@ -75,23 +75,26 @@ export class TetrisGameLoop {
     }
   }
 
-  private processGravity() {
+  /** Return the running game, or stop the loop and return null if it has ended. */
+  private getRunningGame() {
     const game = gameService.getGame(this.room);
     if (!game?.isRunning) {
       this.logger.info(`Game ${this.room} not running — stopping loop`);
       this.stop();
-      return;
+      return null;
     }
+    return game;
+  }
+
+  private processGravity() {
+    const game = this.getRunningGame();
+    if (!game) return;
     game.processGravity();
   }
 
   private processInputs() {
-    const game = gameService.getGame(this.room);
-    if (!game?.isRunning) {
-      this.logger.info(`Game ${this.room} not running — stopping loop`);
-      this.stop();
-      return;
-    }
+    const game = this.getRunningGame();
+    if (!game) return;
     game.processPlayerInputsOnly();
   }
 
