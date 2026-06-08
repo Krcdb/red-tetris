@@ -10,7 +10,7 @@ export class TetrisGameLoop {
   private logger = getLogger("TetrisGameLoop");
   private room: string;
 
-  constructor(initialGameState: unknown, room: string, gameMode?: string) {
+  constructor(room: string, gameMode?: string) {
     this.room = room;
     this.gameMode = gameMode ?? "normal";
     this.io = MyWebSocket.getInstance();
@@ -88,12 +88,8 @@ export class TetrisGameLoop {
     }
   }
 
-  private getGameMode(): string {
-    return this.gameMode;
-  }
-
   private getGravitySpeed(): number {
-    const gameMode = this.getGameMode();
+    const gameMode = this.gameMode;
     const game = gameService.getGame(this.room);
 
     switch (gameMode) {

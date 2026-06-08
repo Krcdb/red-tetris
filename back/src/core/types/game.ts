@@ -1,5 +1,3 @@
-import { Piece } from "../classes/Piece";
-
 export type Cell = number;
 
 export interface ClientGamer {
@@ -19,20 +17,6 @@ export interface ClientGameState {
   nextPieces: TetrisPiece[];
   pieceSequenceLength?: number;
   room: string;
-}
-
-export interface Gamer {
-  currentPiece: null | TetrisPiece;
-  currentPieceIndex?: number;
-  forcedFall?: boolean;
-  grid: Cell[][];
-  input: GamerInputs;
-  isReady: boolean;
-  linesCleared: number;
-  name: string;
-  needsNextPiece: boolean;
-  nextPieces: Piece[];
-  score: number;
 }
 
 export interface GamerInputs {

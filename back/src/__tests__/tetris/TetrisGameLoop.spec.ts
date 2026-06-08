@@ -61,13 +61,13 @@ describe("TetrisGameLoop", () => {
 
   describe("Constructor", () => {
     it("should initialize with default gameMode 'normal'", () => {
-      const loop = new TetrisGameLoop({}, "room1");
+      const loop = new TetrisGameLoop("room1");
       // @ts-expect-error private property for the test
       expect(loop.gameMode).toBe("normal");
     });
 
     it("should initialize with the specified gameMode", () => {
-      const loop = new TetrisGameLoop({}, "room1", "speed");
+      const loop = new TetrisGameLoop("room1", "speed");
       // @ts-expect-error private property for the test
       expect(loop.gameMode).toBe("speed");
     });
@@ -75,7 +75,7 @@ describe("TetrisGameLoop", () => {
 
   describe("start", () => {
     it("should set up two intervals: one for inputs and one for gravity", () => {
-      const loop = new TetrisGameLoop({}, "room1");
+      const loop = new TetrisGameLoop("room1");
       loop.start();
 
       expect(setInterval).toHaveBeenCalledTimes(2);
@@ -86,7 +86,7 @@ describe("TetrisGameLoop", () => {
     });
 
     it("should not start new intervals if the game is already running", () => {
-      const loop = new TetrisGameLoop({}, "room1");
+      const loop = new TetrisGameLoop("room1");
       loop.start();
       expect(setInterval).toHaveBeenCalledTimes(2);
 
@@ -99,7 +99,7 @@ describe("TetrisGameLoop", () => {
 
   describe("stop", () => {
     it("should clear all intervals", () => {
-      const loop = new TetrisGameLoop({}, "room1");
+      const loop = new TetrisGameLoop("room1");
       loop.start();
 
       loop.stop();
@@ -109,7 +109,7 @@ describe("TetrisGameLoop", () => {
 
   describe("Game Loop Execution", () => {
     it("should process inputs and send game state every 100ms", () => {
-      const loop = new TetrisGameLoop({}, "room1");
+      const loop = new TetrisGameLoop("room1");
       loop.start();
 
       vi.advanceTimersByTime(100);
@@ -125,7 +125,7 @@ describe("TetrisGameLoop", () => {
     });
 
     it("should process gravity and send game state every 500ms in normal mode", () => {
-      const loop = new TetrisGameLoop({}, "room1", "normal");
+      const loop = new TetrisGameLoop("room1", "normal");
       loop.start();
 
       vi.advanceTimersByTime(499);
@@ -139,7 +139,7 @@ describe("TetrisGameLoop", () => {
     });
 
     it("should stop itself if the game is no longer running", () => {
-      const loop = new TetrisGameLoop({}, "room1");
+      const loop = new TetrisGameLoop("room1");
       loop.start();
 
       mockGame.isRunning = false;
@@ -156,7 +156,7 @@ describe("TetrisGameLoop", () => {
         { name: "Alice", linesCleared: 20 },
         { name: "Bob", linesCleared: 30 },
       ];
-      const loop = new TetrisGameLoop({}, "room1", "speed");
+      const loop = new TetrisGameLoop("room1", "speed");
       loop.start();
 
       const expectedSpeed = 80;
@@ -167,7 +167,7 @@ describe("TetrisGameLoop", () => {
     });
 
     it("should dynamically update gravity speed as players clear more lines", () => {
-      const loop = new TetrisGameLoop({}, "room1", "speed");
+      const loop = new TetrisGameLoop("room1", "speed");
       loop.start();
 
       expect(setInterval).toHaveBeenLastCalledWith(expect.any(Function), 100);

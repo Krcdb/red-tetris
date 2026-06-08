@@ -1,16 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { type Board, initialBoard, type Piece } from "../utils/tetris";
 
-export interface GamerInputs {
-	up: boolean;
-	left: boolean;
-	right: boolean;
-	down: boolean;
-	space: boolean;
-	spaceHasBeenCounted: boolean;
-	upHasBeenCounted: boolean;
-}
-
 interface GameState {
 	board: Board;
 	currentPiece: Piece | null;

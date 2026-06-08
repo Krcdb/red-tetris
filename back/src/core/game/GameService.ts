@@ -90,7 +90,7 @@ class GameService {
     const gameMode = game.gameMode || "normal";
 
     this.logger.info(`Creating TetrisGameLoop for room ${room} with mode ${gameMode}`);
-    const loop = new TetrisGameLoop(game.getGameState(), room, gameMode);
+    const loop = new TetrisGameLoop(room, gameMode);
     this.gameLoops[room] = loop;
     loop.start();
   }

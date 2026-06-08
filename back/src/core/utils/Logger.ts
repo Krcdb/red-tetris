@@ -14,8 +14,6 @@ const baseLogger = createLogger({
   transports: [new transports.Console()],
 });
 
-export const logger = baseLogger;
-
 export function getLogger(context: string): WinstonLogger {
   return baseLogger.child({ context });
 }
