@@ -55,39 +55,6 @@ export class TetrisGameLoop {
     this.logger.info(`Game loop stopped for room ${this.room}`);
   }
 
-  /* -- Optional one-shot updater retained for flexibility (unused by .start()) -- */
-  updateGame() {
-    const game = gameService.getGame(this.room);
-    if (!game?.isRunning) {
-      this.stop();
-      return;
-    }
-
-    game.processPlayerActions();
-
-    // Define types for gamers and grid
-    interface Gamer {
-      grid: number[][];
-    }
-
-    interface GameState {
-      gamers?: Gamer[];
-    }
-
-    const gameState: GameState = game.getGameState() as GameState;
-    const hasGameOverPlayer = gameState.gamers?.some((g) =>
-      Array.from({ length: 2 }).some((_, row) =>
-        Array.from({ length: 10 }).some((_, col) => g.grid[row]?.[col] !== 0),
-      ),
-    );
-
-    if (hasGameOverPlayer) {
-      this.logger.info(`Game over detected in room ${this.room}`);
-      game.stop();
-      this.stop();
-    }
-  }
-
   private getGravitySpeed(): number {
     const gameMode = this.gameMode;
     const game = gameService.getGame(this.room);
