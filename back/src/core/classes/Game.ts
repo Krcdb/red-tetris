@@ -2,7 +2,7 @@ import type { InputDTO, TetrisPiece } from "../types/game";
 
 import MyWebSocket from "../socket/websocket";
 import { getLogger } from "../utils/Logger";
-import { PENALTY_CELL, clearLines } from "../utils/tetris";
+import { clearLines, PENALTY_CELL } from "../utils/tetris";
 import { Piece } from "./Piece";
 import { Player } from "./Player";
 

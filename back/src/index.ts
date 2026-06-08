@@ -18,7 +18,10 @@ app.use(express.static(FRONT_DIST));
 
 // SPA fallback: BrowserRouter paths like /:room/:playerName must return index.html.
 app.use((req, res, next) => {
-  if (req.method !== "GET") return next();
+  if (req.method !== "GET") {
+    next();
+    return;
+  }
   res.sendFile(path.join(FRONT_DIST, "index.html"));
 });
 
