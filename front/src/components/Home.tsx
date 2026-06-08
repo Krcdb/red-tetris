@@ -10,6 +10,7 @@ import { validateGameMode, GAME_MODE_INFO, GameMode } from "../utils/gameMode";
 const NAME_MAX_LENGTH = 16;
 // Reject only chars that break URL paths or are non-printable.
 // Everything else (accents, spaces, apostrophes, kanji, emoji, …) is fine.
+// eslint-disable-next-line no-control-regex
 const FORBIDDEN_CHARS = /[/\\?#\x00-\x1F\x7F]/;
 
 const Home: React.FC = () => {
